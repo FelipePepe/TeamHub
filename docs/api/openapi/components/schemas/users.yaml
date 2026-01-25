@@ -98,6 +98,15 @@ ChangePasswordRequest:
       type: string
       format: password
 
+ResetPasswordResponse:
+  type: object
+  required: [message, tempPassword]
+  properties:
+    message:
+      type: string
+    tempPassword:
+      type: string
+
 CargaUsuarioResponse:
   type: object
   properties:

@@ -25,6 +25,24 @@ schemas:
     $ref: './schemas/auth.yaml#/ForgotPasswordRequest'
   ResetPasswordRequest:
     $ref: './schemas/auth.yaml#/ResetPasswordRequest'
+  AuthChangePasswordRequest:
+    $ref: './schemas/auth.yaml#/AuthChangePasswordRequest'
+  AuthChangePasswordResponse:
+    $ref: './schemas/auth.yaml#/AuthChangePasswordResponse'
+  MfaBackupRequest:
+    $ref: './schemas/auth.yaml#/MfaBackupRequest'
+  MfaStatusResponse:
+    $ref: './schemas/auth.yaml#/MfaStatusResponse'
+  BackupCodesResponse:
+    $ref: './schemas/auth.yaml#/BackupCodesResponse'
+  RegenerateMfaRequest:
+    $ref: './schemas/auth.yaml#/RegenerateMfaRequest'
+  ResetMfaResponse:
+    $ref: './schemas/auth.yaml#/ResetMfaResponse'
+  UpdatePerfilRequest:
+    $ref: './schemas/auth.yaml#/UpdatePerfilRequest'
+  AvatarResponse:
+    $ref: './schemas/auth.yaml#/AvatarResponse'
 
   MessageResponse:
     $ref: './schemas/common.yaml#/MessageResponse'
@@ -47,6 +65,8 @@ schemas:
     $ref: './schemas/users.yaml#/ChangePasswordRequest'
   CargaUsuarioResponse:
     $ref: './schemas/users.yaml#/CargaUsuarioResponse'
+  ResetPasswordResponse:
+    $ref: './schemas/users.yaml#/ResetPasswordResponse'
 
   DepartamentoResponse:
     $ref: './schemas/departamentos.yaml#/DepartamentoResponse'
@@ -98,6 +118,8 @@ schemas:
     $ref: './schemas/procesos.yaml#/UpdateTareaOnboardingRequest'
   CompleteTareaRequest:
     $ref: './schemas/procesos.yaml#/CompleteTareaRequest'
+  RejectTareaRequest:
+    $ref: './schemas/procesos.yaml#/RejectTareaRequest'
   ProcesoStatsResponse:
     $ref: './schemas/procesos.yaml#/ProcesoStatsResponse'
 
@@ -136,6 +158,8 @@ schemas:
     $ref: './schemas/timetracking.yaml#/RejectTimetrackingRequest'
   BulkApproveTimetrackingRequest:
     $ref: './schemas/timetracking.yaml#/BulkApproveTimetrackingRequest'
+  BulkRejectTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/BulkRejectTimetrackingRequest'
   CopyTimetrackingRequest:
     $ref: './schemas/timetracking.yaml#/CopyTimetrackingRequest'
   CopyTimetrackingResponse:

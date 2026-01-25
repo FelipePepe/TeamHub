@@ -242,6 +242,33 @@
             schema:
               $ref: '../components/index.yaml#/schemas/ErrorResponse'
 
+/timetracking/mes/{fecha}:
+  get:
+    tags: [Timetracking]
+    summary: Month time entries
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: fecha
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Month time entries
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
 /timetracking/{id}/aprobar:
   patch:
     tags: [Timetracking]
@@ -341,6 +368,39 @@
     responses:
       '200':
         description: Bulk approval done
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/rechazar-masivo:
+  post:
+    tags: [Timetracking]
+    summary: Bulk reject time entries
+    description: Reject multiple time entries (requires comment).
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/BulkRejectTimetrackingRequest'
+    responses:
+      '200':
+        description: Bulk rejection done
         content:
           application/json:
             schema:

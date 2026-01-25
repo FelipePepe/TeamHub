@@ -6,18 +6,26 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import swaggerUiDist from 'swagger-ui-dist';
-import { errorHandler } from './middleware/error-handler';
-import { securityHeaders } from './middleware/security-headers';
-import { createRateLimiter, getRateLimitIp } from './middleware/rate-limit';
-import { config } from './config/env';
-import { apiRoutes } from './routes';
-import { verifyAccessToken } from './services/auth-service';
+import { errorHandler } from './middleware/error-handler.js';
+import { securityHeaders } from './middleware/security-headers.js';
+import { createRateLimiter, getRateLimitIp } from './middleware/rate-limit.js';
+import { config } from './config/env.js';
+import { apiRoutes } from './routes/index.js';
+import { verifyAccessToken } from './services/auth-service.js';
+import type { HonoEnv } from './types/hono.js';
 
-const app = new Hono();
-const swaggerAssetsPath =
-  typeof swaggerUiDist.getAbsoluteFSPath === 'function'
-    ? swaggerUiDist.getAbsoluteFSPath()
-    : swaggerUiDist.absolutePath;
+const app = new Hono<HonoEnv>();
+
+const getSwaggerAssetsPath = (): string => {
+  if (typeof swaggerUiDist.getAbsoluteFSPath === 'function') {
+    return swaggerUiDist.getAbsoluteFSPath();
+  }
+  if (typeof swaggerUiDist.absolutePath === 'function') {
+    return swaggerUiDist.absolutePath();
+  }
+  return swaggerUiDist.absolutePath;
+};
+const swaggerAssetsPath = getSwaggerAssetsPath();
 const resolveRepoRoot = () => {
   let current = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
   while (true) {

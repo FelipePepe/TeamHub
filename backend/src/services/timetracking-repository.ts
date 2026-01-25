@@ -1,6 +1,6 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
-import { db } from '../db';
-import { timetracking, type NewTimetracking } from '../db/schema/timetracking';
+import { db } from '../db/index.js';
+import { timetracking, type NewTimetracking } from '../db/schema/timetracking.js';
 
 type TimetrackingFilters = {
   usuarioId?: string;

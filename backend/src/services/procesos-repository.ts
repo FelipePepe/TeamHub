@@ -1,11 +1,11 @@
 import { and, eq, inArray } from 'drizzle-orm';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import {
   procesosOnboarding,
   tareasOnboarding,
   type NewProcesoOnboarding,
   type NewTareaOnboarding,
-} from '../db/schema/procesos';
+} from '../db/schema/procesos.js';
 
 export const listProcesos = async (filters?: {
   estado?: string;

@@ -7,7 +7,7 @@ import {
   jsonb,
   index,
 } from 'drizzle-orm/pg-core';
-import { auditOperationEnum } from './enums';
+import { auditOperationEnum } from './enums.js';
 
 // ============================================================================
 // AUDIT_LOG - Registro de auditoría de todas las operaciones

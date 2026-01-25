@@ -2,11 +2,11 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
 import { and, eq, isNull } from 'drizzle-orm';
-import { config } from '../config/env';
-import { BUSINESS_RULES } from '../shared/constants/business-rules';
-import { createId } from '../store';
-import { db } from '../db';
-import { passwordResetTokens, refreshTokens } from '../db/schema/users';
+import { config } from '../config/env.js';
+import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
+import { createId } from '../store/index.js';
+import { db } from '../db/index.js';
+import { passwordResetTokens, refreshTokens } from '../db/schema/users.js';
 
 type AuthUser = {
   id: string;

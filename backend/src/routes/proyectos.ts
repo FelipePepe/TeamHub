@@ -1,14 +1,15 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { authMiddleware } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
-import { dateSchema, uuidSchema } from '../validators/common';
-import { toAsignacionResponse, toProyectoResponse } from '../services/mappers';
-import { db } from '../db';
-import { asignaciones, proyectos } from '../db/schema/proyectos';
-import type { User } from '../db/schema/users';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
+import { dateSchema, uuidSchema } from '../validators/common.js';
+import { toAsignacionResponse, toProyectoResponse } from '../services/mappers.js';
+import { db } from '../db/index.js';
+import { asignaciones, proyectos } from '../db/schema/proyectos.js';
+import type { User } from '../db/schema/users.js';
 import {
   createAsignacion,
   createProyecto,
@@ -19,7 +20,7 @@ import {
   listProyectos,
   updateAsignacionById,
   updateProyectoById,
-} from '../services/proyectos-repository';
+} from '../services/proyectos-repository.js';
 
 const estados = ['PLANIFICACION', 'ACTIVO', 'PAUSADO', 'COMPLETADO', 'CANCELADO'] as const;
 const prioridades = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const;
@@ -99,7 +100,7 @@ const toNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export const proyectosRoutes = new Hono();
+export const proyectosRoutes = new Hono<HonoEnv>();
 
 proyectosRoutes.use('*', authMiddleware);
 

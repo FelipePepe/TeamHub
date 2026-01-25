@@ -1,14 +1,15 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
-import { optionalBooleanFromString, uuidSchema } from '../validators/common';
-import { db } from '../db';
-import { plantillasOnboarding, tareasPlantilla } from '../db/schema/plantillas';
-import type { PlantillaOnboarding } from '../db/schema/plantillas';
-import type { User } from '../db/schema/users';
-import { toPlantillaResponse, toTareaPlantillaResponse } from '../services/mappers';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
+import { optionalBooleanFromString, uuidSchema } from '../validators/common.js';
+import { db } from '../db/index.js';
+import { plantillasOnboarding, tareasPlantilla } from '../db/schema/plantillas.js';
+import type { PlantillaOnboarding } from '../db/schema/plantillas.js';
+import type { User } from '../db/schema/users.js';
+import { toPlantillaResponse, toTareaPlantillaResponse } from '../services/mappers.js';
 import {
   createPlantilla,
   createTareaPlantilla,
@@ -19,7 +20,7 @@ import {
   listTareasByPlantillaId,
   updatePlantillaById,
   updateTareaPlantillaById,
-} from '../services/plantillas-repository';
+} from '../services/plantillas-repository.js';
 import { and, eq, inArray } from 'drizzle-orm';
 
 const roles = ['ADMIN', 'RRHH', 'MANAGER', 'EMPLEADO'] as const;
@@ -80,7 +81,7 @@ const tareaIdSchema = z.object({
   tareaId: uuidSchema,
 });
 
-export const plantillasRoutes = new Hono();
+export const plantillasRoutes = new Hono<HonoEnv>();
 
 plantillasRoutes.use('*', authMiddleware);
 

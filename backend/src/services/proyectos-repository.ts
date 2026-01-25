@@ -1,6 +1,6 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
-import { db } from '../db';
-import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos';
+import { db } from '../db/index.js';
+import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos.js';
 
 type ProyectoFilters = {
   estado?: string;

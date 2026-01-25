@@ -1,11 +1,11 @@
 import { and, eq, isNotNull, isNull } from 'drizzle-orm';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import {
   plantillasOnboarding,
   tareasPlantilla,
   type NewPlantillaOnboarding,
   type NewTareaPlantilla,
-} from '../db/schema/plantillas';
+} from '../db/schema/plantillas.js';
 
 export const listPlantillas = async (filters?: {
   departamentoId?: string;

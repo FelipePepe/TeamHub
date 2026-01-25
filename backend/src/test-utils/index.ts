@@ -1,6 +1,7 @@
 import type { Hono } from 'hono';
+import type { HonoEnv } from '../types/hono.js';
 import dotenv from 'dotenv';
-import { store } from '../store';
+import { store } from '../store/index.js';
 const TEST_ENV: Record<string, string> = {
   NODE_ENV: 'test',
   PORT: '3001',
@@ -98,7 +99,7 @@ export const findUserByEmail = async (email: string) => {
 };
 
 export const loginWithMfa = async (
-  app: Hono,
+  app: Hono<HonoEnv>,
   email: string,
   password: string
 ) => {
@@ -118,7 +119,7 @@ export const loginWithMfa = async (
   });
   const setupBody = await setupResponse.json();
 
-  const { generateTotpCode } = await import('../services/mfa-service');
+  const { generateTotpCode } = await import('../services/mfa-service.js');
   const code = generateTotpCode(setupBody.secret as string);
   const verifyResponse = await app.request('/api/auth/mfa/verify', {
     method: 'POST',

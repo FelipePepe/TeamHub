@@ -7,7 +7,7 @@ import {
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { users } from './users';
+import { users } from './users.js';
 
 // ============================================================================
 // DEPARTAMENTOS - Departamentos de la empresa

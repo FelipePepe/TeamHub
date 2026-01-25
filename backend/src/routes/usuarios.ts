@@ -1,23 +1,24 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware, requireRoles } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
+import { authMiddleware, requireRoles } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
 import {
   emailSchema,
   optionalBooleanFromString,
   optionalNumberFromString,
   uuidSchema,
-} from '../validators/common';
-import { passwordSchema } from '../validators/auth';
-import { hashPassword, verifyPassword } from '../services/auth-service';
-import { toProyectoResponse, toUserResponse } from '../services/mappers';
-import { users } from '../db/schema/users';
-import { asignaciones, proyectos } from '../db/schema/proyectos';
-import { db } from '../db';
+} from '../validators/common.js';
+import { passwordSchema } from '../validators/auth.js';
+import { hashPassword, verifyPassword } from '../services/auth-service.js';
+import { toProyectoResponse, toUserResponse } from '../services/mappers.js';
+import { users } from '../db/schema/users.js';
+import { asignaciones, proyectos } from '../db/schema/proyectos.js';
+import { db } from '../db/index.js';
 import { and, eq, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
-import type { User } from '../db/schema/users';
-import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/users-repository';
+import type { User } from '../db/schema/users.js';
+import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/users-repository.js';
 
 const roles = ['ADMIN', 'RRHH', 'MANAGER', 'EMPLEADO'] as const;
 
@@ -78,7 +79,7 @@ const requireSelfOrPrivileged = (currentUser: User, targetId: string) => {
   }
 };
 
-export const usuariosRoutes = new Hono();
+export const usuariosRoutes = new Hono<HonoEnv>();
 
 const buildUserFilters = (query: z.infer<typeof listQuerySchema>) => {
   const filters = [];

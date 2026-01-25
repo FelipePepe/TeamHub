@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 const cspDirectives = [
   "default-src 'none'",

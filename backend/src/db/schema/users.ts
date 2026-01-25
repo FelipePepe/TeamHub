@@ -9,7 +9,7 @@ import {
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { userRoleEnum } from './enums';
+import { userRoleEnum } from './enums.js';
 
 // ============================================================================
 // USERS - Tabla principal de usuarios

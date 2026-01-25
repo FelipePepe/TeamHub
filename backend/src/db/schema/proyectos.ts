@@ -10,8 +10,8 @@ import {
   uniqueIndex,
   unique,
 } from 'drizzle-orm/pg-core';
-import { projectStatusEnum, priorityEnum } from './enums';
-import { users } from './users';
+import { projectStatusEnum, priorityEnum } from './enums.js';
+import { users } from './users.js';
 
 // ============================================================================
 // PROYECTOS - Proyectos de la empresa

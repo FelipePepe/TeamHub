@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync } from 'node:crypto';
-import { config } from '../config/env';
-import { BUSINESS_RULES } from '../shared/constants/business-rules';
+import { config } from '../config/env.js';
+import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;

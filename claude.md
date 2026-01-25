@@ -76,5 +76,43 @@ Al resumir cambios para perfiles no técnicos:
 *   **Prohibido el Jargon:** No hables de "re-renders" o "hooks"; habla de "velocidad", "fiabilidad" e "impacto en conversión".
 *   **Enfoque en ROI:** Traduce mejoras técnicas en beneficios de negocio (ej: "reducción del tiempo de carga en un 20%").
 
+## 9. Flujo de Trabajo para Cambios (Checklist)
+Seguir este orden estricto para cualquier modificación:
+
+### Paso 1: Preparar Rama
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b <tipo>/<descripcion>  # feature/, bugfix/, hotfix/
+```
+
+### Paso 2: Implementar Cambios
+1.  Realizar las modificaciones de código necesarias.
+2.  Ejecutar tests: `npm run test` (backend/frontend).
+3.  Ejecutar linting: `npm run lint`.
+4.  Verificar que no hay errores ni warnings.
+
+### Paso 3: Documentar
+1.  Actualizar `docs/decisiones.md` si aplica (nuevo ADR o actualización de progreso).
+2.  Añadir/actualizar **JSDoc/TSDoc** en funciones modificadas.
+3.  Actualizar **Storybook** si se modifican componentes UI.
+4.  Actualizar **openapi.yaml** si se modifican endpoints.
+
+### Paso 4: Commit y Push
+```bash
+git add .
+git commit -m "<tipo>(<scope>): <descripción>"  # Conventional Commits
+git push origin <rama>
+```
+
+### Paso 5: Pull Request
+1.  Crear PR hacia `develop` (o `main` para hotfix).
+2.  Esperar CI verde (lint, tests, build).
+3.  Solicitar review si es requerido.
+
+### Paso 6: Post-Merge
+1.  Eliminar rama local: `git branch -d <rama>`.
+2.  Actualizar develop local: `git checkout develop && git pull`.
+
 ---
 *Este agente opera bajo el Model Context Protocol (MCP) para acceder a herramientas del sistema de archivos y APIs de forma segura.*

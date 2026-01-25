@@ -177,7 +177,12 @@ authRoutes.post('/login', async (c) => {
   if (!user) {
     const totalUsers = await countUsers();
     if (totalUsers === 0) {
-    user = await bootstrapUser(payload.email, payload.password);
+      // Bootstrap requires BOOTSTRAP_TOKEN header for security
+      const bootstrapToken = c.req.header('X-Bootstrap-Token');
+      if (!config.BOOTSTRAP_TOKEN || bootstrapToken !== config.BOOTSTRAP_TOKEN) {
+        throw new HTTPException(403, { message: 'Bootstrap no autorizado' });
+      }
+      user = await bootstrapUser(payload.email, payload.password);
     }
   }
 

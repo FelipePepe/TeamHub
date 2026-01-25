@@ -1,0 +1,57 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# ============================================================================
+# Commit Message Validation (Conventional Commits)
+# ============================================================================
+# Format: tipo(scope): descripción
+# Types: feat, fix, docs, style, refactor, test, chore
+# ============================================================================
+
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file")
+
+# Regex for Conventional Commits
+# Allows: feat(auth): add login, fix: resolve bug, docs: update readme
+conventional_regex="^(feat|fix|docs|style|refactor|test|chore)(\([a-zA-Z0-9_-]+\))?: .{3,}"
+
+# Allow merge commits
+merge_regex="^Merge "
+
+# Allow revert commits
+revert_regex="^Revert "
+
+if echo "$commit_msg" | grep -qE "$merge_regex"; then
+  exit 0
+fi
+
+if echo "$commit_msg" | grep -qE "$revert_regex"; then
+  exit 0
+fi
+
+if ! echo "$commit_msg" | grep -qE "$conventional_regex"; then
+  echo ""
+  echo "❌ ERROR: Commit message does not follow Conventional Commits format"
+  echo ""
+  echo "Expected format: tipo(scope): descripción"
+  echo ""
+  echo "Valid types:"
+  echo "  feat     - Nueva funcionalidad"
+  echo "  fix      - Corrección de bug"
+  echo "  docs     - Cambios en documentación"
+  echo "  style    - Formato (sin cambios de lógica)"
+  echo "  refactor - Refactorización"
+  echo "  test     - Añadir o modificar tests"
+  echo "  chore    - Tareas de mantenimiento"
+  echo ""
+  echo "Examples:"
+  echo "  feat(auth): add MFA backup codes support"
+  echo "  fix(api): resolve null pointer in user service"
+  echo "  docs: update README with setup instructions"
+  echo ""
+  echo "Your message: $commit_msg"
+  echo ""
+  exit 1
+fi
+
+exit 0

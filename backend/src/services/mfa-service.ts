@@ -4,7 +4,6 @@ import { BUSINESS_RULES } from '../shared/constants/business-rules';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const AUTH_TAG_LENGTH = 16;
 
 const deriveKey = () => scryptSync(config.MFA_ENCRYPTION_KEY, 'mfa-salt', 32);
 

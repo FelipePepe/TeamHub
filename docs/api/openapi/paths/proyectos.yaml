@@ -1,0 +1,477 @@
+/proyectos:
+  get:
+    tags: [Proyectos]
+    summary: List projects
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: estado
+        schema:
+          type: string
+          enum: [PLANIFICACION, ACTIVO, PAUSADO, COMPLETADO, CANCELADO]
+      - in: query
+        name: managerId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: cliente
+        schema:
+          type: string
+      - in: query
+        name: fechaInicio
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fechaFin
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Projects list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  post:
+    tags: [Proyectos]
+    summary: Create project
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CreateProyectoRequest'
+    responses:
+      '201':
+        description: Project created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/mis-proyectos:
+  get:
+    tags: [Proyectos]
+    summary: My projects
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: My projects
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}:
+  get:
+    tags: [Proyectos]
+    summary: Get project by id
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Project detail
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Proyectos]
+    summary: Update project
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateProyectoRequest'
+    responses:
+      '200':
+        description: Project updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Proyectos]
+    summary: Delete project (soft delete)
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Project deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}/estado:
+  patch:
+    tags: [Proyectos]
+    summary: Change project status
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateProyectoEstadoRequest'
+    responses:
+      '200':
+        description: Project status updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}/estadisticas:
+  get:
+    tags: [Proyectos]
+    summary: Project statistics
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Project stats
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProyectoStatsResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}/asignaciones:
+  get:
+    tags: [Asignaciones]
+    summary: List project assignments
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Assignments list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AsignacionListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  post:
+    tags: [Asignaciones]
+    summary: Create assignment
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CreateAsignacionRequest'
+    responses:
+      '201':
+        description: Assignment created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AsignacionResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}/asignaciones/{asigId}:
+  get:
+    tags: [Asignaciones]
+    summary: Get assignment by id
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: asigId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Assignment
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AsignacionResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Asignaciones]
+    summary: Update assignment
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: asigId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateAsignacionRequest'
+    responses:
+      '200':
+        description: Assignment updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AsignacionResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Asignaciones]
+    summary: Delete assignment
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: asigId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Assignment deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/proyectos/{id}/asignaciones/{asigId}/finalizar:
+  patch:
+    tags: [Asignaciones]
+    summary: Finish assignment
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: asigId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Assignment finished
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AsignacionResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

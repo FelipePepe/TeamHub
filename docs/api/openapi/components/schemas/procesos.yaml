@@ -1,0 +1,188 @@
+ProcesoResponse:
+  type: object
+  required: [id, empleadoId, plantillaId, fechaInicio, estado]
+  properties:
+    id:
+      type: string
+      format: uuid
+    empleadoId:
+      type: string
+      format: uuid
+    plantillaId:
+      type: string
+      format: uuid
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEsperada:
+      type: string
+      format: date
+    fechaFinReal:
+      type: string
+      format: date
+    estado:
+      type: string
+      enum: [EN_CURSO, COMPLETADO, CANCELADO, PAUSADO]
+    progreso:
+      type: number
+    notas:
+      type: string
+    iniciadoPor:
+      type: string
+      format: uuid
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+ProcesoDetailResponse:
+  allOf:
+    - $ref: '../index.yaml#/schemas/ProcesoResponse'
+    - type: object
+      properties:
+        tareas:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/TareaOnboardingResponse'
+
+ProcesoListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/ProcesoResponse'
+
+TareaOnboardingResponse:
+  type: object
+  required: [id, procesoId, titulo, categoria, responsableId, estado]
+  properties:
+    id:
+      type: string
+      format: uuid
+    procesoId:
+      type: string
+      format: uuid
+    tareaPlantillaId:
+      type: string
+      format: uuid
+    titulo:
+      type: string
+    descripcion:
+      type: string
+    categoria:
+      type: string
+      enum: [DOCUMENTACION, EQUIPAMIENTO, ACCESOS, FORMACION, REUNIONES, ADMINISTRATIVO]
+    responsableId:
+      type: string
+      format: uuid
+    fechaLimite:
+      type: string
+      format: date
+    estado:
+      type: string
+      enum: [PENDIENTE, EN_PROGRESO, COMPLETADA, BLOQUEADA, CANCELADA]
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, URGENTE]
+    completadaAt:
+      type: string
+      format: date-time
+    completadaPor:
+      type: string
+      format: uuid
+    notas:
+      type: string
+    evidenciaUrl:
+      type: string
+    comentariosRechazo:
+      type: string
+    orden:
+      type: integer
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+TareaOnboardingListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TareaOnboardingResponse'
+
+CreateProcesoRequest:
+  type: object
+  required: [empleadoId, plantillaId, fechaInicio]
+  properties:
+    empleadoId:
+      type: string
+      format: uuid
+    plantillaId:
+      type: string
+      format: uuid
+    fechaInicio:
+      type: string
+      format: date
+
+UpdateProcesoRequest:
+  type: object
+  properties:
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEsperada:
+      type: string
+      format: date
+    notas:
+      type: string
+    estado:
+      type: string
+      enum: [EN_CURSO, COMPLETADO, CANCELADO, PAUSADO]
+
+CancelProcesoRequest:
+  type: object
+  properties:
+    motivo:
+      type: string
+
+UpdateTareaOnboardingRequest:
+  type: object
+  properties:
+    estado:
+      type: string
+      enum: [PENDIENTE, EN_PROGRESO, COMPLETADA, BLOQUEADA, CANCELADA]
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, URGENTE]
+    notas:
+      type: string
+
+CompleteTareaRequest:
+  type: object
+  properties:
+    evidenciaUrl:
+      type: string
+    notas:
+      type: string
+
+ProcesoStatsResponse:
+  type: object
+  properties:
+    total:
+      type: integer
+    enCurso:
+      type: integer
+    completados:
+      type: integer
+    cancelados:
+      type: integer
+    pausados:
+      type: integer

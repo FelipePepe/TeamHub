@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+set -e
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+"$ROOT_DIR/scripts/validate-openapi.sh"
+
+if [ -f "$ROOT_DIR/backend/package.json" ]; then
+  (cd "$ROOT_DIR/backend" && npm run lint && npm run type-check && npm run test)
+fi
+
+if [ -f "$ROOT_DIR/frontend/package.json" ]; then
+  (cd "$ROOT_DIR/frontend" && npm run lint && npm run type-check && npm run test)
+fi

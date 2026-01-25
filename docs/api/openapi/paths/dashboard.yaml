@@ -1,0 +1,79 @@
+/dashboard/admin:
+  get:
+    tags: [Dashboard]
+    summary: Admin dashboard metrics
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Admin dashboard
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/DashboardAdminResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/dashboard/rrhh:
+  get:
+    tags: [Dashboard]
+    summary: RRHH dashboard metrics
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: RRHH dashboard
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/DashboardRrhhResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/dashboard/manager:
+  get:
+    tags: [Dashboard]
+    summary: Manager dashboard metrics
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Manager dashboard
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/DashboardManagerResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/dashboard/empleado:
+  get:
+    tags: [Dashboard]
+    summary: Employee dashboard metrics
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Employee dashboard
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/DashboardEmpleadoResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

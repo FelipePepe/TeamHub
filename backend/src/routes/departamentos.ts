@@ -1,0 +1,189 @@
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import { z } from 'zod';
+import { authMiddleware } from '../middleware/auth';
+import { parseJson, parseParams, parseQuery } from '../validators/parse';
+import { optionalBooleanFromString, uuidSchema } from '../validators/common';
+import { toDepartamentoResponse, toUserResponse } from '../services/mappers';
+import { db } from '../db';
+import { departamentos } from '../db/schema/departamentos';
+import { users } from '../db/schema/users';
+import { and, eq, ilike, isNotNull, isNull, or } from 'drizzle-orm';
+import type { Departamento } from '../db/schema/departamentos';
+import {
+  createDepartamento,
+  findDepartamentoById,
+  findDepartamentoByNombreOrCodigo,
+  findDepartamentoByNombreOrCodigoExcludingId,
+  updateDepartamentoById,
+} from '../services/departamentos-repository';
+
+const listQuerySchema = z.object({
+  search: z.string().optional(),
+  activo: optionalBooleanFromString,
+});
+
+const createDepartamentoSchema = z.object({
+  nombre: z.string().min(1),
+  codigo: z.string().min(1),
+  descripcion: z.string().optional(),
+  responsableId: uuidSchema.optional(),
+  color: z.string().optional(),
+});
+
+const updateDepartamentoSchema = z.object({
+  nombre: z.string().min(1).optional(),
+  codigo: z.string().min(1).optional(),
+  descripcion: z.string().optional(),
+  responsableId: uuidSchema.optional(),
+  color: z.string().optional(),
+  activo: z.boolean().optional(),
+});
+
+const idParamsSchema = z.object({
+  id: uuidSchema,
+});
+
+export const departamentosRoutes = new Hono();
+
+departamentosRoutes.use('*', authMiddleware);
+
+const buildDepartamentoFilters = (query: z.infer<typeof listQuerySchema>) => {
+  const filters = [];
+  if (query.search) {
+    const search = `%${query.search}%`;
+    filters.push(or(ilike(departamentos.nombre, search), ilike(departamentos.codigo, search)));
+  }
+  if (query.activo !== undefined) {
+    filters.push(query.activo ? isNull(departamentos.deletedAt) : isNotNull(departamentos.deletedAt));
+  }
+  return filters;
+};
+
+departamentosRoutes.get('/', async (c) => {
+  const query = parseQuery(c, listQuerySchema);
+  const filters = buildDepartamentoFilters(query);
+  const whereClause = filters.length ? and(...filters) : undefined;
+  let queryBuilder = db.select().from(departamentos);
+  if (whereClause) {
+    queryBuilder = queryBuilder.where(whereClause);
+  }
+  const list = await queryBuilder;
+
+  return c.json({ data: list.map(toDepartamentoResponse) });
+});
+
+departamentosRoutes.post('/', async (c) => {
+  const payload = await parseJson(c, createDepartamentoSchema);
+  const existing = await findDepartamentoByNombreOrCodigo(payload.nombre, payload.codigo);
+  if (existing) {
+    throw new HTTPException(400, { message: 'El departamento ya existe' });
+  }
+  const now = new Date();
+  const departamento: Departamento | null = await createDepartamento({
+    nombre: payload.nombre,
+    codigo: payload.codigo,
+    descripcion: payload.descripcion,
+    responsableId: payload.responsableId,
+    color: payload.color,
+    deletedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  if (!departamento) {
+    throw new HTTPException(500, { message: 'Error al crear departamento' });
+  }
+
+  return c.json(toDepartamentoResponse(departamento), 201);
+});
+
+departamentosRoutes.get('/:id', async (c) => {
+  const { id } = parseParams(c, idParamsSchema);
+  const departamento = await findDepartamentoById(id);
+  if (!departamento) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+  return c.json(toDepartamentoResponse(departamento));
+});
+
+departamentosRoutes.put('/:id', async (c) => {
+  const { id } = parseParams(c, idParamsSchema);
+  const payload = await parseJson(c, updateDepartamentoSchema);
+  const departamento = await findDepartamentoById(id);
+  if (!departamento) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+
+  const conflict = await findDepartamentoByNombreOrCodigoExcludingId(
+    payload.nombre,
+    payload.codigo,
+    id
+  );
+  if (conflict) {
+    throw new HTTPException(400, { message: 'El departamento ya existe' });
+  }
+
+  const { activo, ...rest } = payload;
+  const updates: Partial<Departamento> = {
+    ...rest,
+    updatedAt: new Date(),
+  };
+  if (activo !== undefined) {
+    updates.deletedAt = activo ? null : new Date();
+  }
+  const updated = await updateDepartamentoById(id, updates);
+  if (!updated) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+
+  return c.json(toDepartamentoResponse(updated));
+});
+
+departamentosRoutes.delete('/:id', async (c) => {
+  const { id } = parseParams(c, idParamsSchema);
+  const departamento = await findDepartamentoById(id);
+  if (!departamento) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+  await updateDepartamentoById(id, { deletedAt: new Date(), updatedAt: new Date() });
+  return c.json({ message: 'Departamento desactivado' });
+});
+
+departamentosRoutes.get('/:id/empleados', async (c) => {
+  const { id } = parseParams(c, idParamsSchema);
+  const departamento = await findDepartamentoById(id);
+  if (!departamento) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+
+  const empleados = await db
+    .select()
+    .from(users)
+    .where(eq(users.departamentoId, id));
+
+  return c.json({ data: empleados.map(toUserResponse) });
+});
+
+departamentosRoutes.get('/:id/estadisticas', async (c) => {
+  const { id } = parseParams(c, idParamsSchema);
+  const departamento = await findDepartamentoById(id);
+  if (!departamento) {
+    throw new HTTPException(404, { message: 'No encontrado' });
+  }
+
+  const empleados = await db
+    .select({ id: users.id, rol: users.rol })
+    .from(users)
+    .where(eq(users.departamentoId, id));
+
+  const empleadosPorRol = empleados.reduce<Record<string, number>>((acc, user) => {
+    acc[user.rol] = (acc[user.rol] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return c.json({
+    totalEmpleados: empleados.length,
+    empleadosPorRol,
+    onboardingsActivos: 0,
+  });
+});

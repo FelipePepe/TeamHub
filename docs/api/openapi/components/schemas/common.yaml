@@ -1,0 +1,27 @@
+MessageResponse:
+  type: object
+  required: [message]
+  properties:
+    message:
+      type: string
+
+ErrorDetail:
+  type: object
+  properties:
+    path:
+      type: string
+    message:
+      type: string
+
+ErrorResponse:
+  type: object
+  required: [error]
+  properties:
+    error:
+      type: string
+    code:
+      type: string
+    details:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/ErrorDetail'

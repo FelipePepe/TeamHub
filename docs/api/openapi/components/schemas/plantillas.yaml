@@ -1,0 +1,218 @@
+PlantillaResponse:
+  type: object
+  required: [id, nombre, activo]
+  properties:
+    id:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    descripcion:
+      type: string
+    departamentoId:
+      type: string
+      format: uuid
+    rolDestino:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    duracionEstimadaDias:
+      type: integer
+    activo:
+      type: boolean
+    createdBy:
+      type: string
+      format: uuid
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+PlantillaDetailResponse:
+  allOf:
+    - $ref: '../index.yaml#/schemas/PlantillaResponse'
+    - type: object
+      properties:
+        tareas:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/TareaPlantillaResponse'
+
+PlantillaListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/PlantillaResponse'
+
+TareaPlantillaResponse:
+  type: object
+  required: [id, plantillaId, titulo, categoria, responsableTipo, orden]
+  properties:
+    id:
+      type: string
+      format: uuid
+    plantillaId:
+      type: string
+      format: uuid
+    titulo:
+      type: string
+    descripcion:
+      type: string
+    categoria:
+      type: string
+      enum: [DOCUMENTACION, EQUIPAMIENTO, ACCESOS, FORMACION, REUNIONES, ADMINISTRATIVO]
+    responsableTipo:
+      type: string
+      enum: [RRHH, MANAGER, IT, EMPLEADO, CUSTOM]
+    responsableId:
+      type: string
+      format: uuid
+    diasDesdeInicio:
+      type: integer
+    duracionEstimadaHoras:
+      type: number
+    orden:
+      type: integer
+    obligatoria:
+      type: boolean
+    requiereEvidencia:
+      type: boolean
+    instrucciones:
+      type: string
+    recursosUrl:
+      type: array
+      items:
+        type: string
+    dependencias:
+      type: array
+      items:
+        type: string
+        format: uuid
+
+CreatePlantillaRequest:
+  type: object
+  required: [nombre]
+  properties:
+    nombre:
+      type: string
+    descripcion:
+      type: string
+    departamentoId:
+      type: string
+      format: uuid
+    rolDestino:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    duracionEstimadaDias:
+      type: integer
+    activo:
+      type: boolean
+
+UpdatePlantillaRequest:
+  type: object
+  properties:
+    nombre:
+      type: string
+    descripcion:
+      type: string
+    departamentoId:
+      type: string
+      format: uuid
+    rolDestino:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    duracionEstimadaDias:
+      type: integer
+    activo:
+      type: boolean
+
+CreateTareaPlantillaRequest:
+  type: object
+  required: [titulo, categoria, responsableTipo, orden]
+  properties:
+    titulo:
+      type: string
+    descripcion:
+      type: string
+    categoria:
+      type: string
+      enum: [DOCUMENTACION, EQUIPAMIENTO, ACCESOS, FORMACION, REUNIONES, ADMINISTRATIVO]
+    responsableTipo:
+      type: string
+      enum: [RRHH, MANAGER, IT, EMPLEADO, CUSTOM]
+    responsableId:
+      type: string
+      format: uuid
+    diasDesdeInicio:
+      type: integer
+    duracionEstimadaHoras:
+      type: number
+    orden:
+      type: integer
+    obligatoria:
+      type: boolean
+    requiereEvidencia:
+      type: boolean
+    instrucciones:
+      type: string
+    recursosUrl:
+      type: array
+      items:
+        type: string
+    dependencias:
+      type: array
+      items:
+        type: string
+        format: uuid
+
+UpdateTareaPlantillaRequest:
+  type: object
+  properties:
+    titulo:
+      type: string
+    descripcion:
+      type: string
+    categoria:
+      type: string
+      enum: [DOCUMENTACION, EQUIPAMIENTO, ACCESOS, FORMACION, REUNIONES, ADMINISTRATIVO]
+    responsableTipo:
+      type: string
+      enum: [RRHH, MANAGER, IT, EMPLEADO, CUSTOM]
+    responsableId:
+      type: string
+      format: uuid
+    diasDesdeInicio:
+      type: integer
+    duracionEstimadaHoras:
+      type: number
+    orden:
+      type: integer
+    obligatoria:
+      type: boolean
+    requiereEvidencia:
+      type: boolean
+    instrucciones:
+      type: string
+    recursosUrl:
+      type: array
+      items:
+        type: string
+    dependencias:
+      type: array
+      items:
+        type: string
+        format: uuid
+
+ReorderTareasRequest:
+  type: object
+  required: [orderedIds]
+  properties:
+    orderedIds:
+      type: array
+      items:
+        type: string
+        format: uuid

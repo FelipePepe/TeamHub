@@ -1,0 +1,11 @@
+# Certificados SSL locales
+certs/
+
+# Entorno
+.env
+.env.test
+
+# Node
+node_modules/
+dist/
+.pgdata/

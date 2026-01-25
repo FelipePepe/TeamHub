@@ -1,0 +1,218 @@
+TimetrackingResponse:
+  type: object
+  required: [id, usuarioId, proyectoId, fecha, horas, descripcion, estado, facturable]
+  properties:
+    id:
+      type: string
+      format: uuid
+    usuarioId:
+      type: string
+      format: uuid
+    proyectoId:
+      type: string
+      format: uuid
+    fecha:
+      type: string
+      format: date
+    horas:
+      type: number
+    descripcion:
+      type: string
+    facturable:
+      type: boolean
+    estado:
+      type: string
+      enum: [PENDIENTE, APROBADO, RECHAZADO]
+    aprobadoPor:
+      type: string
+      format: uuid
+    aprobadoAt:
+      type: string
+      format: date-time
+    rechazadoPor:
+      type: string
+      format: uuid
+    rechazadoAt:
+      type: string
+      format: date-time
+    comentarioRechazo:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+TimetrackingListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TimetrackingResponse'
+
+CreateTimetrackingRequest:
+  type: object
+  required: [proyectoId, fecha, horas, descripcion]
+  properties:
+    proyectoId:
+      type: string
+      format: uuid
+    usuarioId:
+      type: string
+      format: uuid
+    fecha:
+      type: string
+      format: date
+    horas:
+      type: number
+      minimum: 0.01
+      maximum: 24
+    descripcion:
+      type: string
+    facturable:
+      type: boolean
+
+UpdateTimetrackingRequest:
+  type: object
+  properties:
+    fecha:
+      type: string
+      format: date
+    horas:
+      type: number
+      minimum: 0.01
+      maximum: 24
+    descripcion:
+      type: string
+    facturable:
+      type: boolean
+
+ApproveTimetrackingRequest:
+  type: object
+  properties:
+    comentario:
+      type: string
+
+RejectTimetrackingRequest:
+  type: object
+  required: [comentario]
+  properties:
+    comentario:
+      type: string
+
+BulkApproveTimetrackingRequest:
+  type: object
+  required: [ids]
+  properties:
+    ids:
+      type: array
+      items:
+        type: string
+        format: uuid
+
+CopyTimetrackingRequest:
+  type: object
+  required: [fechaOrigen, fechaDestino]
+  properties:
+    fechaOrigen:
+      type: string
+      format: date
+    fechaDestino:
+      type: string
+      format: date
+
+CopyTimetrackingResponse:
+  type: object
+  required: [copied, message]
+  properties:
+    copied:
+      type: integer
+    message:
+      type: string
+
+TimetrackingResumenResponse:
+  type: object
+  properties:
+    totalHoras:
+      type: number
+    horasFacturables:
+      type: number
+    horasNoFacturables:
+      type: number
+    porProyecto:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TimetrackingResumenProyectoItem'
+    porDia:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TimetrackingResumenDiaItem'
+    porEstado:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TimetrackingResumenEstadoItem'
+
+TimetrackingResumenProyectoItem:
+  type: object
+  required: [proyectoId, horas]
+  properties:
+    proyectoId:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    horas:
+      type: number
+
+TimetrackingResumenDiaItem:
+  type: object
+  required: [fecha, horas]
+  properties:
+    fecha:
+      type: string
+      format: date
+    horas:
+      type: number
+
+TimetrackingResumenEstadoItem:
+  type: object
+  required: [estado, horas]
+  properties:
+    estado:
+      type: string
+      enum: [PENDIENTE, APROBADO, RECHAZADO]
+    horas:
+      type: number
+
+PendientesAprobacionResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/PendienteAprobacionGrupo'
+
+PendienteAprobacionGrupo:
+  type: object
+  required: [usuarioId, proyectoId, totalHoras, registros]
+  properties:
+    usuarioId:
+      type: string
+      format: uuid
+    usuarioNombre:
+      type: string
+    proyectoId:
+      type: string
+      format: uuid
+    proyectoNombre:
+      type: string
+    totalHoras:
+      type: number
+    registros:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TimetrackingResponse'

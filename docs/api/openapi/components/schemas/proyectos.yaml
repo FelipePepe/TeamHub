@@ -1,0 +1,220 @@
+ProyectoResponse:
+  type: object
+  required: [id, nombre, codigo, estado, managerId, activo]
+  properties:
+    id:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    descripcion:
+      type: string
+    codigo:
+      type: string
+    cliente:
+      type: string
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEstimada:
+      type: string
+      format: date
+    fechaFinReal:
+      type: string
+      format: date
+    estado:
+      type: string
+      enum: [PLANIFICACION, ACTIVO, PAUSADO, COMPLETADO, CANCELADO]
+    managerId:
+      type: string
+      format: uuid
+    presupuestoHoras:
+      type: number
+    horasConsumidas:
+      type: number
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, URGENTE]
+    color:
+      type: string
+    activo:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+ProyectoListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/ProyectoResponse'
+
+ProyectoStatsResponse:
+  type: object
+  properties:
+    presupuestoHoras:
+      type: number
+    horasConsumidas:
+      type: number
+    asignacionesActivas:
+      type: integer
+    progreso:
+      type: number
+
+CreateProyectoRequest:
+  type: object
+  required: [nombre, codigo]
+  properties:
+    nombre:
+      type: string
+    codigo:
+      type: string
+    descripcion:
+      type: string
+    cliente:
+      type: string
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEstimada:
+      type: string
+      format: date
+    presupuestoHoras:
+      type: number
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, URGENTE]
+    color:
+      type: string
+
+UpdateProyectoRequest:
+  type: object
+  properties:
+    nombre:
+      type: string
+    descripcion:
+      type: string
+    cliente:
+      type: string
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEstimada:
+      type: string
+      format: date
+    fechaFinReal:
+      type: string
+      format: date
+    presupuestoHoras:
+      type: number
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, URGENTE]
+    color:
+      type: string
+    estado:
+      type: string
+      enum: [PLANIFICACION, ACTIVO, PAUSADO, COMPLETADO, CANCELADO]
+    activo:
+      type: boolean
+
+UpdateProyectoEstadoRequest:
+  type: object
+  required: [estado]
+  properties:
+    estado:
+      type: string
+      enum: [PLANIFICACION, ACTIVO, PAUSADO, COMPLETADO, CANCELADO]
+
+AsignacionResponse:
+  type: object
+  required: [id, proyectoId, usuarioId, fechaInicio]
+  properties:
+    id:
+      type: string
+      format: uuid
+    proyectoId:
+      type: string
+      format: uuid
+    usuarioId:
+      type: string
+      format: uuid
+    rol:
+      type: string
+    dedicacionPorcentaje:
+      type: number
+    horasSemanales:
+      type: number
+    fechaInicio:
+      type: string
+      format: date
+    fechaFin:
+      type: string
+      format: date
+    notas:
+      type: string
+    activo:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+AsignacionListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/AsignacionResponse'
+
+CreateAsignacionRequest:
+  type: object
+  required: [usuarioId, fechaInicio]
+  properties:
+    usuarioId:
+      type: string
+      format: uuid
+    rol:
+      type: string
+    dedicacionPorcentaje:
+      type: number
+    horasSemanales:
+      type: number
+    fechaInicio:
+      type: string
+      format: date
+    fechaFin:
+      type: string
+      format: date
+    notas:
+      type: string
+
+UpdateAsignacionRequest:
+  type: object
+  properties:
+    rol:
+      type: string
+    dedicacionPorcentaje:
+      type: number
+    horasSemanales:
+      type: number
+    fechaInicio:
+      type: string
+      format: date
+    fechaFin:
+      type: string
+      format: date
+    notas:
+      type: string
+    activo:
+      type: boolean

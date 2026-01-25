@@ -1,0 +1,80 @@
+DepartamentoResponse:
+  type: object
+  required: [id, nombre, codigo, activo]
+  properties:
+    id:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    codigo:
+      type: string
+    descripcion:
+      type: string
+    responsableId:
+      type: string
+      format: uuid
+    color:
+      type: string
+    activo:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+DepartamentoListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/DepartamentoResponse'
+
+DepartamentoStatsResponse:
+  type: object
+  properties:
+    totalEmpleados:
+      type: integer
+    empleadosPorRol:
+      type: object
+      additionalProperties:
+        type: integer
+    onboardingsActivos:
+      type: integer
+
+CreateDepartamentoRequest:
+  type: object
+  required: [nombre, codigo]
+  properties:
+    nombre:
+      type: string
+    codigo:
+      type: string
+    descripcion:
+      type: string
+    responsableId:
+      type: string
+      format: uuid
+    color:
+      type: string
+
+UpdateDepartamentoRequest:
+  type: object
+  properties:
+    nombre:
+      type: string
+    codigo:
+      type: string
+    descripcion:
+      type: string
+    responsableId:
+      type: string
+      format: uuid
+    color:
+      type: string
+    activo:
+      type: boolean

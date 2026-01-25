@@ -1,0 +1,419 @@
+/procesos:
+  get:
+    tags: [Procesos]
+    summary: List onboarding processes
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: estado
+        schema:
+          type: string
+          enum: [EN_CURSO, COMPLETADO, CANCELADO, PAUSADO]
+      - in: query
+        name: empleadoId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: departamentoId
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Processes list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  post:
+    tags: [Procesos]
+    summary: Create onboarding process
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CreateProcesoRequest'
+    responses:
+      '201':
+        description: Process created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/mis-tareas:
+  get:
+    tags: [Procesos]
+    summary: My onboarding tasks
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Tasks list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/estadisticas:
+  get:
+    tags: [Procesos]
+    summary: Onboarding statistics
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Stats
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoStatsResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/empleado/{empleadoId}:
+  get:
+    tags: [Procesos]
+    summary: Processes by employee
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: empleadoId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Processes list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}:
+  get:
+    tags: [Procesos]
+    summary: Get process with tasks
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Process detail
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoDetailResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Procesos]
+    summary: Update process
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateProcesoRequest'
+    responses:
+      '200':
+        description: Process updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/cancelar:
+  patch:
+    tags: [Procesos]
+    summary: Cancel process
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CancelProcesoRequest'
+    responses:
+      '200':
+        description: Process cancelled
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/pausar:
+  patch:
+    tags: [Procesos]
+    summary: Pause process
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Process paused
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/reanudar:
+  patch:
+    tags: [Procesos]
+    summary: Resume process
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Process resumed
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ProcesoResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/tareas:
+  get:
+    tags: [Procesos]
+    summary: List process tasks
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Tasks list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/tareas/{tareaId}:
+  patch:
+    tags: [Procesos]
+    summary: Update process task
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: tareaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateTareaOnboardingRequest'
+    responses:
+      '200':
+        description: Task updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/tareas/{tareaId}/completar:
+  patch:
+    tags: [Procesos]
+    summary: Complete process task
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: tareaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CompleteTareaRequest'
+    responses:
+      '200':
+        description: Task completed
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+

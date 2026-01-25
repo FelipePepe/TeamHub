@@ -1,0 +1,325 @@
+DashboardBreakdownItem:
+  type: object
+  required: [label, value]
+  properties:
+    id:
+      type: string
+    label:
+      type: string
+    value:
+      type: number
+
+DashboardTimePoint:
+  type: object
+  required: [fecha, value]
+  properties:
+    fecha:
+      type: string
+      format: date
+    value:
+      type: number
+
+DashboardAlertaItem:
+  type: object
+  required: [id, titulo, prioridad]
+  properties:
+    id:
+      type: string
+    titulo:
+      type: string
+    descripcion:
+      type: string
+    prioridad:
+      type: string
+      enum: [BAJA, MEDIA, ALTA, CRITICA]
+    fecha:
+      type: string
+      format: date-time
+
+DashboardActividadItem:
+  type: object
+  required: [id, tipo, descripcion, fecha]
+  properties:
+    id:
+      type: string
+    tipo:
+      type: string
+    descripcion:
+      type: string
+    fecha:
+      type: string
+      format: date-time
+
+DashboardOnboardingItem:
+  type: object
+  required: [procesoId, empleadoId, progreso]
+  properties:
+    procesoId:
+      type: string
+      format: uuid
+    empleadoId:
+      type: string
+      format: uuid
+    empleadoNombre:
+      type: string
+    progreso:
+      type: number
+    fechaInicio:
+      type: string
+      format: date
+    fechaFinEsperada:
+      type: string
+      format: date
+
+DashboardEquipoItem:
+  type: object
+  required: [usuarioId, nombre, ocupacion]
+  properties:
+    usuarioId:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    ocupacion:
+      type: number
+    proyectosActivos:
+      type: integer
+    horasPendientes:
+      type: number
+
+DashboardPendienteItem:
+  type: object
+  required: [registroId, usuarioId, proyectoId, fecha, horas]
+  properties:
+    registroId:
+      type: string
+      format: uuid
+    usuarioId:
+      type: string
+      format: uuid
+    proyectoId:
+      type: string
+      format: uuid
+    fecha:
+      type: string
+      format: date
+    horas:
+      type: number
+
+DashboardTareaItem:
+  type: object
+  required: [tareaId, titulo]
+  properties:
+    tareaId:
+      type: string
+      format: uuid
+    titulo:
+      type: string
+    fechaLimite:
+      type: string
+      format: date
+
+DashboardProyectoItem:
+  type: object
+  required: [proyectoId, nombre]
+  properties:
+    proyectoId:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    rol:
+      type: string
+    dedicacionPorcentaje:
+      type: number
+
+DashboardAdminResponse:
+  type: object
+  required: [kpis, charts]
+  properties:
+    kpis:
+      type: object
+      required:
+        - usuariosActivos
+        - altasMes
+        - proyectosActivos
+        - horasMes
+        - onboardingsEnCurso
+        - tareasVencidas
+      properties:
+        usuariosActivos:
+          type: integer
+        altasMes:
+          type: integer
+        proyectosActivos:
+          type: integer
+        horasMes:
+          type: number
+        onboardingsEnCurso:
+          type: integer
+        tareasVencidas:
+          type: integer
+    charts:
+      type: object
+      properties:
+        usuariosPorRol:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        usuariosPorDepartamento:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        proyectosPorEstado:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        horasPorEstado:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+    listas:
+      type: object
+      properties:
+        actividadReciente:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardActividadItem'
+        alertasCriticas:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardAlertaItem'
+
+DashboardRrhhResponse:
+  type: object
+  required: [kpis, charts]
+  properties:
+    kpis:
+      type: object
+      required:
+        - onboardingsEnCurso
+        - completadosMes
+        - tiempoMedioOnboardingDias
+        - tareasVencidas
+      properties:
+        onboardingsEnCurso:
+          type: integer
+        completadosMes:
+          type: integer
+        tiempoMedioOnboardingDias:
+          type: number
+        tareasVencidas:
+          type: integer
+    charts:
+      type: object
+      properties:
+        empleadosPorDepartamento:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        evolucionAltas:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardTimePoint'
+    sections:
+      type: object
+      properties:
+        onboardingsEnCurso:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardOnboardingItem'
+        alertas:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardAlertaItem'
+
+DashboardManagerResponse:
+  type: object
+  required: [kpis, charts]
+  properties:
+    kpis:
+      type: object
+      required:
+        - miembrosEquipo
+        - cargaPromedio
+        - horasPendientesAprobar
+        - proyectosActivos
+      properties:
+        miembrosEquipo:
+          type: integer
+        cargaPromedio:
+          type: number
+        horasPendientesAprobar:
+          type: number
+        proyectosActivos:
+          type: integer
+    charts:
+      type: object
+      properties:
+        equipoPorProyecto:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        horasEquipoSemana:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardTimePoint'
+    sections:
+      type: object
+      properties:
+        equipoOcupacion:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardEquipoItem'
+        pendientesAprobacion:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardPendienteItem'
+
+DashboardEmpleadoResponse:
+  type: object
+  required: [kpis]
+  properties:
+    kpis:
+      type: object
+      required:
+        - horasMes
+        - proyectosActivos
+        - ocupacion
+        - tareasPendientes
+      properties:
+        horasMes:
+          type: number
+        proyectosActivos:
+          type: integer
+        ocupacion:
+          type: number
+        tareasPendientes:
+          type: integer
+    charts:
+      type: object
+      properties:
+        horasPorEstado:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardBreakdownItem'
+        horasPorSemana:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardTimePoint'
+    sections:
+      type: object
+      properties:
+        onboarding:
+          type: object
+          properties:
+            progreso:
+              type: number
+            proximasTareas:
+              type: array
+              items:
+                $ref: '../index.yaml#/schemas/DashboardTareaItem'
+        misProyectos:
+          type: array
+          items:
+            $ref: '../index.yaml#/schemas/DashboardProyectoItem'

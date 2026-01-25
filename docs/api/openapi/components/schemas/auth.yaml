@@ -1,0 +1,99 @@
+LoginRequest:
+  type: object
+  required: [email, password]
+  properties:
+    email:
+      type: string
+      format: email
+    password:
+      type: string
+      format: password
+
+LoginResponse:
+  type: object
+  description: If mfaRequired is true, accessToken/refreshToken/user may be omitted. Use mfaToken to enroll (mfa/setup) and verify (mfa/verify).
+  properties:
+    accessToken:
+      type: string
+    refreshToken:
+      type: string
+    user:
+      $ref: '../index.yaml#/schemas/UserResponse'
+    mfaRequired:
+      type: boolean
+    mfaToken:
+      type: string
+
+MfaSetupResponse:
+  type: object
+  required: [secret, otpauthUrl]
+  properties:
+    secret:
+      type: string
+    otpauthUrl:
+      type: string
+
+MfaVerifyRequest:
+  type: object
+  required: [mfaToken, code]
+  properties:
+    mfaToken:
+      type: string
+    code:
+      type: string
+      description: 6-digit TOTP code
+
+MfaVerifyResponse:
+  type: object
+  required: [accessToken, refreshToken, user]
+  properties:
+    accessToken:
+      type: string
+    refreshToken:
+      type: string
+    user:
+      $ref: '../index.yaml#/schemas/UserResponse'
+    recoveryCodes:
+      type: array
+      items:
+        type: string
+
+RefreshRequest:
+  type: object
+  required: [refreshToken]
+  properties:
+    refreshToken:
+      type: string
+
+TokenPairResponse:
+  type: object
+  required: [accessToken, refreshToken]
+  properties:
+    accessToken:
+      type: string
+    refreshToken:
+      type: string
+
+LogoutRequest:
+  type: object
+  properties:
+    refreshToken:
+      type: string
+
+ForgotPasswordRequest:
+  type: object
+  required: [email]
+  properties:
+    email:
+      type: string
+      format: email
+
+ResetPasswordRequest:
+  type: object
+  required: [token, newPassword]
+  properties:
+    token:
+      type: string
+    newPassword:
+      type: string
+      format: password

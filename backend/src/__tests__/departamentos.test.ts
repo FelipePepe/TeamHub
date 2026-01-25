@@ -1,0 +1,134 @@
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import type { Hono } from 'hono';
+import {
+  applyTestEnv,
+  loginWithMfa,
+  resetStore,
+  resetDatabase,
+  migrateTestDatabase,
+  JSON_HEADERS,
+} from '../test-utils';
+
+const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_PASSWORD = 'ValidPassword1!';
+
+let app: Hono;
+
+const authHeaders = (token: string) => ({
+  ...JSON_HEADERS,
+  Authorization: `Bearer ${token}`,
+});
+
+const loginAsAdmin = async () => {
+  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  return { token: verifyBody.accessToken as string };
+};
+
+beforeAll(async () => {
+  applyTestEnv();
+  await migrateTestDatabase();
+  ({ default: app } = await import('../app'));
+});
+
+beforeEach(async () => {
+  await resetDatabase();
+  resetStore();
+});
+
+describe('departamentos routes', () => {
+  it('requires auth to list departamentos', async () => {
+    const response = await app.request('/api/departamentos');
+
+    expect(response.status).toBe(401);
+    const body = await response.json();
+    expect(body).toMatchObject({ error: 'No autorizado' });
+  });
+
+  it('creates a departamento and lists it', async () => {
+    const { token } = await loginAsAdmin();
+    const payload = {
+      nombre: 'Ingenieria',
+      codigo: 'ENG',
+      descripcion: 'Equipo de desarrollo',
+    };
+
+    const createResponse = await app.request('/api/departamentos', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    });
+    expect(createResponse.status).toBe(201);
+    const created = await createResponse.json();
+    expect(created).toMatchObject({
+      nombre: payload.nombre,
+      codigo: payload.codigo,
+      descripcion: payload.descripcion,
+      activo: true,
+    });
+
+    const listResponse = await app.request('/api/departamentos', {
+      headers: authHeaders(token),
+    });
+    expect(listResponse.status).toBe(200);
+    const listBody = await listResponse.json();
+    expect(listBody.data).toHaveLength(1);
+    expect(listBody.data[0]).toMatchObject({ nombre: payload.nombre, codigo: payload.codigo });
+  });
+
+  it('rejects duplicate nombre or codigo', async () => {
+    const { token } = await loginAsAdmin();
+    const payload = {
+      nombre: 'Finanzas',
+      codigo: 'FIN',
+    };
+
+    const createResponse = await app.request('/api/departamentos', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    });
+    expect(createResponse.status).toBe(201);
+
+    const duplicateResponse = await app.request('/api/departamentos', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    });
+    expect(duplicateResponse.status).toBe(400);
+  });
+
+  it('supports soft delete with activo filter', async () => {
+    const { token } = await loginAsAdmin();
+    const payload = {
+      nombre: 'Marketing',
+      codigo: 'MKT',
+    };
+
+    const createResponse = await app.request('/api/departamentos', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    });
+    const created = await createResponse.json();
+
+    const deleteResponse = await app.request(`/api/departamentos/${created.id}`, {
+      method: 'DELETE',
+      headers: authHeaders(token),
+    });
+    expect(deleteResponse.status).toBe(200);
+
+    const inactiveResponse = await app.request('/api/departamentos?activo=false', {
+      headers: authHeaders(token),
+    });
+    expect(inactiveResponse.status).toBe(200);
+    const inactiveBody = await inactiveResponse.json();
+    expect(inactiveBody.data).toHaveLength(1);
+
+    const activeResponse = await app.request('/api/departamentos?activo=true', {
+      headers: authHeaders(token),
+    });
+    expect(activeResponse.status).toBe(200);
+    const activeBody = await activeResponse.json();
+    expect(activeBody.data).toHaveLength(0);
+  });
+});

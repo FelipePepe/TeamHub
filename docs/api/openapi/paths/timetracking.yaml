@@ -1,0 +1,473 @@
+/timetracking:
+  get:
+    tags: [Timetracking]
+    summary: List time entries
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: usuarioId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: proyectoId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: estado
+        schema:
+          type: string
+          enum: [PENDIENTE, APROBADO, RECHAZADO]
+      - in: query
+        name: fechaInicio
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fechaFin
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: facturable
+        schema:
+          type: boolean
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+    responses:
+      '200':
+        description: Time entries list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  post:
+    tags: [Timetracking]
+    summary: Create time entry
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CreateTimetrackingRequest'
+    responses:
+      '201':
+        description: Time entry created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/{id}:
+  get:
+    tags: [Timetracking]
+    summary: Get time entry by id
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Time entry
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Timetracking]
+    summary: Update time entry
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateTimetrackingRequest'
+    responses:
+      '200':
+        description: Time entry updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Timetracking]
+    summary: Delete time entry
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Time entry deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/mis-registros:
+  get:
+    tags: [Timetracking]
+    summary: My time entries
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Time entries list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/semana/{fecha}:
+  get:
+    tags: [Timetracking]
+    summary: Week time entries
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: fecha
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Week time entries
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/{id}/aprobar:
+  patch:
+    tags: [Timetracking]
+    summary: Approve time entry
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/ApproveTimetrackingRequest'
+    responses:
+      '200':
+        description: Time entry approved
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/{id}/rechazar:
+  patch:
+    tags: [Timetracking]
+    summary: Reject time entry
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/RejectTimetrackingRequest'
+    responses:
+      '200':
+        description: Time entry rejected
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/aprobar-masivo:
+  post:
+    tags: [Timetracking]
+    summary: Bulk approve time entries
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/BulkApproveTimetrackingRequest'
+    responses:
+      '200':
+        description: Bulk approval done
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/pendientes-aprobacion:
+  get:
+    tags: [Timetracking]
+    summary: Pending approvals
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: usuarioId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: proyectoId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: fechaInicio
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fechaFin
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Pending approvals grouped
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/PendientesAprobacionResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/resumen:
+  get:
+    tags: [Timetracking]
+    summary: Time tracking summary
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: usuarioId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: proyectoId
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: fechaInicio
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: fechaFin
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Summary of hours
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TimetrackingResumenResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/timetracking/copiar:
+  post:
+    tags: [Timetracking]
+    summary: Copy time entries
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CopyTimetrackingRequest'
+    responses:
+      '200':
+        description: Copy done
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/CopyTimetrackingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

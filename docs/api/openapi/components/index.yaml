@@ -1,0 +1,181 @@
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+
+schemas:
+  LoginRequest:
+    $ref: './schemas/auth.yaml#/LoginRequest'
+  LoginResponse:
+    $ref: './schemas/auth.yaml#/LoginResponse'
+  MfaSetupResponse:
+    $ref: './schemas/auth.yaml#/MfaSetupResponse'
+  MfaVerifyRequest:
+    $ref: './schemas/auth.yaml#/MfaVerifyRequest'
+  MfaVerifyResponse:
+    $ref: './schemas/auth.yaml#/MfaVerifyResponse'
+  RefreshRequest:
+    $ref: './schemas/auth.yaml#/RefreshRequest'
+  TokenPairResponse:
+    $ref: './schemas/auth.yaml#/TokenPairResponse'
+  LogoutRequest:
+    $ref: './schemas/auth.yaml#/LogoutRequest'
+  ForgotPasswordRequest:
+    $ref: './schemas/auth.yaml#/ForgotPasswordRequest'
+  ResetPasswordRequest:
+    $ref: './schemas/auth.yaml#/ResetPasswordRequest'
+
+  MessageResponse:
+    $ref: './schemas/common.yaml#/MessageResponse'
+  ErrorDetail:
+    $ref: './schemas/common.yaml#/ErrorDetail'
+  ErrorResponse:
+    $ref: './schemas/common.yaml#/ErrorResponse'
+
+  UserResponse:
+    $ref: './schemas/users.yaml#/UserResponse'
+  UserListMeta:
+    $ref: './schemas/users.yaml#/UserListMeta'
+  UserListResponse:
+    $ref: './schemas/users.yaml#/UserListResponse'
+  CreateUserRequest:
+    $ref: './schemas/users.yaml#/CreateUserRequest'
+  UpdateUserRequest:
+    $ref: './schemas/users.yaml#/UpdateUserRequest'
+  ChangePasswordRequest:
+    $ref: './schemas/users.yaml#/ChangePasswordRequest'
+  CargaUsuarioResponse:
+    $ref: './schemas/users.yaml#/CargaUsuarioResponse'
+
+  DepartamentoResponse:
+    $ref: './schemas/departamentos.yaml#/DepartamentoResponse'
+  DepartamentoListResponse:
+    $ref: './schemas/departamentos.yaml#/DepartamentoListResponse'
+  DepartamentoStatsResponse:
+    $ref: './schemas/departamentos.yaml#/DepartamentoStatsResponse'
+  CreateDepartamentoRequest:
+    $ref: './schemas/departamentos.yaml#/CreateDepartamentoRequest'
+  UpdateDepartamentoRequest:
+    $ref: './schemas/departamentos.yaml#/UpdateDepartamentoRequest'
+
+  PlantillaResponse:
+    $ref: './schemas/plantillas.yaml#/PlantillaResponse'
+  PlantillaDetailResponse:
+    $ref: './schemas/plantillas.yaml#/PlantillaDetailResponse'
+  PlantillaListResponse:
+    $ref: './schemas/plantillas.yaml#/PlantillaListResponse'
+  TareaPlantillaResponse:
+    $ref: './schemas/plantillas.yaml#/TareaPlantillaResponse'
+  CreatePlantillaRequest:
+    $ref: './schemas/plantillas.yaml#/CreatePlantillaRequest'
+  UpdatePlantillaRequest:
+    $ref: './schemas/plantillas.yaml#/UpdatePlantillaRequest'
+  CreateTareaPlantillaRequest:
+    $ref: './schemas/plantillas.yaml#/CreateTareaPlantillaRequest'
+  UpdateTareaPlantillaRequest:
+    $ref: './schemas/plantillas.yaml#/UpdateTareaPlantillaRequest'
+  ReorderTareasRequest:
+    $ref: './schemas/plantillas.yaml#/ReorderTareasRequest'
+
+  ProcesoResponse:
+    $ref: './schemas/procesos.yaml#/ProcesoResponse'
+  ProcesoDetailResponse:
+    $ref: './schemas/procesos.yaml#/ProcesoDetailResponse'
+  ProcesoListResponse:
+    $ref: './schemas/procesos.yaml#/ProcesoListResponse'
+  TareaOnboardingResponse:
+    $ref: './schemas/procesos.yaml#/TareaOnboardingResponse'
+  TareaOnboardingListResponse:
+    $ref: './schemas/procesos.yaml#/TareaOnboardingListResponse'
+  CreateProcesoRequest:
+    $ref: './schemas/procesos.yaml#/CreateProcesoRequest'
+  UpdateProcesoRequest:
+    $ref: './schemas/procesos.yaml#/UpdateProcesoRequest'
+  CancelProcesoRequest:
+    $ref: './schemas/procesos.yaml#/CancelProcesoRequest'
+  UpdateTareaOnboardingRequest:
+    $ref: './schemas/procesos.yaml#/UpdateTareaOnboardingRequest'
+  CompleteTareaRequest:
+    $ref: './schemas/procesos.yaml#/CompleteTareaRequest'
+  ProcesoStatsResponse:
+    $ref: './schemas/procesos.yaml#/ProcesoStatsResponse'
+
+  ProyectoResponse:
+    $ref: './schemas/proyectos.yaml#/ProyectoResponse'
+  ProyectoListResponse:
+    $ref: './schemas/proyectos.yaml#/ProyectoListResponse'
+  ProyectoStatsResponse:
+    $ref: './schemas/proyectos.yaml#/ProyectoStatsResponse'
+  CreateProyectoRequest:
+    $ref: './schemas/proyectos.yaml#/CreateProyectoRequest'
+  UpdateProyectoRequest:
+    $ref: './schemas/proyectos.yaml#/UpdateProyectoRequest'
+  UpdateProyectoEstadoRequest:
+    $ref: './schemas/proyectos.yaml#/UpdateProyectoEstadoRequest'
+  AsignacionResponse:
+    $ref: './schemas/proyectos.yaml#/AsignacionResponse'
+  AsignacionListResponse:
+    $ref: './schemas/proyectos.yaml#/AsignacionListResponse'
+  CreateAsignacionRequest:
+    $ref: './schemas/proyectos.yaml#/CreateAsignacionRequest'
+  UpdateAsignacionRequest:
+    $ref: './schemas/proyectos.yaml#/UpdateAsignacionRequest'
+
+  TimetrackingResponse:
+    $ref: './schemas/timetracking.yaml#/TimetrackingResponse'
+  TimetrackingListResponse:
+    $ref: './schemas/timetracking.yaml#/TimetrackingListResponse'
+  CreateTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/CreateTimetrackingRequest'
+  UpdateTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/UpdateTimetrackingRequest'
+  ApproveTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/ApproveTimetrackingRequest'
+  RejectTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/RejectTimetrackingRequest'
+  BulkApproveTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/BulkApproveTimetrackingRequest'
+  CopyTimetrackingRequest:
+    $ref: './schemas/timetracking.yaml#/CopyTimetrackingRequest'
+  CopyTimetrackingResponse:
+    $ref: './schemas/timetracking.yaml#/CopyTimetrackingResponse'
+  TimetrackingResumenResponse:
+    $ref: './schemas/timetracking.yaml#/TimetrackingResumenResponse'
+  TimetrackingResumenProyectoItem:
+    $ref: './schemas/timetracking.yaml#/TimetrackingResumenProyectoItem'
+  TimetrackingResumenDiaItem:
+    $ref: './schemas/timetracking.yaml#/TimetrackingResumenDiaItem'
+  TimetrackingResumenEstadoItem:
+    $ref: './schemas/timetracking.yaml#/TimetrackingResumenEstadoItem'
+  PendientesAprobacionResponse:
+    $ref: './schemas/timetracking.yaml#/PendientesAprobacionResponse'
+  PendienteAprobacionGrupo:
+    $ref: './schemas/timetracking.yaml#/PendienteAprobacionGrupo'
+
+  DashboardBreakdownItem:
+    $ref: './schemas/dashboard.yaml#/DashboardBreakdownItem'
+  DashboardTimePoint:
+    $ref: './schemas/dashboard.yaml#/DashboardTimePoint'
+  DashboardAlertaItem:
+    $ref: './schemas/dashboard.yaml#/DashboardAlertaItem'
+  DashboardActividadItem:
+    $ref: './schemas/dashboard.yaml#/DashboardActividadItem'
+  DashboardOnboardingItem:
+    $ref: './schemas/dashboard.yaml#/DashboardOnboardingItem'
+  DashboardEquipoItem:
+    $ref: './schemas/dashboard.yaml#/DashboardEquipoItem'
+  DashboardPendienteItem:
+    $ref: './schemas/dashboard.yaml#/DashboardPendienteItem'
+  DashboardTareaItem:
+    $ref: './schemas/dashboard.yaml#/DashboardTareaItem'
+  DashboardProyectoItem:
+    $ref: './schemas/dashboard.yaml#/DashboardProyectoItem'
+  DashboardAdminResponse:
+    $ref: './schemas/dashboard.yaml#/DashboardAdminResponse'
+  DashboardRrhhResponse:
+    $ref: './schemas/dashboard.yaml#/DashboardRrhhResponse'
+  DashboardManagerResponse:
+    $ref: './schemas/dashboard.yaml#/DashboardManagerResponse'
+  DashboardEmpleadoResponse:
+    $ref: './schemas/dashboard.yaml#/DashboardEmpleadoResponse'

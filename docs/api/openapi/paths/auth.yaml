@@ -1,0 +1,227 @@
+/auth/login:
+  post:
+    tags: [Auth]
+    summary: Login
+    description: Login with email and password. MFA is required for all users, so the response includes mfaRequired=true and a short-lived mfaToken. Use mfaToken with /auth/mfa/setup (enrollment) and /auth/mfa/verify (challenge).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/LoginRequest'
+    responses:
+      '200':
+        description: Login response or MFA challenge
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/LoginResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '429':
+        description: Rate limit
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/mfa/verify:
+  post:
+    tags: [Auth]
+    summary: Verify MFA
+    description: Verify MFA with TOTP code and complete login.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/MfaVerifyRequest'
+    responses:
+      '200':
+        description: MFA verified
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MfaVerifyResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '429':
+        description: Rate limit
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/mfa/setup:
+  post:
+    tags: [Auth]
+    summary: Setup MFA
+    description: Start MFA enrollment. Accepts a Bearer access token (already logged in) or the mfaToken returned by /auth/login.
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: MFA setup data
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MfaSetupResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/refresh:
+  post:
+    tags: [Auth]
+    summary: Refresh tokens
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/RefreshRequest'
+    responses:
+      '200':
+        description: New token pair
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TokenPairResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/logout:
+  post:
+    tags: [Auth]
+    summary: Logout
+    description: Invalidate refresh token (if applicable).
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/LogoutRequest'
+    responses:
+      '200':
+        description: Logged out
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/me:
+  get:
+    tags: [Auth]
+    summary: Current user
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Current user
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/UserResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/forgot-password:
+  post:
+    tags: [Auth]
+    summary: Forgot password
+    description: Send password reset email (generic response).
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/ForgotPasswordRequest'
+    responses:
+      '200':
+        description: Request accepted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/reset-password:
+  post:
+    tags: [Auth]
+    summary: Reset password
+    description: "Reset password with token. Password policy: min 12 chars, upper/lower/number/special."
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/ResetPasswordRequest'
+    responses:
+      '200':
+        description: Password updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

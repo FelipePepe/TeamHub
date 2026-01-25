@@ -1,0 +1,7 @@
+flowchart LR
+  user[Usuario] --> frontend[Frontend\nNext.js]
+  frontend --> backend[Backend\nHono API]
+  backend --> db[(PostgreSQL)]
+  backend --> smtp[Email SMTP]
+  user --> mfa[Google Authenticator]
+  mfa --> backend

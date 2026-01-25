@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: TeamHub API
+  version: 0.1.0
+  description: TeamHub API contract (Auth, Users, Departments, Onboarding, Projects, Timetracking, Dashboard).
+servers:
+  - url: http://localhost:3001/api
+    description: Development
+  - url: https://teamhub-api.railway.app/api
+    description: Production
+
+tags:
+  - name: Auth
+    description: Authentication and MFA
+  - name: Usuarios
+    description: User management
+  - name: Departamentos
+    description: Departments management
+  - name: Plantillas
+    description: Onboarding templates
+  - name: Procesos
+    description: Onboarding processes and tasks
+  - name: Proyectos
+    description: Projects management
+  - name: Asignaciones
+    description: Project assignments
+  - name: Timetracking
+    description: Time tracking
+  - name: Dashboard
+    description: Dashboards and metrics
+
+paths:
+  /auth/login:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1login'
+  /auth/mfa/verify:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1mfa~1verify'
+  /auth/mfa/setup:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1mfa~1setup'
+  /auth/refresh:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1refresh'
+  /auth/logout:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1logout'
+  /auth/me:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1me'
+  /auth/forgot-password:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1forgot-password'
+  /auth/reset-password:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1reset-password'
+
+  /usuarios:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios'
+  /usuarios/{id}:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}'
+  /usuarios/{id}/password:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1password'
+  /usuarios/{id}/restore:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1restore'
+  /usuarios/{id}/unlock:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1unlock'
+  /usuarios/{id}/proyectos:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1proyectos'
+  /usuarios/{id}/carga:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1carga'
+
+  /departamentos:
+    $ref: './docs/api/openapi/paths/departamentos.yaml#/~1departamentos'
+  /departamentos/{id}:
+    $ref: './docs/api/openapi/paths/departamentos.yaml#/~1departamentos~1{id}'
+  /departamentos/{id}/empleados:
+    $ref: './docs/api/openapi/paths/departamentos.yaml#/~1departamentos~1{id}~1empleados'
+  /departamentos/{id}/estadisticas:
+    $ref: './docs/api/openapi/paths/departamentos.yaml#/~1departamentos~1{id}~1estadisticas'
+
+  /plantillas:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas'
+  /plantillas/{id}:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas~1{id}'
+  /plantillas/{id}/duplicar:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas~1{id}~1duplicar'
+  /plantillas/{id}/tareas:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas~1{id}~1tareas'
+  /plantillas/{id}/tareas/{tareaId}:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas~1{id}~1tareas~1{tareaId}'
+  /plantillas/{id}/tareas/reordenar:
+    $ref: './docs/api/openapi/paths/plantillas.yaml#/~1plantillas~1{id}~1tareas~1reordenar'
+
+  /procesos:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos'
+  /procesos/mis-tareas:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1mis-tareas'
+  /procesos/estadisticas:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1estadisticas'
+  /procesos/empleado/{empleadoId}:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1empleado~1{empleadoId}'
+  /procesos/{id}:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}'
+  /procesos/{id}/cancelar:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1cancelar'
+  /procesos/{id}/pausar:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1pausar'
+  /procesos/{id}/reanudar:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1reanudar'
+  /procesos/{id}/tareas:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas'
+  /procesos/{id}/tareas/{tareaId}:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}'
+  /procesos/{id}/tareas/{tareaId}/completar:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}~1completar'
+
+  /proyectos:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos'
+  /proyectos/mis-proyectos:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1mis-proyectos'
+  /proyectos/{id}:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}'
+  /proyectos/{id}/estado:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}~1estado'
+  /proyectos/{id}/estadisticas:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}~1estadisticas'
+  /proyectos/{id}/asignaciones:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}~1asignaciones'
+  /proyectos/{id}/asignaciones/{asigId}:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}~1asignaciones~1{asigId}'
+  /proyectos/{id}/asignaciones/{asigId}/finalizar:
+    $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos~1{id}~1asignaciones~1{asigId}~1finalizar'
+
+  /timetracking:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking'
+  /timetracking/{id}:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1{id}'
+  /timetracking/mis-registros:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1mis-registros'
+  /timetracking/semana/{fecha}:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1semana~1{fecha}'
+  /timetracking/{id}/aprobar:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1{id}~1aprobar'
+  /timetracking/{id}/rechazar:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1{id}~1rechazar'
+  /timetracking/aprobar-masivo:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1aprobar-masivo'
+  /timetracking/pendientes-aprobacion:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1pendientes-aprobacion'
+  /timetracking/resumen:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1resumen'
+  /timetracking/copiar:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1copiar'
+
+  /dashboard/admin:
+    $ref: './docs/api/openapi/paths/dashboard.yaml#/~1dashboard~1admin'
+  /dashboard/rrhh:
+    $ref: './docs/api/openapi/paths/dashboard.yaml#/~1dashboard~1rrhh'
+  /dashboard/manager:
+    $ref: './docs/api/openapi/paths/dashboard.yaml#/~1dashboard~1manager'
+  /dashboard/empleado:
+    $ref: './docs/api/openapi/paths/dashboard.yaml#/~1dashboard~1empleado'
+
+components:
+  $ref: './docs/api/openapi/components/index.yaml'

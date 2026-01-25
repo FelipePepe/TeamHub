@@ -1,0 +1,108 @@
+UserResponse:
+  type: object
+  required: [id, email, nombre, rol, activo]
+  properties:
+    id:
+      type: string
+      format: uuid
+    email:
+      type: string
+      format: email
+    nombre:
+      type: string
+    apellidos:
+      type: string
+    rol:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    activo:
+      type: boolean
+
+UserListMeta:
+  type: object
+  properties:
+    page:
+      type: integer
+    limit:
+      type: integer
+    total:
+      type: integer
+
+UserListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/UserResponse'
+    meta:
+      $ref: '../index.yaml#/schemas/UserListMeta'
+
+CreateUserRequest:
+  type: object
+  required: [email, password, nombre]
+  properties:
+    email:
+      type: string
+      format: email
+    password:
+      type: string
+      format: password
+    nombre:
+      type: string
+    apellidos:
+      type: string
+    rol:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    departamentoId:
+      type: string
+      format: uuid
+    managerId:
+      type: string
+      format: uuid
+    activo:
+      type: boolean
+
+UpdateUserRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+    nombre:
+      type: string
+    apellidos:
+      type: string
+    rol:
+      type: string
+      enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    departamentoId:
+      type: string
+      format: uuid
+    managerId:
+      type: string
+      format: uuid
+    activo:
+      type: boolean
+
+ChangePasswordRequest:
+  type: object
+  required: [oldPassword, newPassword]
+  properties:
+    oldPassword:
+      type: string
+      format: password
+    newPassword:
+      type: string
+      format: password
+
+CargaUsuarioResponse:
+  type: object
+  properties:
+    usuarioId:
+      type: string
+      format: uuid
+    dedicacionTotal:
+      type: number

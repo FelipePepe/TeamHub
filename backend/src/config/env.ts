@@ -24,6 +24,7 @@ const envSchema = z.object({
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
   PG_SSL_CERT_PATH: z.string().optional(),
+  BOOTSTRAP_TOKEN: z.string().min(32).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

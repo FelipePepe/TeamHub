@@ -110,9 +110,19 @@ timetrackingRoutes.get('/', async (c) => {
 timetrackingRoutes.post('/', async (c) => {
   const payload = await parseJson(c, createRegistroSchema);
   const user = c.get('user') as User;
+
+  // Only ADMIN, RRHH, or MANAGER can create timetracking for other users
+  const targetUserId = payload.usuarioId ?? user.id;
+  if (targetUserId !== user.id) {
+    const privilegedRoles: User['rol'][] = ['ADMIN', 'RRHH', 'MANAGER'];
+    if (!privilegedRoles.includes(user.rol)) {
+      throw new HTTPException(403, { message: 'No autorizado para registrar horas de otro usuario' });
+    }
+  }
+
   const now = new Date();
   const registro = await createTimetracking({
-    usuarioId: payload.usuarioId ?? user.id,
+    usuarioId: targetUserId,
     proyectoId: payload.proyectoId,
     fecha: payload.fecha,
     horas: payload.horas,

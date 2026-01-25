@@ -274,11 +274,13 @@ usuariosRoutes.patch('/:id/reset-password', requireRoles('ADMIN', 'RRHH'), async
     throw new HTTPException(400, { message: 'El usuario esta inactivo' });
   }
 
-  // Generate a secure temporary password
+  // Generate a cryptographically secure temporary password
+  const { randomBytes } = await import('node:crypto');
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+  const randomBuffer = randomBytes(16);
   let tempPassword = '';
   for (let i = 0; i < 16; i++) {
-    tempPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    tempPassword += chars.charAt(randomBuffer[i] % chars.length);
   }
   // Ensure it meets the password policy
   tempPassword = tempPassword.slice(0, 12) + 'Aa1!';

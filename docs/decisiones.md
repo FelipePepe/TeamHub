@@ -231,6 +231,13 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Access token expira en 15 minutos (\`JWT_ACCESS_EXPIRES_IN=15m\`), refresh token en 30 dias (\`JWT_REFRESH_EXPIRES_IN=30d\`), MFA token en 5 minutos. Algoritmo HS256 con secrets minimo 32 caracteres.
 - Consecuencias: Sesiones seguras con refresh automatico; requiere interceptor en frontend para renovar tokens.
 
+### ADR-052: Correccion de vulnerabilidades criticas P0
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: La revision de codigo identifico tres vulnerabilidades criticas: uso de \`Math.random()\` para passwords, bootstrap de admin sin proteccion, y falta de validacion de autorizacion en timetracking.
+- Decision: (1) Reemplazar \`Math.random()\` con \`crypto.randomBytes()\` para generacion segura de passwords temporales, (2) Proteger bootstrap de primer usuario con header \`X-Bootstrap-Token\` y variable \`BOOTSTRAP_TOKEN\`, (3) Validar que solo ADMIN/RRHH/MANAGER pueden registrar horas para otros usuarios.
+- Consecuencias: Mayor seguridad; el primer login en BD vacia requiere el header de bootstrap (breaking change).
+
 ---
 
 ## 4. API y Contratos
@@ -442,14 +449,14 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (50%)
+### Fase 4: Hardening y documentacion (60%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
 - [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
 - [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
 - [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
-- [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
+- [x] Corregir vulnerabilidades P0: Math.random, bootstrap admin, autorizacion timetracking (ADR-052). (2026-01-26)
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).
 - [ ] Actualizar OpenAPI y docs backend segun cambios.
 - [ ] Ejecutar lint/tests y resolver fallos.
@@ -480,3 +487,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
 - [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
 - [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
+- [x] Corregir vulnerabilidades P0: Math.random, bootstrap admin, autorizacion timetracking (ADR-052). (2026-01-26)

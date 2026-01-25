@@ -173,6 +173,14 @@ CompleteTareaRequest:
     notas:
       type: string
 
+RejectTareaRequest:
+  type: object
+  required: [comentario]
+  properties:
+    comentario:
+      type: string
+      description: Reason for rejection (required)
+
 ProcesoStatsResponse:
   type: object
   properties:

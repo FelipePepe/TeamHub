@@ -417,3 +417,133 @@
             schema:
               $ref: '../components/index.yaml#/schemas/ErrorResponse'
 
+/procesos/{id}/tareas/{tareaId}/rechazar:
+  patch:
+    tags: [Procesos]
+    summary: Reject process task
+    description: Reject a task (requires comment).
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: tareaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/RejectTareaRequest'
+    responses:
+      '200':
+        description: Task rejected
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/procesos/{id}/tareas/{tareaId}/evidencia:
+  post:
+    tags: [Procesos]
+    summary: Upload task evidence
+    description: Upload evidence file or link for a task.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: tareaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+              url:
+                type: string
+                format: uri
+    responses:
+      '200':
+        description: Evidence uploaded
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Procesos]
+    summary: Delete task evidence
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: tareaId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Evidence deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaOnboardingResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+

@@ -1,0 +1,224 @@
+/perfil:
+  get:
+    tags: [Perfil]
+    summary: Get current user profile
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: User profile
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/UserResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Perfil]
+    summary: Update profile
+    description: Update name, surname, email.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdatePerfilRequest'
+    responses:
+      '200':
+        description: Profile updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/UserResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/perfil/password:
+  patch:
+    tags: [Perfil]
+    summary: Change password
+    description: Change password (requires current password).
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/ChangePasswordRequest'
+    responses:
+      '200':
+        description: Password changed
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/perfil/avatar:
+  post:
+    tags: [Perfil]
+    summary: Upload avatar
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              avatar:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: Avatar uploaded
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AvatarResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Perfil]
+    summary: Delete avatar
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Avatar deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/perfil/mfa:
+  get:
+    tags: [Perfil]
+    summary: Get MFA status
+    description: Get MFA enrollment status and activation date.
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: MFA status
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MfaStatusResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/perfil/mfa/regenerate:
+  post:
+    tags: [Perfil]
+    summary: Regenerate MFA
+    description: Regenerate QR/secret (requires current password + TOTP code).
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/RegenerateMfaRequest'
+    responses:
+      '200':
+        description: New MFA secret
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MfaSetupResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/perfil/mfa/backup-codes:
+  post:
+    tags: [Perfil]
+    summary: Regenerate backup codes
+    description: Regenerate backup codes (requires current password + TOTP code). Returns 10 reusable codes.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/RegenerateMfaRequest'
+    responses:
+      '200':
+        description: New backup codes
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/BackupCodesResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

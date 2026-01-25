@@ -34,4 +34,3 @@ Indice de documentos del proyecto.
 - `docs/slides/` - Presentacion del proyecto
 - `docs/slides/outline.md` - Guion de slides
 - `docs/slides/notes.md` - Notas para presentacion
-- `docs/screenshots/` - Capturas de pantalla

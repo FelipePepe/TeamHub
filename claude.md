@@ -70,6 +70,8 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 ## 7. Documentación (Docs as Code)
 *   **Inline:** Usa **JSDoc/TSDoc** para explicar el "por qué" y proporcionar ejemplos técnicos.
 *   **Sincronización:** Cada Pull Request que modifique lógica debe actualizar su respectiva documentación (ADR, Storybook o JSDoc) en el mismo commit.
+*   **Registro de Decisiones:** Para cambios significativos (arquitectura, seguridad, patrones, configuración), añadir un ADR en `docs/decisiones.md` con fecha, contexto, decisión y consecuencias.
+*   **Progreso:** Actualizar el Registro de Ejecución en `docs/decisiones.md` cuando se completen tareas de las fases del proyecto.
 
 ## 8. Comunicación con Stakeholders
 Al resumir cambios para perfiles no técnicos:

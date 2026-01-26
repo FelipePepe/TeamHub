@@ -1,16 +1,17 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, sql } from 'drizzle-orm';
-import { authMiddleware } from '../middleware/auth';
-import { db } from '../db';
-import { auditLog } from '../db/schema/audit';
-import { departamentos } from '../db/schema/departamentos';
-import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos';
-import { asignaciones, proyectos } from '../db/schema/proyectos';
-import { timetracking } from '../db/schema/timetracking';
-import { users } from '../db/schema/users';
-import type { User } from '../db/schema/users';
+import { authMiddleware } from '../middleware/auth.js';
+import { db } from '../db/index.js';
+import { auditLog } from '../db/schema/audit.js';
+import { departamentos } from '../db/schema/departamentos.js';
+import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos.js';
+import { asignaciones, proyectos } from '../db/schema/proyectos.js';
+import { timetracking } from '../db/schema/timetracking.js';
+import { users } from '../db/schema/users.js';
+import type { User } from '../db/schema/users.js';
 
-export const dashboardRoutes = new Hono();
+export const dashboardRoutes = new Hono<HonoEnv>();
 
 dashboardRoutes.use('*', authMiddleware);
 

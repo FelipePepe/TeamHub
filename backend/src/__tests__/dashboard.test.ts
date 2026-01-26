@@ -1,3 +1,4 @@
+import type { HonoEnv } from '../types/hono.js';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Hono } from 'hono';
 import {
@@ -7,16 +8,16 @@ import {
   resetDatabase,
   migrateTestDatabase,
   JSON_HEADERS,
-} from '../test-utils';
-import { plantillasOnboarding } from '../db/schema/plantillas';
-import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos';
+} from '../test-utils/index.js';
+import { plantillasOnboarding } from '../db/schema/plantillas.js';
+import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = 'ValidPassword1!';
 const USER_PASSWORD = 'ValidPassword1!';
 
-let app: Hono;
-let db: typeof import('../db').db;
+let app: Hono<HonoEnv>;
+let db: typeof import('../db/index.js').db;
 
 const authHeaders = (token: string) => ({
   ...JSON_HEADERS,
@@ -61,9 +62,9 @@ const createProject = async (token: string, payload: Record<string, unknown>) =>
 
 beforeAll(async () => {
   applyTestEnv();
-  ({ db } = await import('../db'));
+  ({ db } = await import('../db/index.js'));
   await migrateTestDatabase();
-  ({ default: app } = await import('../app'));
+  ({ default: app } = await import('../app.js'));
 });
 
 beforeEach(async () => {

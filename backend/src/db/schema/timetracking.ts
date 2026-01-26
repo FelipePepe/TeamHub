@@ -10,9 +10,9 @@ import {
   check,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { timeEntryStatusEnum } from './enums';
-import { users } from './users';
-import { proyectos, asignaciones } from './proyectos';
+import { timeEntryStatusEnum } from './enums.js';
+import { users } from './users.js';
+import { proyectos, asignaciones } from './proyectos.js';
 
 // ============================================================================
 // TIMETRACKING - Registros de tiempo/horas

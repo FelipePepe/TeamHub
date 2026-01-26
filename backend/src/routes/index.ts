@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
-import { authRoutes } from './auth';
-import { usuariosRoutes } from './usuarios';
-import { departamentosRoutes } from './departamentos';
-import { plantillasRoutes } from './plantillas';
-import { procesosRoutes } from './procesos';
-import { proyectosRoutes } from './proyectos';
-import { timetrackingRoutes } from './timetracking';
-import { dashboardRoutes } from './dashboard';
+import { authRoutes } from './auth.js';
+import { usuariosRoutes } from './usuarios.js';
+import { departamentosRoutes } from './departamentos.js';
+import { plantillasRoutes } from './plantillas.js';
+import { procesosRoutes } from './procesos.js';
+import { proyectosRoutes } from './proyectos.js';
+import { timetrackingRoutes } from './timetracking.js';
+import { dashboardRoutes } from './dashboard.js';
 
 export const apiRoutes = new Hono();
 

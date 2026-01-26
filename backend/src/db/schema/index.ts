@@ -3,16 +3,16 @@
 // ============================================================================
 
 // Enums
-export * from './enums';
+export * from './enums.js';
 
 // Tables
-export * from './users';
-export * from './departamentos';
-export * from './plantillas';
-export * from './procesos';
-export * from './proyectos';
-export * from './timetracking';
-export * from './audit';
+export * from './users.js';
+export * from './departamentos.js';
+export * from './plantillas.js';
+export * from './procesos.js';
+export * from './proyectos.js';
+export * from './timetracking.js';
+export * from './audit.js';
 
 // Relations (for Drizzle query builder with relational queries)
 // Note: Relations are defined separately and imported in db/index.ts

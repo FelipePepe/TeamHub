@@ -1,28 +1,29 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import { and, eq, inArray } from 'drizzle-orm';
-import { authMiddleware } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
 import {
   dateSchema,
   optionalBooleanFromString,
   optionalNumberFromString,
   uuidSchema,
-} from '../validators/common';
-import { toTimetrackingResponse } from '../services/mappers';
-import { db } from '../db';
-import { timetracking } from '../db/schema/timetracking';
-import { proyectos } from '../db/schema/proyectos';
-import { users } from '../db/schema/users';
-import type { User } from '../db/schema/users';
+} from '../validators/common.js';
+import { toTimetrackingResponse } from '../services/mappers.js';
+import { db } from '../db/index.js';
+import { timetracking } from '../db/schema/timetracking.js';
+import { proyectos } from '../db/schema/proyectos.js';
+import { users } from '../db/schema/users.js';
+import type { User } from '../db/schema/users.js';
 import {
   createTimetracking,
   deleteTimetrackingById,
   findTimetrackingById,
   listTimetracking,
   updateTimetrackingById,
-} from '../services/timetracking-repository';
+} from '../services/timetracking-repository.js';
 
 const estados = ['PENDIENTE', 'APROBADO', 'RECHAZADO'] as const;
 
@@ -86,7 +87,7 @@ const toNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export const timetrackingRoutes = new Hono();
+export const timetrackingRoutes = new Hono<HonoEnv>();
 
 timetrackingRoutes.use('*', authMiddleware);
 
@@ -125,7 +126,7 @@ timetrackingRoutes.post('/', async (c) => {
     usuarioId: targetUserId,
     proyectoId: payload.proyectoId,
     fecha: payload.fecha,
-    horas: payload.horas,
+    horas: payload.horas.toString(),
     descripcion: payload.descripcion,
     facturable: payload.facturable ?? true,
     estado: 'PENDIENTE',
@@ -229,14 +230,12 @@ timetrackingRoutes.get('/resumen', async (c) => {
     clauses.push(eq(timetracking.proyectoId, query.proyectoId));
   }
 
-  let queryBuilder = db
+  const baseQuery = db
     .select({ registro: timetracking, proyectoNombre: proyectos.nombre })
     .from(timetracking)
     .innerJoin(proyectos, eq(timetracking.proyectoId, proyectos.id));
-  if (clauses.length) {
-    queryBuilder = queryBuilder.where(and(...clauses));
-  }
-  const rows = await queryBuilder;
+  const whereClause = clauses.length ? and(...clauses) : undefined;
+  const rows = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
   const totalHoras = rows.reduce((sum, item) => sum + toNumber(item.registro.horas, 0), 0);
   const horasFacturables = rows
@@ -308,7 +307,7 @@ timetrackingRoutes.post('/copiar', async (c) => {
         horas: registro.horas,
         descripcion: registro.descripcion,
         facturable: registro.facturable,
-        estado: 'PENDIENTE',
+        estado: 'PENDIENTE' as const,
         aprobadoPor: null,
         aprobadoAt: null,
         rechazadoPor: null,
@@ -340,7 +339,12 @@ timetrackingRoutes.put('/:id', async (c) => {
     throw new HTTPException(404, { message: 'No encontrado' });
   }
 
-  const updated = await updateTimetrackingById(id, { ...payload, updatedAt: new Date() });
+  const { horas, ...rest } = payload;
+  const updated = await updateTimetrackingById(id, {
+    ...rest,
+    horas: horas?.toString(),
+    updatedAt: new Date(),
+  });
   if (!updated) {
     throw new HTTPException(404, { message: 'No encontrado' });
   }

@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { serve } from '@hono/node-server';
-import app from './app';
-import { config } from './config/env';
+import app from './app.js';
+import { config } from './config/env.js';
 
 const port = config.PORT;
 

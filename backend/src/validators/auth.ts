@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { emailSchema } from './common';
+import { emailSchema } from './common.js';
 
 export const passwordSchema = z
   .string()

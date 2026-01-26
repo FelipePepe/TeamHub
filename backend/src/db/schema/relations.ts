@@ -1,9 +1,9 @@
 import { relations } from 'drizzle-orm';
-import { users, refreshTokens, passwordResetTokens } from './users';
-import { departamentos } from './departamentos';
-import { plantillasOnboarding, tareasPlantilla } from './plantillas';
-import { procesosOnboarding, tareasOnboarding } from './procesos';
-import { proyectos, asignaciones } from './proyectos';
+import { users, refreshTokens, passwordResetTokens } from './users.js';
+import { departamentos } from './departamentos.js';
+import { plantillasOnboarding, tareasPlantilla } from './plantillas.js';
+import { procesosOnboarding, tareasOnboarding } from './procesos.js';
+import { proyectos, asignaciones } from './proyectos.js';
 import { timetracking } from './timetracking.js';
 
 // ============================================================================

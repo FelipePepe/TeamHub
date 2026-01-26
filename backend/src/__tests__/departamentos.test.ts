@@ -1,3 +1,4 @@
+import type { HonoEnv } from '../types/hono.js';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Hono } from 'hono';
 import {
@@ -7,12 +8,12 @@ import {
   resetDatabase,
   migrateTestDatabase,
   JSON_HEADERS,
-} from '../test-utils';
+} from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = 'ValidPassword1!';
 
-let app: Hono;
+let app: Hono<HonoEnv>;
 
 const authHeaders = (token: string) => ({
   ...JSON_HEADERS,
@@ -27,7 +28,7 @@ const loginAsAdmin = async () => {
 beforeAll(async () => {
   applyTestEnv();
   await migrateTestDatabase();
-  ({ default: app } = await import('../app'));
+  ({ default: app } = await import('../app.js'));
 });
 
 beforeEach(async () => {

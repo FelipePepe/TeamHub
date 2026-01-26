@@ -1,15 +1,16 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
-import { dateSchema, uuidSchema } from '../validators/common';
-import { db } from '../db';
-import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos';
-import { tareasPlantilla } from '../db/schema/plantillas';
-import { users } from '../db/schema/users';
-import type { User } from '../db/schema/users';
-import { toProcesoResponse, toTareaOnboardingResponse } from '../services/mappers';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
+import { dateSchema, uuidSchema } from '../validators/common.js';
+import { db } from '../db/index.js';
+import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos.js';
+import { tareasPlantilla } from '../db/schema/plantillas.js';
+import { users } from '../db/schema/users.js';
+import type { User } from '../db/schema/users.js';
+import { toProcesoResponse, toTareaOnboardingResponse } from '../services/mappers.js';
 import {
   findProcesoById,
   findTareaOnboardingById,
@@ -17,8 +18,8 @@ import {
   listTareasByProcesoId,
   updateProcesoById,
   updateTareaOnboardingById,
-} from '../services/procesos-repository';
-import { findPlantillaById } from '../services/plantillas-repository';
+} from '../services/procesos-repository.js';
+import { findPlantillaById } from '../services/plantillas-repository.js';
 import { and, eq } from 'drizzle-orm';
 
 const estados = ['EN_CURSO', 'COMPLETADO', 'CANCELADO', 'PAUSADO'] as const;
@@ -68,7 +69,7 @@ const tareaParamsSchema = z.object({
   tareaId: uuidSchema,
 });
 
-export const procesosRoutes = new Hono();
+export const procesosRoutes = new Hono<HonoEnv>();
 
 procesosRoutes.use('*', authMiddleware);
 
@@ -139,8 +140,8 @@ procesosRoutes.post('/', async (c) => {
           descripcion: tareaPlantilla.descripcion,
           categoria: tareaPlantilla.categoria,
           responsableId: payload.empleadoId,
-          estado: 'PENDIENTE',
-          prioridad: 'MEDIA',
+          estado: 'PENDIENTE' as const,
+          prioridad: 'MEDIA' as const,
           orden: tareaPlantilla.orden ?? index + 1,
           createdAt: now,
           updatedAt: now,

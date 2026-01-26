@@ -1,8 +1,8 @@
 import { HTTPException } from 'hono/http-exception';
 import type { MiddlewareHandler } from 'hono';
-import { verifyAccessToken } from '../services/auth-service';
-import type { User } from '../db/schema/users';
-import { findActiveUserById } from '../services/users-repository';
+import { verifyAccessToken } from '../services/auth-service.js';
+import type { User } from '../db/schema/users.js';
+import { findActiveUserById } from '../services/users-repository.js';
 
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
   const authHeader = c.req.header('Authorization');

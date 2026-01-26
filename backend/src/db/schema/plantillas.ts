@@ -9,9 +9,9 @@ import {
   timestamp,
   index,
 } from 'drizzle-orm/pg-core';
-import { userRoleEnum, taskCategoryEnum, responsibleTypeEnum } from './enums';
-import { users } from './users';
-import { departamentos } from './departamentos';
+import { userRoleEnum, taskCategoryEnum, responsibleTypeEnum } from './enums.js';
+import { users } from './users.js';
+import { departamentos } from './departamentos.js';
 
 // ============================================================================
 // PLANTILLAS_ONBOARDING - Plantillas reutilizables de onboarding

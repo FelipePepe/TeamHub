@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { db } from '../db';
-import { users, type NewUser, type User } from '../db/schema/users';
+import { db } from '../db/index.js';
+import { users, type NewUser, type User } from '../db/schema/users.js';
 
 export const countUsers = async () => {
   const result = await db

@@ -258,7 +258,7 @@ dashboardRoutes.get('/rrhh', async (c) => {
       ),
     db
       .select({
-        promedio: sql<number>`coalesce(avg(extract(epoch from (${procesosOnboarding.fechaFinReal} - ${procesosOnboarding.fechaInicio})) / 86400), 0)`,
+        promedio: sql<number>`coalesce(avg(${procesosOnboarding.fechaFinReal} - ${procesosOnboarding.fechaInicio}), 0)`,
       })
       .from(procesosOnboarding)
       .where(and(eq(procesosOnboarding.estado, 'COMPLETADO'), isNotNull(procesosOnboarding.fechaFinReal))),

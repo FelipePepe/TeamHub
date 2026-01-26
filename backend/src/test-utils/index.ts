@@ -2,6 +2,9 @@ import type { Hono } from 'hono';
 import type { HonoEnv } from '../types/hono.js';
 import dotenv from 'dotenv';
 import { store } from '../store/index.js';
+
+const TEST_BOOTSTRAP_TOKEN = 'test-bootstrap-token-00000000000000000000000000000000';
+
 const TEST_ENV: Record<string, string> = {
   NODE_ENV: 'test',
   PORT: '3001',
@@ -18,6 +21,7 @@ const TEST_ENV: Record<string, string> = {
   APP_BASE_URL: 'http://localhost:3000',
   BCRYPT_SALT_ROUNDS: '4',
   MFA_ENCRYPTION_KEY: 'test-mfa-encryption-key-0000000000000000000000000000',
+  BOOTSTRAP_TOKEN: TEST_BOOTSTRAP_TOKEN,
 };
 
 export const applyTestEnv = () => {
@@ -103,9 +107,13 @@ export const loginWithMfa = async (
   email: string,
   password: string
 ) => {
+  // Include bootstrap token for first user creation
   const loginResponse = await app.request('/api/auth/login', {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers: {
+      ...JSON_HEADERS,
+      'X-Bootstrap-Token': TEST_BOOTSTRAP_TOKEN,
+    },
     body: JSON.stringify({ email, password }),
   });
   const loginBody = await loginResponse.json();

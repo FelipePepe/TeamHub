@@ -102,6 +102,6 @@ describe('usuarios routes', () => {
     });
     expect(duplicateResponse.status).toBe(400);
     const duplicateBody = await duplicateResponse.json();
-    expect(duplicateBody).toMatchObject({ error: 'Email already exists' });
+    expect(duplicateBody).toMatchObject({ error: 'El email ya existe' });
   });
 });

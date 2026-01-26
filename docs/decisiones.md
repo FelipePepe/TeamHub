@@ -405,6 +405,34 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Adoptar GitFlow con ramas main (produccion), develop (integracion), feature/*, bugfix/*, release/* y hotfix/*. Commits siguiendo Conventional Commits.
 - Consecuencias: Historial limpio y predecible; requiere disciplina en el equipo y proteccion de ramas main/develop.
 
+### ADR-052: Validacion GitFlow con Husky hooks
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: GitFlow requiere validacion automatica para asegurar cumplimiento de convenciones.
+- Decision: Implementar tres hooks de Husky: \`commit-msg\` para Conventional Commits, \`pre-commit\` para validar nombres de rama GitFlow, y \`pre-push\` para bloquear push directo a main/develop.
+- Consecuencias: Enforcement automatico de GitFlow; fallos rapidos antes de llegar al CI.
+
+### ADR-053: Extensiones .js en imports TypeScript (Node16)
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: TypeScript con \`moduleResolution: node16/nodenext\` requiere extensiones explicitas en imports relativos para ESM.
+- Decision: Añadir extensiones \`.js\` a todos los imports relativos en el backend para compatibilidad con ESM nativo.
+- Consecuencias: Codigo compatible con Node.js ESM; requiere atencion al añadir nuevos imports.
+
+### ADR-054: Tipos estrictos para validators Zod
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
+- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
+- Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
+
+### ADR-055: Bootstrap token para primer usuario
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
+- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
+- Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
+
 ---
 
 ## Registro de Ejecución
@@ -417,7 +445,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 | Fase 1: Auth y Usuarios | ✅ Completada | 100% |
 | Fase 2: Dominios principales | ✅ Completada | 100% |
 | Fase 3: Dashboards | ✅ Completada | 100% |
-| Fase 4: Hardening y documentacion | 🔄 En progreso | 50% |
+| Fase 4: Hardening y documentacion | 🔄 En progreso | 70% |
 
 ### Fase 0: Preparacion y pruebas (100%)
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -442,12 +470,18 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (50%)
+### Fase 4: Hardening y documentacion (70%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
 - [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
 - [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
+- [x] Implementar hooks Husky para validacion GitFlow (commit-msg, pre-commit, pre-push). (2026-01-26)
+- [x] Corregir extensiones .js en imports TypeScript para compatibilidad ESM. (2026-01-26)
+- [x] Refactorizar validators Zod para inferencia de tipos estricta. (2026-01-26)
+- [x] Añadir BOOTSTRAP_TOKEN para seguridad en creacion del primer usuario. (2026-01-26)
+- [x] Corregir errores de tipo en repositories y routes. (2026-01-26)
+- [x] Arreglar tests fallidos (SQL dashboard, mensajes, mfaSetupRequired). (2026-01-26)
 - [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
 - [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).

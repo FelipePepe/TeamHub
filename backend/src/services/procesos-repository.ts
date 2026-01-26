@@ -7,8 +7,10 @@ import {
   type NewTareaOnboarding,
 } from '../db/schema/procesos.js';
 
+type ProcessStatus = 'EN_CURSO' | 'COMPLETADO' | 'CANCELADO' | 'PAUSADO';
+
 export const listProcesos = async (filters?: {
-  estado?: string;
+  estado?: ProcessStatus;
   empleadoId?: string;
 }) => {
   const clauses = [];
@@ -18,11 +20,11 @@ export const listProcesos = async (filters?: {
   if (filters?.empleadoId) {
     clauses.push(eq(procesosOnboarding.empleadoId, filters.empleadoId));
   }
-  const query = db.select().from(procesosOnboarding);
-  if (clauses.length) {
-    return query.where(and(...clauses));
+  const whereClause = clauses.length ? and(...clauses) : undefined;
+  if (whereClause) {
+    return db.select().from(procesosOnboarding).where(whereClause);
   }
-  return query;
+  return db.select().from(procesosOnboarding);
 };
 
 export const findProcesoById = async (id: string) => {

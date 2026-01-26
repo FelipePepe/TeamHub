@@ -103,30 +103,29 @@ usuariosRoutes.use('*', authMiddleware);
 
 usuariosRoutes.get('/', async (c) => {
   const query = parseQuery(c, listQuerySchema);
-  const filters = buildUserFilters(query);
+  const filters = buildUserFilters({
+    search: query.search,
+    rol: query.rol,
+    departamentoId: query.departamentoId,
+    activo: query.activo,
+  });
   const whereClause = filters.length ? and(...filters) : undefined;
 
-  let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
-  if (whereClause) {
-    countQuery = countQuery.where(whereClause);
-  }
-  const totalResult = await countQuery;
+  const countBaseQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+  const totalResult = await (whereClause ? countBaseQuery.where(whereClause) : countBaseQuery);
   const total = Number(totalResult[0]?.count ?? 0);
 
-  let queryBuilder = db.select().from(users);
-  if (whereClause) {
-    queryBuilder = queryBuilder.where(whereClause);
-  }
-  if (query.page && query.limit) {
-    queryBuilder = queryBuilder.limit(query.limit).offset((query.page - 1) * query.limit);
-  }
-  const list = await queryBuilder;
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 20;
+  const baseQuery = db.select().from(users);
+  const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
+  const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
   return c.json({
     data: list.map(toUserResponse),
     meta: {
-      page: query.page,
-      limit: query.limit,
+      page,
+      limit,
       total,
     },
   });

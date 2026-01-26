@@ -63,13 +63,13 @@ const buildDepartamentoFilters = (query: z.infer<typeof listQuerySchema>) => {
 
 departamentosRoutes.get('/', async (c) => {
   const query = parseQuery(c, listQuerySchema);
-  const filters = buildDepartamentoFilters(query);
+  const filters = buildDepartamentoFilters({
+    search: query.search,
+    activo: query.activo,
+  });
   const whereClause = filters.length ? and(...filters) : undefined;
-  let queryBuilder = db.select().from(departamentos);
-  if (whereClause) {
-    queryBuilder = queryBuilder.where(whereClause);
-  }
-  const list = await queryBuilder;
+  const baseQuery = db.select().from(departamentos);
+  const list = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
   return c.json({ data: list.map(toDepartamentoResponse) });
 });

@@ -2,10 +2,12 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { timetracking, type NewTimetracking } from '../db/schema/timetracking.js';
 
+type TimeEntryStatus = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
+
 type TimetrackingFilters = {
   usuarioId?: string;
   proyectoId?: string;
-  estado?: string;
+  estado?: TimeEntryStatus;
   fechaInicio?: string;
   fechaFin?: string;
   facturable?: boolean;
@@ -35,14 +37,15 @@ export const listTimetracking = async (
     clauses.push(lte(timetracking.fecha, filters.fechaFin));
   }
 
-  let query = db.select().from(timetracking);
-  if (clauses.length) {
-    query = query.where(and(...clauses));
-  }
+  const whereClause = clauses.length ? and(...clauses) : undefined;
+  const baseQuery = whereClause
+    ? db.select().from(timetracking).where(whereClause)
+    : db.select().from(timetracking);
+
   if (pagination?.page && pagination.limit) {
-    query = query.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
+    return baseQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
   }
-  return query;
+  return baseQuery;
 };
 
 export const findTimetrackingById = async (id: string) => {

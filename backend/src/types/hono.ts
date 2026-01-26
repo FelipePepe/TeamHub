@@ -12,6 +12,7 @@ export interface HonoVariables {
  * Environment bindings for Hono.
  * Add any environment-specific bindings here.
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HonoBindings {}
 
 /**

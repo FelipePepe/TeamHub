@@ -126,7 +126,7 @@ timetrackingRoutes.post('/', async (c) => {
     usuarioId: targetUserId,
     proyectoId: payload.proyectoId,
     fecha: payload.fecha,
-    horas: payload.horas,
+    horas: payload.horas.toString(),
     descripcion: payload.descripcion,
     facturable: payload.facturable ?? true,
     estado: 'PENDIENTE',
@@ -230,14 +230,12 @@ timetrackingRoutes.get('/resumen', async (c) => {
     clauses.push(eq(timetracking.proyectoId, query.proyectoId));
   }
 
-  let queryBuilder = db
+  const baseQuery = db
     .select({ registro: timetracking, proyectoNombre: proyectos.nombre })
     .from(timetracking)
     .innerJoin(proyectos, eq(timetracking.proyectoId, proyectos.id));
-  if (clauses.length) {
-    queryBuilder = queryBuilder.where(and(...clauses));
-  }
-  const rows = await queryBuilder;
+  const whereClause = clauses.length ? and(...clauses) : undefined;
+  const rows = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
   const totalHoras = rows.reduce((sum, item) => sum + toNumber(item.registro.horas, 0), 0);
   const horasFacturables = rows
@@ -309,7 +307,7 @@ timetrackingRoutes.post('/copiar', async (c) => {
         horas: registro.horas,
         descripcion: registro.descripcion,
         facturable: registro.facturable,
-        estado: 'PENDIENTE',
+        estado: 'PENDIENTE' as const,
         aprobadoPor: null,
         aprobadoAt: null,
         rechazadoPor: null,
@@ -341,7 +339,12 @@ timetrackingRoutes.put('/:id', async (c) => {
     throw new HTTPException(404, { message: 'No encontrado' });
   }
 
-  const updated = await updateTimetrackingById(id, { ...payload, updatedAt: new Date() });
+  const { horas, ...rest } = payload;
+  const updated = await updateTimetrackingById(id, {
+    ...rest,
+    horas: horas?.toString(),
+    updatedAt: new Date(),
+  });
   if (!updated) {
     throw new HTTPException(404, { message: 'No encontrado' });
   }

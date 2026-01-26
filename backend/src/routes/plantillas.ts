@@ -87,9 +87,10 @@ plantillasRoutes.use('*', authMiddleware);
 
 plantillasRoutes.get('/', async (c) => {
   const query = parseQuery(c, listQuerySchema);
+  const activo = query.activo;
   const plantillas = await listPlantillas({
     departamentoId: query.departamentoId,
-    activo: query.activo,
+    activo,
   });
 
   return c.json({ data: plantillas.map(toPlantillaResponse) });
@@ -240,7 +241,7 @@ plantillasRoutes.post('/:id/tareas', async (c) => {
     responsableTipo: payload.responsableTipo,
     responsableId: payload.responsableId,
     diasDesdeInicio: payload.diasDesdeInicio ?? 0,
-    duracionEstimadaHoras: payload.duracionEstimadaHoras,
+    duracionEstimadaHoras: payload.duracionEstimadaHoras?.toString(),
     orden: payload.orden,
     obligatoria: payload.obligatoria ?? true,
     requiereEvidencia: payload.requiereEvidencia ?? false,
@@ -268,8 +269,10 @@ plantillasRoutes.put('/:id/tareas/:tareaId', async (c) => {
   }
 
   const payload = await parseJson(c, updateTareaSchema);
+  const { duracionEstimadaHoras, ...rest } = payload;
   const updated = await updateTareaPlantillaById(tareaId, {
-    ...payload,
+    ...rest,
+    duracionEstimadaHoras: duracionEstimadaHoras?.toString(),
     updatedAt: new Date(),
   });
   if (!updated) {

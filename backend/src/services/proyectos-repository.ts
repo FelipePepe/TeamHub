@@ -2,8 +2,10 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos.js';
 
+type ProjectStatus = 'PLANIFICACION' | 'ACTIVO' | 'PAUSADO' | 'COMPLETADO' | 'CANCELADO';
+
 type ProyectoFilters = {
-  estado?: string;
+  estado?: ProjectStatus;
   managerId?: string;
   cliente?: string;
   fechaInicio?: string;
@@ -27,11 +29,11 @@ export const listProyectos = async (filters: ProyectoFilters = {}) => {
   if (filters.fechaFin) {
     clauses.push(lte(proyectos.fechaInicio, filters.fechaFin));
   }
-  const query = db.select().from(proyectos);
-  if (clauses.length) {
-    return query.where(and(...clauses));
+  const whereClause = clauses.length ? and(...clauses) : undefined;
+  if (whereClause) {
+    return db.select().from(proyectos).where(whereClause);
   }
-  return query;
+  return db.select().from(proyectos);
 };
 
 export const findProyectoById = async (id: string) => {

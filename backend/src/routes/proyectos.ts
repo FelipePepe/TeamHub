@@ -134,7 +134,7 @@ proyectosRoutes.post('/', async (c) => {
     fechaFinEstimada: payload.fechaFinEstimada,
     estado: 'PLANIFICACION',
     managerId: user.id,
-    presupuestoHoras: payload.presupuestoHoras,
+    presupuestoHoras: payload.presupuestoHoras?.toString(),
     prioridad: payload.prioridad,
     color: payload.color,
     createdAt: now,
@@ -176,9 +176,10 @@ proyectosRoutes.put('/:id', async (c) => {
     throw new HTTPException(404, { message: 'No encontrado' });
   }
 
-  const { activo, ...rest } = payload;
-  const updates = {
+  const { activo, presupuestoHoras, ...rest } = payload;
+  const updates: Parameters<typeof updateProyectoById>[1] = {
     ...rest,
+    presupuestoHoras: presupuestoHoras?.toString(),
     updatedAt: new Date(),
   };
   if (activo !== undefined) {
@@ -257,8 +258,8 @@ proyectosRoutes.post('/:id/asignaciones', async (c) => {
     proyectoId: id,
     usuarioId: payload.usuarioId,
     rol: payload.rol,
-    dedicacionPorcentaje: payload.dedicacionPorcentaje,
-    horasSemanales: payload.horasSemanales,
+    dedicacionPorcentaje: payload.dedicacionPorcentaje?.toString(),
+    horasSemanales: payload.horasSemanales?.toString(),
     fechaInicio: payload.fechaInicio,
     fechaFin: payload.fechaFin,
     notas: payload.notas,
@@ -290,9 +291,11 @@ proyectosRoutes.put('/:id/asignaciones/:asigId', async (c) => {
     throw new HTTPException(404, { message: 'No encontrado' });
   }
 
-  const { activo, ...rest } = payload;
-  const updates = {
+  const { activo, dedicacionPorcentaje, horasSemanales, ...rest } = payload;
+  const updates: Parameters<typeof updateAsignacionById>[1] = {
     ...rest,
+    dedicacionPorcentaje: dedicacionPorcentaje?.toString(),
+    horasSemanales: horasSemanales?.toString(),
     updatedAt: new Date(),
   };
   if (activo !== undefined) {

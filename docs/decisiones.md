@@ -405,6 +405,51 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Adoptar GitFlow con ramas main (produccion), develop (integracion), feature/*, bugfix/*, release/* y hotfix/*. Commits siguiendo Conventional Commits.
 - Consecuencias: Historial limpio y predecible; requiere disciplina en el equipo y proteccion de ramas main/develop.
 
+### ADR-052: Validacion GitFlow con Husky hooks
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: GitFlow requiere validacion automatica para asegurar cumplimiento de convenciones.
+- Decision: Implementar tres hooks de Husky: \`commit-msg\` para Conventional Commits, \`pre-commit\` para validar nombres de rama GitFlow, y \`pre-push\` para bloquear push directo a main/develop.
+- Consecuencias: Enforcement automatico de GitFlow; fallos rapidos antes de llegar al CI.
+
+### ADR-053: Extensiones .js en imports TypeScript (Node16)
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: TypeScript con \`moduleResolution: node16/nodenext\` requiere extensiones explicitas en imports relativos para ESM.
+- Decision: Añadir extensiones \`.js\` a todos los imports relativos en el backend para compatibilidad con ESM nativo.
+- Consecuencias: Codigo compatible con Node.js ESM; requiere atencion al añadir nuevos imports.
+
+### ADR-054: Tipos estrictos para validators Zod
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
+- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
+- Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
+
+### ADR-055: Bootstrap token para primer usuario
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
+- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
+- Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
+
+### ADR-056: Sistema colaborativo multi-LLM
+- Fecha: 2026-01-27
+- Estado: Aceptado
+- Contexto: Se dispone de licencias para múltiples LLMs (GitHub Copilot CLI, Claude CLI, Codex CLI) y se busca mejorar la calidad del código generado mediante revisión cruzada.
+- Decision: Implementar sistema de orquestación en \`scripts/llm-collab/\` donde GitHub Copilot CLI genera código y Claude CLI lo revisa, iterando hasta aprobación (máx 3 iteraciones). El sistema soporta también Auto (Cursor AI) como orquestador, generador o revisor mediante archivos de instrucciones.
+- Alternativas consideradas:
+  - Usar un solo LLM: menos coste pero menor calidad
+  - Revisión manual: más control pero más lento
+  - Codex como generador: más lento pero más estructurado
+  - Solo CLIs externos: requiere instalación y configuración de herramientas
+- Consecuencias:
+  - Mejor calidad de código generado mediante revisión cruzada
+  - Mayor coste por múltiples llamadas a APIs (solo en modo script)
+  - Mayor latencia por iteraciones
+  - Flexibilidad: Auto puede actuar como orquestador completo sin CLIs externos
+  - Requiere configuración de CLIs solo si se usan en modo script
+  - Directorio \`.llm-context/\` en \`.gitignore\` para archivos temporales
 ---
 
 ## Registro de Ejecución

@@ -310,6 +310,22 @@ El seed actual es un placeholder y no crea usuarios. Si la base de datos está v
 | `npm run lint` | Verificar código con ESLint |
 | `npm run type-check` | Verificar tipos sin compilar |
 
+#### Sistema Colaborativo Multi-LLM
+
+Sistema de orquestación que permite que múltiples LLMs trabajen colaborativamente para generar código de mayor calidad. Soporta CLIs externos (GitHub Copilot, Claude) y Auto (Cursor AI).
+
+| Script | Descripción |
+|--------|-------------|
+| `scripts/llm-collab/orchestrator.sh <prompt> [output]` | Orquesta el proceso completo: genera, revisa e itera hasta aprobación |
+| `scripts/llm-collab/generator.sh <prompt>` | Genera código usando GitHub Copilot CLI o Auto |
+| `scripts/llm-collab/reviewer.sh <code_file>` | Revisa código usando Claude CLI o Auto según estándares del proyecto |
+
+**Modos disponibles:**
+- **Modo Auto**: Auto (Cursor AI) actúa como orquestador, generador o revisor
+- **Modo Script**: Usa CLIs externos (GitHub Copilot, Claude) automáticamente
+
+Ver [scripts/llm-collab/README.md](scripts/llm-collab/README.md) para más detalles.
+
 #### Frontend
 
 | Script | Descripción |

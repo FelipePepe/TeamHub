@@ -6,9 +6,14 @@ Sistema de orquestación que permite que múltiples LLMs trabajen colaborativame
 
 ### LLMs Configurados
 
-- **Generador**: GitHub Copilot CLI (`copilot`)
+- **Generador**: GitHub Copilot CLI (`copilot`) o Codex CLI (`codex`)
 - **Revisor**: Claude CLI (`claude`)
 - **Orquestador**: Auto (Cursor AI) o Script (CLIs externos)
+
+**LLMs disponibles:**
+- ✅ GitHub Copilot CLI: `/usr/bin/copilot` (v0.0.395)
+- ✅ Claude CLI: `/home/sandman/.local/bin/claude` (v2.1.19)
+- ✅ Codex CLI: `/usr/bin/codex` (v0.91.0)
 
 ### Modos de Operación
 

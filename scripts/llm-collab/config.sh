@@ -12,6 +12,11 @@ GENERATOR_CLI="copilot"              # GitHub Copilot CLI (comando: copilot)
 REVIEWER_CLI="claude"                # Claude CLI
 ORCHESTRATOR_MODE="auto"             # "auto" (Cursor AI) o "script" (CLIs externos)
 
+# Nota: Todos los CLIs están instalados:
+# - copilot: /usr/bin/copilot (GitHub Copilot CLI v0.0.395)
+# - claude: /home/sandman/.local/bin/claude (Claude CLI v2.1.19)
+# - codex: /usr/bin/codex (Codex CLI v0.91.0)
+
 # Límites
 MAX_ITERATIONS=3
 REVIEW_TIMEOUT=300  # 5 minutos

@@ -82,10 +82,26 @@ generate_code() {
     # Llamar al CLI correspondiente
     # Nota: Ajustar según la sintaxis real del CLI
     if command -v "${GENERATOR_CLI}" >/dev/null 2>&1; then
-        "${GENERATOR_CLI}" generate --prompt "${prompt}" > "${output_file}" 2>&1 || {
-            echo "❌ Error al generar código" >&2
-            return 1
-        }
+        # Sintaxis específica por CLI
+        if [[ "${GENERATOR_CLI}" == "copilot" ]]; then
+            # GitHub Copilot CLI usa -p o --prompt para modo no interactivo
+            "${GENERATOR_CLI}" -p "${prompt}" > "${output_file}" 2>&1 || {
+                echo "❌ Error al generar código con copilot" >&2
+                return 1
+            }
+        elif [[ "${GENERATOR_CLI}" == "codex" ]]; then
+            # Codex CLI (verificar sintaxis real)
+            "${GENERATOR_CLI}" "${prompt}" > "${output_file}" 2>&1 || {
+                echo "❌ Error al generar código con codex" >&2
+                return 1
+            }
+        else
+            # Otros CLIs (claude, etc.)
+            "${GENERATOR_CLI}" "${prompt}" > "${output_file}" 2>&1 || {
+                echo "❌ Error al generar código con ${GENERATOR_CLI}" >&2
+                return 1
+            }
+        fi
     else
         echo "❌ ${GENERATOR_CLI} no está instalado o no está en PATH" >&2
         if [[ "${GENERATOR_CLI}" == "copilot" ]]; then

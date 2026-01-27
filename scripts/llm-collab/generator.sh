@@ -90,13 +90,24 @@ generate_code() {
                 return 1
             }
         elif [[ "${GENERATOR_CLI}" == "codex" ]]; then
-            # Codex CLI (verificar sintaxis real)
-            "${GENERATOR_CLI}" "${prompt}" > "${output_file}" 2>&1 || {
+            # Codex CLI usa 'exec' para modo no interactivo
+            # codex exec "<prompt>" genera código y lo aplica
+            # Para solo generar sin aplicar, usamos el modo interactivo con redirección
+            echo "📝 Ejecutando Codex CLI en modo no interactivo..."
+            "${GENERATOR_CLI}" exec "${prompt}" > "${output_file}" 2>&1 || {
                 echo "❌ Error al generar código con codex" >&2
+                echo "💡 Codex puede requerir autenticación o contexto adicional" >&2
+                return 1
+            }
+        elif [[ "${GENERATOR_CLI}" == "claude" ]]; then
+            # Claude CLI usa -p o --prompt para modo no interactivo
+            echo "📝 Ejecutando Claude CLI en modo no interactivo..."
+            "${GENERATOR_CLI}" -p "${prompt}" > "${output_file}" 2>&1 || {
+                echo "❌ Error al generar código con claude" >&2
                 return 1
             }
         else
-            # Otros CLIs (claude, etc.)
+            # Otros CLIs
             "${GENERATOR_CLI}" "${prompt}" > "${output_file}" 2>&1 || {
                 echo "❌ Error al generar código con ${GENERATOR_CLI}" >&2
                 return 1

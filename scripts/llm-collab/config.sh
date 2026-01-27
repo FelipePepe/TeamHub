@@ -8,8 +8,8 @@ CONTEXT_DIR="${REPO_ROOT}/.llm-context"
 
 # LLMs configurados
 # Opciones: "copilot" (GitHub Copilot CLI), "claude", "codex", "auto" (Cursor AI)
-GENERATOR_CLI="copilot"              # GitHub Copilot CLI (comando: copilot)
-REVIEWER_CLI="claude"                # Claude CLI
+GENERATOR_CLI="claude"               # Claude CLI (también como generador)
+REVIEWER_CLI="claude"                # Claude CLI (como revisor)
 ORCHESTRATOR_MODE="auto"             # "auto" (Cursor AI) o "script" (CLIs externos)
 
 # Nota: Todos los CLIs están instalados:

@@ -7,8 +7,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 CONTEXT_DIR="${REPO_ROOT}/.llm-context"
 
 # LLMs configurados
-# Opciones: "github-copilot-cli", "claude", "codex", "auto" (Cursor AI)
-GENERATOR_CLI="github-copilot-cli"  # GitHub Copilot CLI
+# Opciones: "copilot" (GitHub Copilot CLI), "claude", "codex", "auto" (Cursor AI)
+GENERATOR_CLI="copilot"              # GitHub Copilot CLI (comando: copilot)
 REVIEWER_CLI="claude"                # Claude CLI
 ORCHESTRATOR_MODE="auto"             # "auto" (Cursor AI) o "script" (CLIs externos)
 

@@ -6,7 +6,7 @@ Sistema de orquestación que permite que múltiples LLMs trabajen colaborativame
 
 ### LLMs Configurados
 
-- **Generador**: GitHub Copilot CLI (`github-copilot-cli`)
+- **Generador**: GitHub Copilot CLI (`copilot`)
 - **Revisor**: Claude CLI (`claude`)
 - **Orquestador**: Auto (Cursor AI) o Script (CLIs externos)
 

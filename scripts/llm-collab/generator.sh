@@ -88,8 +88,9 @@ generate_code() {
         }
     else
         echo "❌ ${GENERATOR_CLI} no está instalado o no está en PATH" >&2
-        if [[ "${GENERATOR_CLI}" == "github-copilot-cli" ]]; then
+        if [[ "${GENERATOR_CLI}" == "copilot" ]]; then
             echo "💡 Instala GitHub Copilot CLI: npm install -g @githubnext/github-copilot-cli" >&2
+            echo "   El comando se llama 'copilot', no 'github-copilot-cli'" >&2
         fi
         return 1
     fi

@@ -9,6 +9,8 @@ export interface User {
   apellidos?: string;
   rol: UserRole;
   activo: boolean;
+  departamentoId?: string;
+  managerId?: string;
 }
 
 // Auth
@@ -75,4 +77,37 @@ export interface ApiError {
   error: string;
   code?: string;
   details?: ErrorDetail[];
+}
+
+// Empleados
+export interface EmpleadoFilters {
+  search?: string;
+  rol?: UserRole;
+  departamentoId?: string;
+  activo?: boolean;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface CreateEmpleadoData {
+  email: string;
+  password: string;
+  nombre: string;
+  apellidos?: string;
+  rol?: UserRole;
+  departamentoId?: string;
+  managerId?: string;
+  activo?: boolean;
+}
+
+export interface UpdateEmpleadoData {
+  email?: string;
+  nombre?: string;
+  apellidos?: string;
+  rol?: UserRole;
+  departamentoId?: string;
+  managerId?: string;
+  activo?: boolean;
 }

@@ -22,8 +22,7 @@ Definir la arquitectura de TeamHub para alinear diseño, desarrollo y despliegue
 
 ```text
 [Usuario] -> [Frontend Next.js] -> [Backend Hono] -> [PostgreSQL]
-                      |               |
-                      |               +-> [Email SMTP] (reset password)
+                      |
                       +-> [MFA TOTP] (Google Authenticator)
 ```
 
@@ -34,7 +33,6 @@ flowchart LR
   user[Usuario] --> frontend[Frontend\nNext.js]
   frontend --> backend[Backend\nHono API]
   backend --> db[(PostgreSQL)]
-  backend --> smtp[Email SMTP]
   user --> mfa[Google Authenticator]
   mfa --> backend
 ```

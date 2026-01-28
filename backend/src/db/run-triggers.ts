@@ -6,29 +6,14 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { Pool } from 'pg';
-import type { ConnectionOptions } from 'tls';
-import 'dotenv/config';
+import { config } from '../config/env.js';
+import { buildSslConfig, normalizeConnectionString } from './postgres-config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function runTriggers() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    console.error('❌ DATABASE_URL no está definida');
-    process.exit(1);
-  }
-
-  let sslConfig: ConnectionOptions | false = false;
-  const caPath = process.env.PG_SSL_CERT_PATH;
-  if (caPath) {
-    sslConfig = {
-      ca: readFileSync(caPath).toString(),
-      rejectUnauthorized: false,
-    };
-  }
-
-  const pool = new Pool({ connectionString: databaseUrl, ssl: sslConfig });
+  const connectionString = normalizeConnectionString(config.DATABASE_URL);
+  const pool = new Pool({ connectionString, ssl: buildSslConfig() });
 
   try {
     console.log('🔄 Conectando a la base de datos...');

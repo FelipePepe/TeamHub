@@ -36,7 +36,7 @@ describe('auth routes', () => {
 
     expect(loginResponse.status).toBe(200);
     expect(loginBody).toMatchObject({
-      mfaRequired: true,
+      mfaSetupRequired: true,
       mfaToken: expect.any(String),
     });
     expect(verifyBody).toMatchObject({

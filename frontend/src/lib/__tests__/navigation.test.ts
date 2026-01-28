@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { getNavigationForRole, isNavItemActive, navigationItems } from '../navigation';
-import type { UserRole } from '@/types';
 
 describe('navigation', () => {
   describe('navigationItems', () => {

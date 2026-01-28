@@ -217,6 +217,20 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Implementar backup codes (10 codigos de un solo uso) generados al activar MFA, almacenados como hashes en \`mfa_recovery_codes\`, con endpoint de regeneracion en \`/perfil/mfa/backup-codes\`.
 - Consecuencias: Usuarios pueden recuperar acceso; requiere UI para mostrar codigos una sola vez y endpoint de regeneracion.
 
+### ADR-057: Generacion local de QR codes para MFA
+- Fecha: 2026-01-28
+- Estado: Aceptado
+- Contexto: La generacion de QR codes para MFA usando servicios externos (Google Charts, QuickChart) causa errores CORB (Cross-Origin Read Blocking) porque estos servicios no envian headers CORS adecuados.
+- Decision: Generar QR codes localmente en el frontend usando la libreria `qrcode`, que produce data URLs base64 sin necesidad de peticiones externas.
+- Consecuencias: Eliminacion de errores CORB; requiere tener `qrcode` instalado en el frontend; QR se genera instantaneamente sin latencia de red.
+
+### ADR-058: Sincronizacion de tiempo para TOTP
+- Fecha: 2026-01-28
+- Estado: Aceptado
+- Contexto: La verificacion TOTP fallaba porque el reloj del servidor estaba desincronizado respecto al dispositivo del usuario.
+- Decision: Documentar como requisito que el servidor debe tener NTP habilitado para sincronizacion de tiempo. En Linux: `timedatectl set-ntp true`.
+- Consecuencias: Los codigos TOTP coinciden entre servidor y cliente; requisito de infraestructura documentado en troubleshooting.
+
 ### ADR-046: Endpoints de Perfil separados de Usuarios
 - Fecha: 2026-01-25
 - Estado: Aceptado
@@ -405,6 +419,72 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Adoptar GitFlow con ramas main (produccion), develop (integracion), feature/*, bugfix/*, release/* y hotfix/*. Commits siguiendo Conventional Commits.
 - Consecuencias: Historial limpio y predecible; requiere disciplina en el equipo y proteccion de ramas main/develop.
 
+### ADR-052: Validacion GitFlow con Husky hooks
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: GitFlow requiere validacion automatica para asegurar cumplimiento de convenciones.
+- Decision: Implementar tres hooks de Husky: \`commit-msg\` para Conventional Commits, \`pre-commit\` para validar nombres de rama GitFlow, y \`pre-push\` para bloquear push directo a main/develop.
+- Consecuencias: Enforcement automatico de GitFlow; fallos rapidos antes de llegar al CI.
+
+### ADR-053: Extensiones .js en imports TypeScript (Node16)
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: TypeScript con \`moduleResolution: node16/nodenext\` requiere extensiones explicitas en imports relativos para ESM.
+- Decision: Añadir extensiones \`.js\` a todos los imports relativos en el backend para compatibilidad con ESM nativo.
+- Consecuencias: Codigo compatible con Node.js ESM; requiere atencion al añadir nuevos imports.
+
+### ADR-054: Tipos estrictos para validators Zod
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
+- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
+- Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
+
+### ADR-055: Bootstrap token para primer usuario
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
+- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
+- Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
+
+### ADR-056: Sistema colaborativo multi-LLM
+- Fecha: 2026-01-27
+- Estado: Aceptado
+- Contexto: Se dispone de licencias para múltiples LLMs (GitHub Copilot CLI, Claude CLI, Codex CLI) y se busca mejorar la calidad del código generado mediante revisión cruzada.
+- Decision: Implementar sistema de orquestación en \`scripts/llm-collab/\` donde GitHub Copilot CLI genera código y Claude CLI lo revisa, iterando hasta aprobación (máx 3 iteraciones). El sistema soporta también Auto (Cursor AI) como orquestador, generador o revisor mediante archivos de instrucciones.
+- Alternativas consideradas:
+  - Usar un solo LLM: menos coste pero menor calidad
+  - Revisión manual: más control pero más lento
+  - Codex como generador: más lento pero más estructurado
+  - Solo CLIs externos: requiere instalación y configuración de herramientas
+- Consecuencias:
+  - Mejor calidad de código generado mediante revisión cruzada
+  - Mayor coste por múltiples llamadas a APIs (solo en modo script)
+  - Mayor latencia por iteraciones
+  - Flexibilidad: Auto puede actuar como orquestador completo sin CLIs externos
+  - Requiere configuración de CLIs solo si se usan en modo script
+  - Directorio \`.llm-context/\` en \`.gitignore\` para archivos temporales
+- Uso práctico (2026-01-27):
+  - **Primera implementación exitosa**: Hook \`useDepartamentos\` para frontend
+    - Generación: Código completo con TanStack Query, tipos TypeScript, validaciones
+    - Revisión: Aprobado con puntuación 9/10, cumpliendo estándares del proyecto
+    - Mejora: Tipos exportados a \`types/index.ts\` para reutilización
+    - Resultado: Hook funcional listo para producción (commit \`856f90a\`)
+  - **Segunda implementación**: Página de listado de departamentos (\`/admin/departamentos\`)
+    - Generación: Página completa con tabla, filtros, búsqueda, acciones
+    - Revisión: Integración correcta con hooks, permisos, estados de carga
+    - Resultado: Página funcional con todas las características requeridas (commit \`1638c0e\`)
+  - **Tercera implementación**: Formulario modal para crear/editar departamentos
+    - Generación: Formulario con React Hook Form + Zod, validaciones robustas
+    - Revisión: Aprobado 8.5/10, mejoras sugeridas (reset al cerrar, select de responsables)
+    - Mejora: Reset del formulario al cerrar modal implementado
+    - Resultado: Formulario completo con Dialog component creado
+  - **Proceso validado**: El sistema de colaboración multi-LLM funciona correctamente:
+    1. Orquestador genera instrucciones estructuradas en \`.llm-context/auto_instructions.md\`
+    2. Auto (Cursor AI) ejecuta generación, revisión y mejora iterativa
+    3. Código resultante cumple estándares (Clean Code, TypeScript, tests)
+    4. Implementación directa en el proyecto sin necesidad de refactorización mayor
+    5. Feedback estructurado en \`.llm-context/review_feedback.md\` para trazabilidad
 ---
 
 ## Registro de Ejecución
@@ -480,3 +560,10 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
 - [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
 - [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
+- [x] Implementar sistema colaborativo multi-LLM (orquestador, generador, revisor). (2026-01-27)
+- [x] Probar sistema multi-LLM generando hook useDepartamentos. (2026-01-27)
+- [x] Implementar página de listado de departamentos usando sistema multi-LLM. (2026-01-27)
+- [x] Implementar formulario modal de departamentos usando sistema multi-LLM. (2026-01-27)
+- [x] Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
+- [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
+- [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)

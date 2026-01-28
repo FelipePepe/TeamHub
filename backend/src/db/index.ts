@@ -1,23 +1,15 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import type { ConnectionOptions } from 'tls';
 import * as schema from './schema/index.js';
 import * as relations from './schema/relations.js';
 import { config } from '../config/env.js';
+import { buildSslConfig, normalizeConnectionString } from './postgres-config.js';
 
-// Pool de conexiones PostgreSQL
-import { readFileSync } from 'fs';
-
-let sslConfig: ConnectionOptions | false = false;
-if (config.PG_SSL_CERT_PATH) {
-  sslConfig = {
-    ca: readFileSync(config.PG_SSL_CERT_PATH).toString(),
-    rejectUnauthorized: false,
-  };
-}
+const sslConfig = buildSslConfig();
+const connectionString = normalizeConnectionString(config.DATABASE_URL);
 
 const pool = new Pool({
-  connectionString: config.DATABASE_URL,
+  connectionString,
   max: 10, // máximo de conexiones en el pool
   idleTimeoutMillis: 30000, // tiempo antes de cerrar conexiones inactivas
   connectionTimeoutMillis: 2000, // tiempo máximo para establecer conexión

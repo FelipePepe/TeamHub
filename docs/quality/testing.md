@@ -38,7 +38,7 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
 - Excepciones: infraestructura, tipos y capas de integracion externa.
 
 ## Datos de prueba
-- Seed placeholder (no crea datos aún).
+- Seed admin (usa variables de entorno).
 - Fixtures para casos de error y edge cases.
 
 ## Calidad (gates)

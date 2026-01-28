@@ -277,7 +277,7 @@ npm install
 npm run dev
 ```
 
-#### 6. Acceder a la aplicación
+#### 6. Acceder a la aplicacion
 
 | Servicio | URL |
 |----------|-----|
@@ -287,7 +287,14 @@ npm run dev
 
 ### Usuarios de Prueba (Seed)
 
-El seed actual es un placeholder y no crea usuarios. Si la base de datos está vacía, el primer login crea un usuario **ADMIN** con el email y la contraseña introducidos (cumpliendo la política de password).
+El seed permite crear un usuario admin inicial si la base de datos no tiene usuarios. Configura:
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD` (debe cumplir la politica de password)
+- `SEED_ADMIN_NOMBRE` (opcional, por defecto "Admin")
+- `SEED_ADMIN_APELLIDOS` (opcional)
+
+Si no se definen `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`, el seed se omite. Si la base de datos esta vacia, el primer login tambien puede crear un usuario **ADMIN** usando `X-Bootstrap-Token` + `BOOTSTRAP_TOKEN` (ver mas abajo).
 
 ### Scripts Disponibles
 
@@ -302,13 +309,29 @@ El seed actual es un placeholder y no crea usuarios. Si la base de datos está v
 | `npm run db:migrate` | Ejecutar migraciones pendientes |
 | `npm run db:push` | Sincronizar schema con la DB (dev) |
 | `npm run db:triggers` | Ejecutar triggers de base de datos |
-| `npm run db:seed` | Seed placeholder (no crea datos aún) |
+| `npm run db:seed` | Seed admin (usa variables de entorno) |
 | `npm run db:studio` | Abrir Drizzle Studio |
 | `npm run db:setup` | Migrate + triggers + seed |
 | `npm run test` | Ejecutar tests |
 | `npm run test:watch` | Ejecutar tests en modo watch |
 | `npm run lint` | Verificar código con ESLint |
 | `npm run type-check` | Verificar tipos sin compilar |
+
+#### Sistema Colaborativo Multi-LLM
+
+Sistema de orquestación que permite que múltiples LLMs trabajen colaborativamente para generar código de mayor calidad. Soporta CLIs externos (GitHub Copilot, Claude) y Auto (Cursor AI).
+
+| Script | Descripción |
+|--------|-------------|
+| `scripts/llm-collab/orchestrator.sh <prompt> [output]` | Orquesta el proceso completo: genera, revisa e itera hasta aprobación |
+| `scripts/llm-collab/generator.sh <prompt>` | Genera código usando GitHub Copilot CLI o Auto |
+| `scripts/llm-collab/reviewer.sh <code_file>` | Revisa código usando Claude CLI o Auto según estándares del proyecto |
+
+**Modos disponibles:**
+- **Modo Auto**: Auto (Cursor AI) actúa como orquestador, generador o revisor
+- **Modo Script**: Usa CLIs externos (GitHub Copilot, Claude) automáticamente
+
+Ver [scripts/llm-collab/README.md](scripts/llm-collab/README.md) para más detalles.
 
 #### Frontend
 

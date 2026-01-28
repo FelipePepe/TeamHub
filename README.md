@@ -277,7 +277,7 @@ npm install
 npm run dev
 ```
 
-#### 6. Acceder a la aplicación
+#### 6. Acceder a la aplicacion
 
 | Servicio | URL |
 |----------|-----|
@@ -287,7 +287,14 @@ npm run dev
 
 ### Usuarios de Prueba (Seed)
 
-El seed actual es un placeholder y no crea usuarios. Si la base de datos está vacía, el primer login crea un usuario **ADMIN** con el email y la contraseña introducidos (cumpliendo la política de password).
+El seed permite crear un usuario admin inicial si la base de datos no tiene usuarios. Configura:
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD` (debe cumplir la politica de password)
+- `SEED_ADMIN_NOMBRE` (opcional, por defecto "Admin")
+- `SEED_ADMIN_APELLIDOS` (opcional)
+
+Si no se definen `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`, el seed se omite. Si la base de datos esta vacia, el primer login tambien puede crear un usuario **ADMIN** usando `X-Bootstrap-Token` + `BOOTSTRAP_TOKEN` (ver mas abajo).
 
 ### Scripts Disponibles
 
@@ -302,7 +309,7 @@ El seed actual es un placeholder y no crea usuarios. Si la base de datos está v
 | `npm run db:migrate` | Ejecutar migraciones pendientes |
 | `npm run db:push` | Sincronizar schema con la DB (dev) |
 | `npm run db:triggers` | Ejecutar triggers de base de datos |
-| `npm run db:seed` | Seed placeholder (no crea datos aún) |
+| `npm run db:seed` | Seed admin (usa variables de entorno) |
 | `npm run db:studio` | Abrir Drizzle Studio |
 | `npm run db:setup` | Migrate + triggers + seed |
 | `npm run test` | Ejecutar tests |

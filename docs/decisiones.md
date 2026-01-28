@@ -217,6 +217,20 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Implementar backup codes (10 codigos de un solo uso) generados al activar MFA, almacenados como hashes en \`mfa_recovery_codes\`, con endpoint de regeneracion en \`/perfil/mfa/backup-codes\`.
 - Consecuencias: Usuarios pueden recuperar acceso; requiere UI para mostrar codigos una sola vez y endpoint de regeneracion.
 
+### ADR-057: Generacion local de QR codes para MFA
+- Fecha: 2026-01-28
+- Estado: Aceptado
+- Contexto: La generacion de QR codes para MFA usando servicios externos (Google Charts, QuickChart) causa errores CORB (Cross-Origin Read Blocking) porque estos servicios no envian headers CORS adecuados.
+- Decision: Generar QR codes localmente en el frontend usando la libreria `qrcode`, que produce data URLs base64 sin necesidad de peticiones externas.
+- Consecuencias: Eliminacion de errores CORB; requiere tener `qrcode` instalado en el frontend; QR se genera instantaneamente sin latencia de red.
+
+### ADR-058: Sincronizacion de tiempo para TOTP
+- Fecha: 2026-01-28
+- Estado: Aceptado
+- Contexto: La verificacion TOTP fallaba porque el reloj del servidor estaba desincronizado respecto al dispositivo del usuario.
+- Decision: Documentar como requisito que el servidor debe tener NTP habilitado para sincronizacion de tiempo. En Linux: `timedatectl set-ntp true`.
+- Consecuencias: Los codigos TOTP coinciden entre servidor y cliente; requisito de infraestructura documentado en troubleshooting.
+
 ### ADR-046: Endpoints de Perfil separados de Usuarios
 - Fecha: 2026-01-25
 - Estado: Aceptado
@@ -550,3 +564,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Probar sistema multi-LLM generando hook useDepartamentos. (2026-01-27)
 - [x] Implementar página de listado de departamentos usando sistema multi-LLM. (2026-01-27)
 - [x] Implementar formulario modal de departamentos usando sistema multi-LLM. (2026-01-27)
+- [x] Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
+- [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
+- [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)

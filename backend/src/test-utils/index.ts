@@ -18,6 +18,7 @@ const TEST_ENV: Record<string, string> = {
   APP_BASE_URL: 'http://localhost:3000',
   BCRYPT_SALT_ROUNDS: '4',
   MFA_ENCRYPTION_KEY: 'test-mfa-encryption-key-0000000000000000000000000000',
+  BOOTSTRAP_TOKEN: 'test-bootstrap-token-000000000000000000000000000000',
 };
 
 export const applyTestEnv = () => {
@@ -103,9 +104,14 @@ export const loginWithMfa = async (
   email: string,
   password: string
 ) => {
+  const bootstrapToken = process.env.BOOTSTRAP_TOKEN;
+  const headers = bootstrapToken
+    ? { ...JSON_HEADERS, 'X-Bootstrap-Token': bootstrapToken }
+    : JSON_HEADERS;
+
   const loginResponse = await app.request('/api/auth/login', {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers,
     body: JSON.stringify({ email, password }),
   });
   const loginBody = await loginResponse.json();

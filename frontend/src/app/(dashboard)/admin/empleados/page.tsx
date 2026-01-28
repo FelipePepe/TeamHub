@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEmpleados, useDeleteEmpleado } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
-import type { EmpleadoFilters, UserRole } from '@/types';
+import type { EmpleadoFilters } from '@/types';
 
 /**
  * Página de listado de empleados para administradores y RRHH

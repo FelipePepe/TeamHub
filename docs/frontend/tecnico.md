@@ -55,6 +55,11 @@
 - Base URL via NEXT_PUBLIC_API_URL.
 - Manejo de errores con toasts.
 
+## Autenticacion MFA
+- Generacion de QR code con libreria `qrcode` (local, sin servicios externos).
+- El QR se genera como data URL base64 para evitar errores CORB.
+- Flujo: login -> cambio password (si temporal) -> setup MFA (si no configurado) -> verificar codigo TOTP.
+
 ## Providers
 - `app/providers.tsx` como compositor ligero.
 - Providers por modulo en `providers/` (auth, query, otros).

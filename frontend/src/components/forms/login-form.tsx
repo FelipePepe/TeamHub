@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -126,8 +127,13 @@ export function LoginForm() {
   const initMfaSetup = async (token: string) => {
     try {
       const mfaData = await setupMfa(token);
-      // Use Google Charts API to generate QR code
-      const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(mfaData.otpauthUrl)}`;
+      let qrUrl: string | null = null;
+      try {
+        const QRCode = await import('qrcode');
+        qrUrl = await QRCode.toDataURL(mfaData.otpauthUrl, { width: 192, margin: 1 });
+      } catch (error) {
+        console.warn('[mfa] qr generation failed, manual code available', error);
+      }
       setQrCodeDataUrl(qrUrl);
       setMfaSecret(mfaData.secret);
       setStep('mfa-setup');
@@ -276,19 +282,33 @@ export function LoginForm() {
           <span className="font-medium">Configurar autenticacion MFA</span>
         </div>
 
-        <p className="text-sm text-slate-600 mb-4">
-          Escanea el codigo QR con Google Authenticator u otra app compatible.
-        </p>
-
-        {qrCodeDataUrl && (
-          <div className="flex justify-center mb-4">
-            <img src={qrCodeDataUrl} alt="QR Code MFA" className="w-48 h-48" />
-          </div>
+        {qrCodeDataUrl ? (
+          <>
+            <p className="text-sm text-slate-600 mb-4">
+              Escanea el codigo QR con Google Authenticator u otra app compatible.
+            </p>
+            <div className="flex justify-center mb-4">
+              <Image
+                src={qrCodeDataUrl}
+                alt="QR Code MFA"
+                width={192}
+                height={192}
+                className="w-48 h-48"
+                unoptimized
+              />
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-slate-600 mb-4">
+            Ingresa el codigo en Google Authenticator u otra app compatible.
+          </p>
         )}
 
         {mfaSecret && (
           <div className="bg-slate-100 p-3 rounded text-center mb-4">
-            <p className="text-xs text-slate-500 mb-1">O ingresa este codigo manualmente:</p>
+            <p className="text-xs text-slate-500 mb-1">
+              {qrCodeDataUrl ? 'O ingresa este codigo manualmente:' : 'Codigo para agregar manualmente:'}
+            </p>
             <code className="text-sm font-mono select-all">{mfaSecret}</code>
           </div>
         )}

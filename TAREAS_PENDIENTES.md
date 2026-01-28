@@ -18,11 +18,12 @@ Las tareas están ordenadas por:
 #### 1. Página de Empleados (`/admin/empleados`)
 - [x] Crear hook `useEmpleados` con TanStack Query ✅ (commit `35cab85`)
 - [x] Tests del hook ✅ (9 tests, todos pasando)
-- [ ] Crear página de listado con tabla
-- [ ] Añadir filtros (departamento, rol, estado, búsqueda)
+- [x] Crear página de listado con tabla ✅ (commit pendiente)
+- [x] Añadir filtros (rol, estado, búsqueda) ✅ (departamento pendiente - necesita hook useDepartamentos)
+- [x] Tests de la página ✅ (6 tests, todos pasando)
 - [ ] Implementar formulario crear/editar empleado
 - [ ] Añadir vista de detalle de empleado
-- [ ] Tests de la página
+- [ ] Añadir filtro por departamento (requiere useDepartamentos hook)
 
 #### 2. Página de Onboarding (`/onboarding`)
 - [ ] Crear hook `useProcesos` con TanStack Query

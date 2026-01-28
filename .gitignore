@@ -30,3 +30,7 @@ temp/
 .llm-context/
 
 postgres avnadmin AVNS.txt
+logs/
+scripts/audit_update_logs.sh
+.codex-home/*
+!.codex-home/AGENTS_SUMMARY.md

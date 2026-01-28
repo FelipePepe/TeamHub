@@ -38,13 +38,15 @@ function createWrapper() {
     },
   });
 
-  return ({ children }: { children: ReactNode }) => {
+  function QueryClientWrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
     );
-  };
+  }
+
+  return QueryClientWrapper;
 }
 
 describe('useEmpleados', () => {

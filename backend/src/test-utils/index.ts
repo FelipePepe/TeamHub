@@ -1,6 +1,7 @@
 import type { Hono } from 'hono';
+import type { HonoEnv } from '../types/hono.js';
 import dotenv from 'dotenv';
-import { store } from '../store';
+import { store } from '../store/index.js';
 const TEST_ENV: Record<string, string> = {
   NODE_ENV: 'test',
   PORT: '3001',
@@ -17,6 +18,7 @@ const TEST_ENV: Record<string, string> = {
   APP_BASE_URL: 'http://localhost:3000',
   BCRYPT_SALT_ROUNDS: '4',
   MFA_ENCRYPTION_KEY: 'test-mfa-encryption-key-0000000000000000000000000000',
+  BOOTSTRAP_TOKEN: 'test-bootstrap-token-000000000000000000000000000000',
 };
 
 export const applyTestEnv = () => {
@@ -98,13 +100,18 @@ export const findUserByEmail = async (email: string) => {
 };
 
 export const loginWithMfa = async (
-  app: Hono,
+  app: Hono<HonoEnv>,
   email: string,
   password: string
 ) => {
+  const bootstrapToken = process.env.BOOTSTRAP_TOKEN;
+  const headers = bootstrapToken
+    ? { ...JSON_HEADERS, 'X-Bootstrap-Token': bootstrapToken }
+    : JSON_HEADERS;
+
   const loginResponse = await app.request('/api/auth/login', {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers,
     body: JSON.stringify({ email, password }),
   });
   const loginBody = await loginResponse.json();
@@ -118,7 +125,7 @@ export const loginWithMfa = async (
   });
   const setupBody = await setupResponse.json();
 
-  const { generateTotpCode } = await import('../services/mfa-service');
+  const { generateTotpCode } = await import('../services/mfa-service.js');
   const code = generateTotpCode(setupBody.secret as string);
   const verifyResponse = await app.request('/api/auth/mfa/verify', {
     method: 'POST',

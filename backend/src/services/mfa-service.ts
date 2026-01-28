@@ -1,10 +1,9 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync } from 'crypto';
-import { config } from '../config/env';
-import { BUSINESS_RULES } from '../shared/constants/business-rules';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync } from 'node:crypto';
+import { config } from '../config/env.js';
+import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const AUTH_TAG_LENGTH = 16;
 
 const deriveKey = () => scryptSync(config.MFA_ENCRYPTION_KEY, 'mfa-salt', 32);
 

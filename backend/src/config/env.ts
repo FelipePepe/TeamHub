@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import { config as loadEnv } from 'dotenv';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const backendRoot = resolve(__dirname, '../../');
+const envPath = process.env.DOTENV_CONFIG_PATH ?? resolve(backendRoot, '.env');
+loadEnv({ path: envPath });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
@@ -24,6 +32,8 @@ const envSchema = z.object({
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
   PG_SSL_CERT_PATH: z.string().optional(),
+  PG_SSL_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
+  BOOTSTRAP_TOKEN: z.string().min(32).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

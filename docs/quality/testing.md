@@ -18,15 +18,10 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
 - Frontend: Vitest 3.x + Testing Library para hooks y componentes (React 19).
 - Ubicacion:
   - `backend/src/__tests__/`
-  - `frontend/src/__tests__/`
+  - `frontend/src/**/__tests__/`
 
 ### E2E
-- Playwright en `frontend/e2e/`.
-- Flujos por rol:
-  - ADMIN: login con MFA, crear usuario, desbloquear cuenta, crear departamento.
-  - RRHH: iniciar onboarding, gestionar plantillas, ver KPIs.
-  - MANAGER: aprobar horas, gestionar asignaciones, ver equipo.
-  - EMPLEADO: registrar horas, completar tareas, ver mis proyectos.
+- Pendiente de implementar (no existe carpeta `frontend/e2e/`).
 
 ### Contrato API
 - Validacion de `openapi.yaml` con `scripts/validate-openapi.sh`.
@@ -43,7 +38,7 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
 - Excepciones: infraestructura, tipos y capas de integracion externa.
 
 ## Datos de prueba
-- Seed de datos por rol.
+- Seed admin (usa variables de entorno).
 - Fixtures para casos de error y edge cases.
 
 ## Calidad (gates)

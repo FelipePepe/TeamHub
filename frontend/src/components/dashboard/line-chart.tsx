@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TimeSeriesPoint } from '@/types/dashboard';
@@ -27,6 +28,7 @@ export function LineChart({
   formatLabel = defaultFormatLabel,
 }: LineChartProps) {
   const maxValue = Math.max(...data.map((d) => d.value), 1);
+  const gradientId = `line-chart-gradient-${useId()}`.replace(/:/g, '');
 
   if (isLoading) {
     return (
@@ -60,8 +62,6 @@ export function LineChart({
 
   // Calculate points for SVG path
   const padding = 40;
-  const chartWidth = 100; // percentage
-  const pointWidth = (chartWidth - padding * 2 / 300 * 100) / (data.length - 1 || 1);
 
   return (
     <Card>
@@ -111,13 +111,13 @@ export function LineChart({
                   .join(' ') +
                 ` L ${300 - padding} ${height - padding} L ${padding} ${height - padding} Z`
               }
-              fill="url(#gradient)"
+              fill={`url(#${gradientId})`}
               opacity="0.1"
             />
 
             {/* Gradient definition */}
             <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#3b82f6" />
                 <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
               </linearGradient>
@@ -134,7 +134,7 @@ export function LineChart({
                   cy={y}
                   r="4"
                   fill="#3b82f6"
-                  className="hover:r-6 transition-all"
+                  className="transition-all hover:scale-125"
                 />
               );
             })}

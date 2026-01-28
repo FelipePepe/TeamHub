@@ -11,7 +11,7 @@ LoginRequest:
 
 LoginResponse:
   type: object
-  description: If mfaRequired is true, accessToken/refreshToken/user may be omitted. Use mfaToken to enroll (mfa/setup) and verify (mfa/verify).
+  description: If mfaRequired/mfaSetupRequired/passwordChangeRequired are true, accessToken/refreshToken/user may be omitted. Use mfaToken to change password (auth/change-password), enroll (mfa/setup) and verify (mfa/verify).
   properties:
     accessToken:
       type: string
@@ -20,6 +20,10 @@ LoginResponse:
     user:
       $ref: '../index.yaml#/schemas/UserResponse'
     mfaRequired:
+      type: boolean
+    mfaSetupRequired:
+      type: boolean
+    passwordChangeRequired:
       type: boolean
     mfaToken:
       type: string
@@ -97,3 +101,97 @@ ResetPasswordRequest:
     newPassword:
       type: string
       format: password
+
+AuthChangePasswordRequest:
+  type: object
+  required: [mfaToken, newPassword]
+  properties:
+    mfaToken:
+      type: string
+    newPassword:
+      type: string
+      format: password
+
+AuthChangePasswordResponse:
+  type: object
+  required: [mfaToken]
+  properties:
+    mfaToken:
+      type: string
+    mfaRequired:
+      type: boolean
+    mfaSetupRequired:
+      type: boolean
+
+MfaBackupRequest:
+  type: object
+  required: [mfaToken, backupCode]
+  properties:
+    mfaToken:
+      type: string
+    backupCode:
+      type: string
+      description: One of the 10 backup codes
+
+MfaStatusResponse:
+  type: object
+  required: [enabled]
+  properties:
+    enabled:
+      type: boolean
+    activatedAt:
+      type: string
+      format: date-time
+
+BackupCodesResponse:
+  type: object
+  required: [codes]
+  properties:
+    codes:
+      type: array
+      items:
+        type: string
+      description: 10 reusable backup codes
+
+RegenerateMfaRequest:
+  type: object
+  required: [password, code]
+  properties:
+    password:
+      type: string
+      format: password
+      description: Current password
+    code:
+      type: string
+      description: Current TOTP code
+
+ResetMfaResponse:
+  type: object
+  required: [secret, otpauthUrl, qrCode]
+  properties:
+    secret:
+      type: string
+    otpauthUrl:
+      type: string
+    qrCode:
+      type: string
+      description: Base64 encoded QR code image
+
+UpdatePerfilRequest:
+  type: object
+  properties:
+    nombre:
+      type: string
+    apellidos:
+      type: string
+    email:
+      type: string
+      format: email
+
+AvatarResponse:
+  type: object
+  required: [avatarUrl]
+  properties:
+    avatarUrl:
+      type: string
+      format: uri

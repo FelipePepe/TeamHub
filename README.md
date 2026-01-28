@@ -76,7 +76,7 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           FRONTEND (Vercel)                                  │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                        Next.js 14 (App Router)                         │ │
+│  │                        Next.js 15 (App Router)                         │ │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐ │ │
 │  │  │   Pages      │  │  Components  │  │    Hooks     │  │   Lib      │ │ │
 │  │  │  (App Dir)   │  │  (shadcn/ui) │  │(TanStack Q.) │  │  (API)     │ │ │
@@ -143,7 +143,6 @@ Usuario → Frontend (Next.js) → API Client (Axios) → Backend (Hono) → Ser
 | Zod | 3.24.x | Validación de esquemas en runtime |
 | D3.js | 7.x | Visualizaciones de datos |
 | Lucide React | latest | Iconos SVG |
-| date-fns | 3.x | Manipulación de fechas |
 | Sonner | latest | Notificaciones toast |
 
 ### Backend
@@ -153,7 +152,7 @@ Usuario → Frontend (Next.js) → API Client (Axios) → Backend (Hono) → Ser
 | Node.js | 20.x | Runtime JavaScript |
 | Hono | 4.6.x | Framework web ultraligero y rápido |
 | TypeScript | 5.7.x | Tipado estático |
-| Drizzle ORM | 0.38.x | ORM type-safe con excelente DX |
+| Drizzle ORM | 0.36.x | ORM type-safe con excelente DX |
 | drizzle-kit | 1.0.0-beta | CLI para migraciones |
 | PostgreSQL | 16.x | Base de datos relacional robusta |
 | JWT | 9.x | Autenticación stateless |
@@ -166,13 +165,11 @@ Usuario → Frontend (Next.js) → API Client (Axios) → Backend (Hono) → Ser
 
 | Tecnología | Propósito |
 |------------|-----------|
-| Docker | Containerización para desarrollo local |
-| Docker Compose | Orquestación de servicios locales |
+| Docker (opcional) | Containerización local (ej: PostgreSQL) |
 | Vercel | Despliegue frontend (edge network) |
 | Railway | Despliegue backend y base de datos |
 | GitHub Actions | CI/CD pipelines |
 | ESLint 9 | Linting de código (flat config) |
-| Prettier | Formateo consistente |
 | Vitest 3 | Testing unitario e integración |
 
 ---
@@ -183,7 +180,7 @@ Usuario → Frontend (Next.js) → API Client (Axios) → Backend (Hono) → Ser
 
 - **Node.js** 20.x o superior ([descargar](https://nodejs.org/))
 - **npm** 10.x o superior (incluido con Node.js)
-- **Docker** y **Docker Compose** ([descargar](https://www.docker.com/))
+- **PostgreSQL** 16.x (local o via Docker)
 - **Git** ([descargar](https://git-scm.com/))
 
 ### Instalación Local
@@ -211,27 +208,56 @@ cp frontend/.env.example frontend/.env.local
 ```env
 # Base de datos
 DATABASE_URL=postgresql://teamhub:teamhub_dev@localhost:5432/teamhub
+PG_SSL_CERT_PATH=
 
 # JWT
-JWT_SECRET=tu-clave-secreta-muy-larga-y-segura-minimo-32-caracteres
-JWT_EXPIRES_IN=7d
+JWT_ACCESS_SECRET=tu-clave-secreta-muy-larga-y-segura-minimo-32-caracteres
+JWT_REFRESH_SECRET=tu-clave-secreta-muy-larga-y-segura-minimo-32-caracteres
+JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
 
 # Servidor
 PORT=3001
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000
 NODE_ENV=development
+APP_BASE_URL=http://localhost:3000
+
+# MFA y hashing
+MFA_ENCRYPTION_KEY=tu-clave-secreta-muy-larga-y-segura-minimo-32-caracteres
+MFA_ISSUER=TeamHub
+BCRYPT_SALT_ROUNDS=12
+
+# Email (reset password)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=change-me
+SMTP_PASS=change-me
+SMTP_FROM=TeamHub <no-reply@example.com>
+
+# Rate limiting y logs
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=100
+LOGIN_RATE_LIMIT_WINDOW_MS=60000
+LOGIN_RATE_LIMIT_MAX=5
+LOG_LEVEL=info
 ```
 
 **Frontend (.env.local):**
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 #### 4. Levantar la base de datos
 
 ```bash
-docker-compose up -d postgres
+# Opcional: PostgreSQL con Docker
+docker run --name teamhub-postgres \
+  -e POSTGRES_USER=teamhub \
+  -e POSTGRES_PASSWORD=teamhub_dev \
+  -e POSTGRES_DB=teamhub \
+  -p 5432:5432 \
+  -d postgres:16
 ```
 
 #### 5. Instalar dependencias e inicializar
@@ -241,6 +267,7 @@ docker-compose up -d postgres
 cd backend
 npm install
 npm run db:migrate
+npm run db:triggers
 npm run db:seed
 npm run dev
 
@@ -250,22 +277,24 @@ npm install
 npm run dev
 ```
 
-#### 6. Acceder a la aplicación
+#### 6. Acceder a la aplicacion
 
 | Servicio | URL |
 |----------|-----|
 | Frontend | http://localhost:3000 |
 | Backend API | http://localhost:3001/api |
-| Drizzle Studio | http://localhost:3001/studio (npm run db:studio) |
+| Drizzle Studio | Ejecuta `npm run db:studio` (URL en consola) |
 
 ### Usuarios de Prueba (Seed)
 
-| Email | Password | Rol | Descripción |
-|-------|----------|-----|-------------|
-| admin@teamhub.com | Admin123! | ADMIN | Acceso total al sistema |
-| rrhh@teamhub.com | Rrhh123! | RRHH | Gestión de empleados y onboarding |
-| manager@teamhub.com | Manager123! | MANAGER | Gestión de equipo y proyectos |
-| empleado@teamhub.com | Empleado123! | EMPLEADO | Acceso básico self-service |
+El seed permite crear un usuario admin inicial si la base de datos no tiene usuarios. Configura:
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD` (debe cumplir la politica de password)
+- `SEED_ADMIN_NOMBRE` (opcional, por defecto "Admin")
+- `SEED_ADMIN_APELLIDOS` (opcional)
+
+Si no se definen `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`, el seed se omite. Si la base de datos esta vacia, el primer login tambien puede crear un usuario **ADMIN** usando `X-Bootstrap-Token` + `BOOTSTRAP_TOKEN` (ver mas abajo).
 
 ### Scripts Disponibles
 
@@ -276,15 +305,33 @@ npm run dev
 | `npm run dev` | Desarrollo con hot-reload (tsx watch) |
 | `npm run build` | Compilar TypeScript a JavaScript |
 | `npm run start` | Ejecutar versión compilada |
-| `npm run db:migrate` | Ejecutar migraciones pendientes |
-| `npm run db:seed` | Cargar datos de prueba |
-| `npm run db:studio` | Abrir GUI de Drizzle |
 | `npm run db:generate` | Generar migración desde cambios en schema |
+| `npm run db:migrate` | Ejecutar migraciones pendientes |
+| `npm run db:push` | Sincronizar schema con la DB (dev) |
+| `npm run db:triggers` | Ejecutar triggers de base de datos |
+| `npm run db:seed` | Seed admin (usa variables de entorno) |
+| `npm run db:studio` | Abrir Drizzle Studio |
+| `npm run db:setup` | Migrate + triggers + seed |
 | `npm run test` | Ejecutar tests |
-| `npm run test:coverage` | Tests con reporte de cobertura |
+| `npm run test:watch` | Ejecutar tests en modo watch |
 | `npm run lint` | Verificar código con ESLint |
-| `npm run lint:fix` | Corregir errores de linting automáticamente |
 | `npm run type-check` | Verificar tipos sin compilar |
+
+#### Sistema Colaborativo Multi-LLM
+
+Sistema de orquestación que permite que múltiples LLMs trabajen colaborativamente para generar código de mayor calidad. Soporta CLIs externos (GitHub Copilot, Claude) y Auto (Cursor AI).
+
+| Script | Descripción |
+|--------|-------------|
+| `scripts/llm-collab/orchestrator.sh <prompt> [output]` | Orquesta el proceso completo: genera, revisa e itera hasta aprobación |
+| `scripts/llm-collab/generator.sh <prompt>` | Genera código usando GitHub Copilot CLI o Auto |
+| `scripts/llm-collab/reviewer.sh <code_file>` | Revisa código usando Claude CLI o Auto según estándares del proyecto |
+
+**Modos disponibles:**
+- **Modo Auto**: Auto (Cursor AI) actúa como orquestador, generador o revisor
+- **Modo Script**: Usa CLIs externos (GitHub Copilot, Claude) automáticamente
+
+Ver [scripts/llm-collab/README.md](scripts/llm-collab/README.md) para más detalles.
 
 #### Frontend
 
@@ -294,6 +341,7 @@ npm run dev
 | `npm run build` | Compilar para producción |
 | `npm run start` | Ejecutar versión de producción |
 | `npm run test` | Ejecutar tests |
+| `npm run test:watch` | Ejecutar tests en modo watch |
 | `npm run lint` | Verificar código |
 | `npm run type-check` | Verificar tipos |
 
@@ -328,7 +376,7 @@ Resumen de planificación y fases principales. El detalle completo de tareas viv
 - 0.1 Estructura del repositorio: repo en GitHub, ramas/protecciones, monorepo, .gitignore y documentación inicial.
 - 0.2 Setup backend: init Node+TS, dependencias, tsconfig, linting, estructura de carpetas, scripts y entry point Hono.
 - 0.3 Setup frontend: crear Next.js, instalar dependencias, shadcn/ui, estructura, env y verificación de arranque.
-- 0.4 Setup base de datos: docker-compose, Drizzle config, conexión y migración inicial.
+- 0.4 Setup base de datos: PostgreSQL local (Docker opcional), Drizzle config, conexión y migración inicial.
 - 0.5 Configuración de desarrollo: .env.example, husky/lint-staged opcional y documentación de setup.
 
 #### Fase 1: Autenticación y Usuarios ([detalle](CHECKLIST.md#fase-1-autenticación-y-usuarios-10h))
@@ -428,127 +476,56 @@ Resumen de planificación y fases principales. El detalle completo de tareas viv
 
 ```
 teamhub/
-├── frontend/                        # Aplicación Next.js
-│   ├── src/
-│   │   ├── app/                     # App Router (páginas y layouts)
-│   │   │   ├── (auth)/              # Grupo de rutas públicas
-│   │   │   │   ├── login/
-│   │   │   │   └── register/         # Solo ADMIN (ruta oculta)
-│   │   │   ├── (dashboard)/         # Grupo de rutas protegidas
-│   │   │   │   ├── admin/
-│   │   │   │   │   ├── departamentos/
-│   │   │   │   │   ├── empleados/
-│   │   │   │   │   └── plantillas/
-│   │   │   │   ├── dashboard/
-│   │   │   │   ├── onboarding/
-│   │   │   │   ├── proyectos/
-│   │   │   │   ├── timetracking/
-│   │   │   │   └── perfil/
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   ├── components/              # Componentes React
-│   │   │   ├── ui/                  # Componentes base (shadcn)
-│   │   │   ├── forms/               # Componentes de formulario
-│   │   │   ├── tables/              # Tablas y datatables
-│   │   │   ├── charts/              # Gráficos y visualizaciones
-│   │   │   └── layout/              # Header, Sidebar, etc.
-│   │   ├── hooks/                   # Custom hooks
-│   │   │   ├── use-auth.ts
-│   │   │   ├── use-users.ts
-│   │   │   ├── use-departamentos.ts
-│   │   │   ├── use-proyectos.ts
-│   │   │   └── use-timetracking.ts
-│   │   ├── lib/                     # Utilidades y configuración
-│   │   │   ├── api.ts               # Cliente API (Axios)
-│   │   │   ├── auth.ts              # Utilidades de autenticación
-│   │   │   ├── utils.ts             # Utilidades generales
-│   │   │   └── validations.ts       # Schemas Zod compartidos
-│   │   ├── providers/               # Context providers
-│   │   │   ├── auth-provider.tsx
-│   │   │   └── query-provider.tsx
-│   │   ├── types/                   # Definiciones TypeScript
-│   │   │   └── index.ts
-│   │   └── styles/                  # Estilos globales
-│   │       └── globals.css
-│   ├── public/                      # Assets estáticos
-│   ├── .env.example
-│   ├── next.config.js
-│   ├── tailwind.config.ts
-│   ├── tsconfig.json
-│   └── package.json
-│
 ├── backend/                         # API Hono
 │   ├── src/
-│   │   ├── routes/                  # Definición de endpoints
-│   │   │   ├── auth.ts
-│   │   │   ├── usuarios.ts
-│   │   │   ├── departamentos.ts
-│   │   │   ├── plantillas.ts
-│   │   │   ├── procesos.ts
-│   │   │   ├── proyectos.ts
-│   │   │   ├── timetracking.ts
-│   │   │   └── dashboard.ts
-│   │   ├── services/                # Lógica de negocio
-│   │   │   ├── auth-service.ts
-│   │   │   ├── user-service.ts
-│   │   │   ├── departamento-service.ts
-│   │   │   ├── plantilla-service.ts
-│   │   │   ├── proceso-service.ts
-│   │   │   ├── proyecto-service.ts
-│   │   │   ├── asignacion-service.ts
-│   │   │   └── timetracking-service.ts
-│   │   ├── middleware/              # Middlewares
-│   │   │   ├── auth.ts              # Autenticación JWT
-│   │   │   ├── roles.ts             # Autorización por roles
-│   │   │   ├── rate-limit.ts        # Rate limiting
-│   │   │   └── error-handler.ts     # Manejo global de errores
-│   │   ├── db/                      # Capa de datos
-│   │   │   ├── index.ts             # Conexión a PostgreSQL
-│   │   │   ├── schema/              # Esquemas Drizzle
-│   │   │   │   ├── users.ts
-│   │   │   │   ├── departamentos.ts
-│   │   │   │   ├── plantillas.ts
-│   │   │   │   ├── procesos.ts
-│   │   │   │   ├── proyectos.ts
-│   │   │   │   └── timetracking.ts
-│   │   │   ├── migrations/          # Archivos de migración
-│   │   │   └── seed.ts              # Datos de prueba
-│   │   ├── types/                   # Tipos y DTOs
-│   │   │   ├── index.ts
-│   │   │   └── schemas.ts           # Schemas Zod
-│   │   ├── utils/                   # Utilidades
-│   │   │   └── helpers.ts
-│   │   └── index.ts                 # Entry point
-│   ├── .env.example
+│   │   ├── __tests__/
+│   │   ├── config/
+│   │   ├── db/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── shared/
+│   │   ├── store/
+│   │   ├── validators/
+│   │   ├── app.ts
+│   │   └── index.ts
 │   ├── drizzle.config.ts
-│   ├── tsconfig.json
-│   └── package.json
-│
+│   ├── package.json
+│   └── .env.example
+├── frontend/                        # Aplicación Next.js
+│   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── providers/
+│   │   └── types/
+│   ├── package.json
+│   └── .env.example
+├── context/                         # SQL de referencia
 ├── docs/                            # Documentación
-│   ├── adr/                         # ADRs (placeholder durante scaffold)
-│   ├── api/                         # Docs de API (placeholder)
-│   ├── frontend/                    # Documentacion frontend
-│   │   ├── funcional.md             # Documento funcional (frontend)
-│   │   └── tecnico.md               # Documento tecnico (frontend)
-│   ├── backend/                     # Documentacion backend
-│   │   ├── funcional.md             # Documento funcional (backend)
-│   │   └── tecnico.md               # Documento tecnico (backend)
-│   ├── README.md                    # Indice de documentacion
-│   ├── decisiones.md                # Registro ADR consolidado
-│   ├── screenshots/                 # Capturas de pantalla
-│   └── slides/                      # Presentación del proyecto
-│
-├── .github/                         # Configuración GitHub
-│   ├── workflows/                   # GitHub Actions
-│   └── copilot-instructions.md      # Instrucciones para Copilot
-│
-├── docker-compose.yml               # Orquestación Docker
-├── openapi.yaml                     # Contrato API (placeholder)
-├── README.md                        # Este archivo
-├── CHECKLIST.md                     # Checklist de desarrollo
-├── AGENTS.md                        # Instrucciones para agentes IA
-├── claude.md                        # Instrucciones para Claude
-└── LICENSE                          # Licencia MIT
+│   ├── adr/
+│   ├── api/
+│   ├── architecture/
+│   ├── backend/
+│   ├── frontend/
+│   ├── slides/
+│   ├── README.md
+│   └── decisiones.md
+├── .github/
+│   ├── workflows/
+│   └── copilot-instructions.md
+├── .husky/
+├── scripts/
+├── openapi.yaml                     # Contrato API
+├── package.json
+├── package-lock.json
+├── README.md
+├── CONTRIBUTING.md
+├── CHECKLIST.md
+├── AGENTS.md
+├── claude.md
+└── LICENSE
 ```
 
 ---
@@ -798,7 +775,7 @@ La documentacion oficial de la API se mantiene en `openapi.yaml` y se visualiza 
 
 ### Autenticación
 
-Todas las rutas (excepto `/auth/login`, `/auth/forgot-password`, `/auth/reset-password` y `/auth/mfa/verify`) requieren autenticación mediante Bearer Token en el header `Authorization`.
+Todas las rutas (excepto `/auth/login`, `/auth/refresh`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/mfa/verify` y `/auth/change-password`) requieren autenticación mediante Bearer Token en el header `Authorization`.
 
 ```
 Authorization: Bearer <access_token>
@@ -816,6 +793,7 @@ Authorization: Bearer <access_token>
 | GET | `/auth/me` | Obtener usuario actual | Sí |
 | POST | `/auth/forgot-password` | Solicitar reset de contraseña | No |
 | POST | `/auth/reset-password` | Reset de contraseña con token | No |
+| POST | `/auth/change-password` | Cambiar contraseña temporal | No (mfaToken) |
 | POST | `/auth/mfa/setup` | Enrolar MFA (Google Authenticator) | Sí |
 | POST | `/auth/mfa/verify` | Verificar MFA | No |
 
@@ -823,14 +801,17 @@ Authorization: Bearer <access_token>
 
 | Método | Endpoint | Descripción | Roles |
 |--------|----------|-------------|-------|
-| GET | `/usuarios` | Listar usuarios (filtros, paginación) | ADMIN, RRHH |
+| GET | `/usuarios` | Listar usuarios (filtros, paginación) | Autenticado |
 | GET | `/usuarios/:id` | Obtener usuario por ID | Autenticado |
 | POST | `/usuarios` | Crear usuario | ADMIN, RRHH |
 | PUT | `/usuarios/:id` | Actualizar usuario | ADMIN, RRHH, self |
 | PATCH | `/usuarios/:id/password` | Cambiar contraseña | self |
+| PATCH | `/usuarios/:id/reset-password` | Generar contraseña temporal | ADMIN, RRHH |
 | PATCH | `/usuarios/:id/unlock` | Desbloquear cuenta | ADMIN |
-| DELETE | `/usuarios/:id` | Desactivar usuario (soft delete) | ADMIN |
-| PATCH | `/usuarios/:id/restore` | Reactivar usuario | ADMIN |
+| DELETE | `/usuarios/:id` | Desactivar usuario (soft delete) | ADMIN, RRHH |
+| PATCH | `/usuarios/:id/restore` | Reactivar usuario | ADMIN, RRHH |
+| GET | `/usuarios/:id/proyectos` | Proyectos del usuario | Autenticado |
+| GET | `/usuarios/:id/carga` | Carga de trabajo del usuario | Autenticado |
 
 #### Departamentos (`/api/departamentos`)
 
@@ -956,7 +937,7 @@ interface ErrorResponse {
 ### Autenticación
 
 #### JWT (JSON Web Tokens)
-- **Access Token**: Válido por 7 días, usado para autenticar requests
+- **Access Token**: Válido por 15 minutos por defecto (configurable), usado para autenticar requests
 - **Refresh Token**: Válido por 30 días, usado para obtener nuevos access tokens
 - **Rotación de Refresh Tokens**: Al usar un refresh token, se genera uno nuevo
 - **MFA**: Obligatorio para todos los usuarios (Google Authenticator)
@@ -993,21 +974,21 @@ interface ErrorResponse {
 
 - **Backend**: Todas las entradas validadas con Zod
 - **Frontend**: Validación con Zod + React Hook Form
-- **Sanitización**: Outputs sanitizados para prevenir XSS
+- **Sanitización**: React escapa HTML por defecto; CSP refuerza mitigación de XSS
 
 ### Headers de Seguridad
 
 ```
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload (solo en producción)
 ```
 
 ### CORS
 
-Configuración estricta solo para dominios permitidos:
-- Desarrollo: `http://localhost:3000`
-- Producción: `https://teamhub.vercel.app`
+Configuración estricta mediante `CORS_ORIGINS` (lista separada por comas).
 
 ---
 
@@ -1019,9 +1000,6 @@ Configuración estricta solo para dominios permitidos:
 ```bash
 # Ejecutar todos los tests
 npm run test
-
-# Ejecutar con coverage
-npm run test:coverage
 
 # Ejecutar en modo watch
 npm run test:watch
@@ -1036,12 +1014,10 @@ npm run test:watch
 ```
 backend/
 ├── src/
-│   ├── services/
-│   │   ├── auth-service.ts
-│   │   └── auth-service.test.ts
-│   └── routes/
-│       ├── auth.ts
-│       └── auth.test.ts
+│   └── __tests__/
+│       ├── auth.test.ts
+│       ├── usuarios.test.ts
+│       └── ...
 ```
 
 ### Frontend
@@ -1050,9 +1026,6 @@ backend/
 ```bash
 # Ejecutar tests
 npm run test
-
-# Ejecutar con coverage
-npm run test:coverage
 ```
 
 #### Tipos de Tests
@@ -1102,10 +1075,18 @@ railway up
 #### Variables de Entorno (Railway)
 ```
 DATABASE_URL=postgresql://...
-JWT_SECRET=tu-clave-secreta-produccion
-JWT_EXPIRES_IN=7d
+JWT_ACCESS_SECRET=tu-clave-secreta-produccion
+JWT_REFRESH_SECRET=tu-clave-secreta-produccion
+JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
-CORS_ORIGIN=https://teamhub.vercel.app
+CORS_ORIGINS=https://teamhub.vercel.app
+APP_BASE_URL=https://teamhub.vercel.app
+MFA_ENCRYPTION_KEY=tu-clave-secreta-produccion
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=change-me
+SMTP_PASS=change-me
+SMTP_FROM=TeamHub <no-reply@example.com>
 NODE_ENV=production
 PORT=3001
 ```
@@ -1117,35 +1098,64 @@ PORT=3001
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
+  push:
     branches: [main]
 
 jobs:
-  backend:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - run: cd backend && npm ci
-      - run: cd backend && npm run lint
-      - run: cd backend && npm run type-check
-      - run: cd backend && npm run test
+          node-version: 20
+          cache: npm
 
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: cd frontend && npm ci
-      - run: cd frontend && npm run lint
-      - run: cd frontend && npm run type-check
-      - run: cd frontend && npm run build
+      - name: OpenAPI validate
+        run: scripts/validate-openapi.sh
+
+      - name: Backend install
+        if: ${{ hashFiles('backend/package.json') != '' }}
+        working-directory: backend
+        run: npm ci
+      - name: Backend lint
+        if: ${{ hashFiles('backend/package.json') != '' }}
+        working-directory: backend
+        run: npm run lint
+      - name: Backend type-check
+        if: ${{ hashFiles('backend/package.json') != '' }}
+        working-directory: backend
+        run: npm run type-check
+      - name: Backend tests
+        if: ${{ hashFiles('backend/package.json') != '' }}
+        working-directory: backend
+        run: npm run test
+      - name: Backend build
+        if: ${{ hashFiles('backend/package.json') != '' }}
+        working-directory: backend
+        run: npm run build
+
+      - name: Frontend install
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend lint
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        working-directory: frontend
+        run: npm run lint
+      - name: Frontend type-check
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        working-directory: frontend
+        run: npm run type-check
+      - name: Frontend tests
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        working-directory: frontend
+        run: npm run test
+      - name: Frontend build
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        working-directory: frontend
+        run: npm run build
 ```
 
 ---
@@ -1156,18 +1166,14 @@ jobs:
 
 #### Error: "ECONNREFUSED" al conectar a PostgreSQL
 
-**Causa**: Docker no está corriendo o el contenedor de PostgreSQL no está levantado.
+**Causa**: PostgreSQL no está disponible en la URL configurada o el servicio está caído.
 
 **Solución**:
 ```bash
-# Verificar que Docker está corriendo
+# Verificar conectividad/credenciales de DATABASE_URL
+# Si usas Docker, revisa el contenedor y logs:
 docker ps
-
-# Levantar PostgreSQL
-docker-compose up -d postgres
-
-# Verificar logs
-docker-compose logs postgres
+docker logs teamhub-postgres
 ```
 
 #### Error: "Invalid token" o "jwt expired"
@@ -1177,7 +1183,7 @@ docker-compose logs postgres
 **Solución**:
 - El frontend debería refrescar el token automáticamente
 - Si persiste, hacer logout y login de nuevo
-- Verificar que JWT_SECRET es el mismo en desarrollo y en el token
+- Verificar que `JWT_ACCESS_SECRET` y `JWT_REFRESH_SECRET` son los mismos en desarrollo y en el token
 
 #### Error: "CORS policy" en el navegador
 
@@ -1186,7 +1192,7 @@ docker-compose logs postgres
 **Solución**:
 ```env
 # Backend .env
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000
 ```
 
 #### Error: "Module not found" al arrancar
@@ -1206,13 +1212,9 @@ npm install
 
 **Solución**:
 ```bash
-# Ver estado de migraciones
-npm run db:status
-
-# Si es desarrollo, resetear base de datos
-docker-compose down -v
-docker-compose up -d postgres
+# Reaplicar migraciones en desarrollo
 npm run db:migrate
+npm run db:triggers
 npm run db:seed
 ```
 
@@ -1242,6 +1244,7 @@ npm run build
 npm run db:studio
 
 # Conectar directamente con psql
+# (si usas Docker)
 docker exec -it teamhub-postgres psql -U teamhub -d teamhub
 ```
 

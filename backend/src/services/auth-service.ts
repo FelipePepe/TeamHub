@@ -2,11 +2,12 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
 import { and, eq, isNull } from 'drizzle-orm';
-import { config } from '../config/env';
-import { BUSINESS_RULES } from '../shared/constants/business-rules';
-import { createId } from '../store';
-import { db } from '../db';
-import { passwordResetTokens, refreshTokens } from '../db/schema/users';
+import type { StringValue } from 'ms';
+import { config } from '../config/env.js';
+import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
+import { createId } from '../store/index.js';
+import { db } from '../db/index.js';
+import { passwordResetTokens, refreshTokens } from '../db/schema/users.js';
 
 type AuthUser = {
   id: string;
@@ -51,20 +52,18 @@ const hashToken = (token: string) =>
 const toDate = (value: Date | string) =>
   value instanceof Date ? value : new Date(value);
 
-export const createAccessToken = (user: AuthUser) => {
-  return jwt.sign(
-    { sub: user.id, role: user.rol },
-    config.JWT_ACCESS_SECRET,
-    { expiresIn: config.JWT_ACCESS_EXPIRES_IN }
-  );
+export const createAccessToken = (user: AuthUser): string => {
+  const payload = { sub: user.id, role: user.rol };
+  return jwt.sign(payload, config.JWT_ACCESS_SECRET, {
+    expiresIn: config.JWT_ACCESS_EXPIRES_IN as StringValue,
+  });
 };
 
-export const createRefreshToken = async (user: AuthUser) => {
-  const token = jwt.sign(
-    { sub: user.id, type: 'refresh', jti: createId() },
-    config.JWT_REFRESH_SECRET,
-    { expiresIn: config.JWT_REFRESH_EXPIRES_IN }
-  );
+export const createRefreshToken = async (user: AuthUser): Promise<string> => {
+  const payload = { sub: user.id, type: 'refresh', jti: createId() };
+  const token = jwt.sign(payload, config.JWT_REFRESH_SECRET, {
+    expiresIn: config.JWT_REFRESH_EXPIRES_IN as StringValue,
+  });
 
   const expiresInMs = durationToMs(config.JWT_REFRESH_EXPIRES_IN);
   const expiresAt = expiresInMs ? new Date(Date.now() + expiresInMs) : nowDate();
@@ -125,12 +124,11 @@ export const verifyRefreshToken = async (token: string) => {
   return payload;
 };
 
-export const createMfaToken = (user: AuthUser) => {
-  return jwt.sign(
-    { sub: user.id, type: 'mfa' },
-    config.JWT_ACCESS_SECRET,
-    { expiresIn: BUSINESS_RULES.auth.mfaTokenTtl }
-  );
+export const createMfaToken = (user: AuthUser): string => {
+  const payload = { sub: user.id, type: 'mfa' };
+  return jwt.sign(payload, config.JWT_ACCESS_SECRET, {
+    expiresIn: BUSINESS_RULES.auth.mfaTokenTtl as StringValue,
+  });
 };
 
 export const verifyMfaToken = (token: string) => {

@@ -2,7 +2,7 @@
   post:
     tags: [Auth]
     summary: Login
-    description: Login with email and password. MFA is required for all users, so the response includes mfaRequired=true and a short-lived mfaToken. Use mfaToken with /auth/mfa/setup (enrollment) and /auth/mfa/verify (challenge).
+    description: Login with email and password. The response may require password change (passwordChangeRequired), MFA setup (mfaSetupRequired), or MFA verification (mfaRequired). Use mfaToken with /auth/change-password, /auth/mfa/setup, and /auth/mfa/verify.
     requestBody:
       required: true
       content:
@@ -213,6 +213,74 @@
           application/json:
             schema:
               $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/mfa/backup:
+  post:
+    tags: [Auth]
+    summary: Verify MFA with backup code
+    description: Verify MFA using a backup code instead of TOTP. Backup codes are reusable until regenerated.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/MfaBackupRequest'
+    responses:
+      '200':
+        description: MFA verified with backup code
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MfaVerifyResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '429':
+        description: Rate limit
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/auth/change-password:
+  post:
+    tags: [Auth]
+    summary: Change temporary password
+    description: Change a temporary password using the MFA token issued by /auth/login.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/AuthChangePasswordRequest'
+    responses:
+      '200':
+        description: Password updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/AuthChangePasswordResponse'
       '400':
         description: Validation error
         content:

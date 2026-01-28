@@ -30,6 +30,15 @@
 - Hash bcrypt (12 rounds).
 - JWT access + refresh.
 - Rate limiting en login.
+- MFA obligatorio con TOTP (RFC 6238).
+
+## Autenticacion MFA (TOTP)
+- Implementacion propia de TOTP compatible con Google Authenticator.
+- Secret generado con 20 bytes aleatorios, codificado en Base32.
+- Secret cifrado con AES-256-GCM antes de almacenar en BD.
+- Parametros TOTP: SHA1, 6 digitos, periodo 30s, ventana ±1.
+- Token MFA temporal con TTL de 5 minutos.
+- **Requisito**: El reloj del servidor debe estar sincronizado (NTP) para que los codigos TOTP coincidan.
 
 ## Observabilidad
 - Logs estructurados con pino.

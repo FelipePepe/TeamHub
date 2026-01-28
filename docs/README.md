@@ -17,6 +17,9 @@ Indice de documentos del proyecto.
 ## Calidad
 - `docs/quality/testing.md` - Estrategia de testing y calidad
 
+## Operaciones
+- `docs/troubleshooting.md` - Guia de solucion de problemas comunes
+
 ## Frontend
 - `docs/frontend/funcional.md` - Documento funcional
 - `docs/frontend/tecnico.md` - Documento tecnico
@@ -34,4 +37,3 @@ Indice de documentos del proyecto.
 - `docs/slides/` - Presentacion del proyecto
 - `docs/slides/outline.md` - Guion de slides
 - `docs/slides/notes.md` - Notas para presentacion
-- `docs/screenshots/` - Capturas de pantalla

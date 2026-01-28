@@ -14,9 +14,9 @@ import {
   taskStatusEnum,
   taskCategoryEnum,
   priorityEnum,
-} from './enums';
-import { users } from './users';
-import { plantillasOnboarding, tareasPlantilla } from './plantillas';
+} from './enums.js';
+import { users } from './users.js';
+import { plantillasOnboarding, tareasPlantilla } from './plantillas.js';
 
 // ============================================================================
 // PROCESOS_ONBOARDING - Procesos de onboarding instanciados

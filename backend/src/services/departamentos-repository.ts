@@ -1,6 +1,6 @@
 import { and, eq, ne, or } from 'drizzle-orm';
-import { db } from '../db';
-import { departamentos, type NewDepartamento } from '../db/schema/departamentos';
+import { db } from '../db/index.js';
+import { departamentos, type NewDepartamento } from '../db/schema/departamentos.js';
 
 export const findDepartamentoById = async (id: string) => {
   const result = await db.select().from(departamentos).where(eq(departamentos.id, id)).limit(1);

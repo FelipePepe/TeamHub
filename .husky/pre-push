@@ -5,6 +5,35 @@ set -e
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
+# ============================================================================
+# Protected Branch Validation (GitFlow)
+# ============================================================================
+# Blocks direct push to main and develop branches
+# ============================================================================
+
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+protected_branches="^(main|develop)$"
+
+if echo "$current_branch" | grep -qE "$protected_branches"; then
+  echo ""
+  echo "❌ ERROR: Direct push to '$current_branch' is not allowed"
+  echo ""
+  echo "GitFlow protected branches:"
+  echo "  main    - Only receives merges from release/* and hotfix/*"
+  echo "  develop - Only receives merges from feature/*, bugfix/*, release/*, hotfix/*"
+  echo ""
+  echo "Please create a feature/bugfix/hotfix branch and open a Pull Request:"
+  echo "  git checkout -b feature/<name>"
+  echo "  git push origin feature/<name>"
+  echo "  # Then create PR on GitHub"
+  echo ""
+  exit 1
+fi
+
+# ============================================================================
+# Code Quality Checks
+# ============================================================================
+
 "$ROOT_DIR/scripts/validate-openapi.sh"
 
 if [ -f "$ROOT_DIR/backend/package.json" ]; then

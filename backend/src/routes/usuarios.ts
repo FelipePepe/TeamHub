@@ -1,23 +1,24 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware, requireRoles } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
+import { authMiddleware, requireRoles } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
 import {
   emailSchema,
   optionalBooleanFromString,
   optionalNumberFromString,
   uuidSchema,
-} from '../validators/common';
-import { passwordSchema } from '../validators/auth';
-import { hashPassword, verifyPassword } from '../services/auth-service';
-import { toProyectoResponse, toUserResponse } from '../services/mappers';
-import { users } from '../db/schema/users';
-import { asignaciones, proyectos } from '../db/schema/proyectos';
-import { db } from '../db';
+} from '../validators/common.js';
+import { passwordSchema } from '../validators/auth.js';
+import { hashPassword, verifyPassword } from '../services/auth-service.js';
+import { toProyectoResponse, toUserResponse } from '../services/mappers.js';
+import { users } from '../db/schema/users.js';
+import { asignaciones, proyectos } from '../db/schema/proyectos.js';
+import { db } from '../db/index.js';
 import { and, eq, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
-import type { User } from '../db/schema/users';
-import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/users-repository';
+import type { User } from '../db/schema/users.js';
+import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/users-repository.js';
 
 const roles = ['ADMIN', 'RRHH', 'MANAGER', 'EMPLEADO'] as const;
 
@@ -78,7 +79,7 @@ const requireSelfOrPrivileged = (currentUser: User, targetId: string) => {
   }
 };
 
-export const usuariosRoutes = new Hono();
+export const usuariosRoutes = new Hono<HonoEnv>();
 
 const buildUserFilters = (query: z.infer<typeof listQuerySchema>) => {
   const filters = [];
@@ -102,30 +103,29 @@ usuariosRoutes.use('*', authMiddleware);
 
 usuariosRoutes.get('/', async (c) => {
   const query = parseQuery(c, listQuerySchema);
-  const filters = buildUserFilters(query);
+  const filters = buildUserFilters({
+    search: query.search,
+    rol: query.rol,
+    departamentoId: query.departamentoId,
+    activo: query.activo,
+  });
   const whereClause = filters.length ? and(...filters) : undefined;
 
-  let countQuery = db.select({ count: sql<number>`count(*)` }).from(users);
-  if (whereClause) {
-    countQuery = countQuery.where(whereClause);
-  }
-  const totalResult = await countQuery;
+  const countBaseQuery = db.select({ count: sql<number>`count(*)` }).from(users);
+  const totalResult = await (whereClause ? countBaseQuery.where(whereClause) : countBaseQuery);
   const total = Number(totalResult[0]?.count ?? 0);
 
-  let queryBuilder = db.select().from(users);
-  if (whereClause) {
-    queryBuilder = queryBuilder.where(whereClause);
-  }
-  if (query.page && query.limit) {
-    queryBuilder = queryBuilder.limit(query.limit).offset((query.page - 1) * query.limit);
-  }
-  const list = await queryBuilder;
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 20;
+  const baseQuery = db.select().from(users);
+  const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
+  const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
   return c.json({
     data: list.map(toUserResponse),
     meta: {
-      page: query.page,
-      limit: query.limit,
+      page,
+      limit,
       total,
     },
   });
@@ -274,11 +274,13 @@ usuariosRoutes.patch('/:id/reset-password', requireRoles('ADMIN', 'RRHH'), async
     throw new HTTPException(400, { message: 'El usuario esta inactivo' });
   }
 
-  // Generate a secure temporary password
+  // Generate a cryptographically secure temporary password
+  const { randomBytes } = await import('node:crypto');
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+  const randomBuffer = randomBytes(16);
   let tempPassword = '';
   for (let i = 0; i < 16; i++) {
-    tempPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    tempPassword += chars.charAt(randomBuffer[i] % chars.length);
   }
   // Ensure it meets the password policy
   tempPassword = tempPassword.slice(0, 12) + 'Aa1!';

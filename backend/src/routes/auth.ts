@@ -1,11 +1,12 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono, type Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth';
-import { createRateLimiter, getRateLimitIp } from '../middleware/rate-limit';
-import { parseJson } from '../validators/parse';
-import { loginSchema, passwordSchema } from '../validators/auth';
-import { emailSchema } from '../validators/common';
+import { authMiddleware } from '../middleware/auth.js';
+import { createRateLimiter, getRateLimitIp } from '../middleware/rate-limit.js';
+import { parseJson } from '../validators/parse.js';
+import { loginSchema, passwordSchema } from '../validators/auth.js';
+import { emailSchema } from '../validators/common.js';
 import {
   createAccessToken,
   createMfaToken,
@@ -20,12 +21,12 @@ import {
   verifyMfaToken,
   verifyPassword,
   verifyRefreshToken,
-} from '../services/auth-service';
-import { decryptMfaSecret, encryptMfaSecret, generateMfaSecret, verifyTotpCode } from '../services/mfa-service';
-import { toUserResponse } from '../services/mappers';
-import { config } from '../config/env';
-import { BUSINESS_RULES } from '../shared/constants/business-rules';
-import type { User } from '../db/schema/users';
+} from '../services/auth-service.js';
+import { decryptMfaSecret, encryptMfaSecret, generateMfaSecret, verifyTotpCode } from '../services/mfa-service.js';
+import { toUserResponse } from '../services/mappers.js';
+import { config } from '../config/env.js';
+import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
+import type { User } from '../db/schema/users.js';
 import {
   countUsers,
   createUser,
@@ -33,7 +34,7 @@ import {
   findUserByEmail,
   findUserById,
   updateUserById,
-} from '../services/users-repository';
+} from '../services/users-repository.js';
 
 const mfaVerifySchema = z.object({
   mfaToken: z.string().min(1),
@@ -101,7 +102,7 @@ const bootstrapUser = async (email: string, password: string): Promise<User> => 
   }
 };
 
-export const authRoutes = new Hono();
+export const authRoutes = new Hono<HonoEnv>();
 
 const loginRateLimit = createRateLimiter({
   windowMs: config.LOGIN_RATE_LIMIT_WINDOW_MS,
@@ -177,7 +178,12 @@ authRoutes.post('/login', async (c) => {
   if (!user) {
     const totalUsers = await countUsers();
     if (totalUsers === 0) {
-    user = await bootstrapUser(payload.email, payload.password);
+      // Bootstrap requires BOOTSTRAP_TOKEN header for security
+      const bootstrapToken = c.req.header('X-Bootstrap-Token');
+      if (!config.BOOTSTRAP_TOKEN || bootstrapToken !== config.BOOTSTRAP_TOKEN) {
+        throw new HTTPException(403, { message: 'Bootstrap no autorizado' });
+      }
+      user = await bootstrapUser(payload.email, payload.password);
     }
   }
 

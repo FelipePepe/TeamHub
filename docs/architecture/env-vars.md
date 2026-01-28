@@ -8,19 +8,14 @@ Este documento detalla las variables de entorno requeridas por TeamHub.
 - `NODE_ENV` (development | production | test)
 - `PORT` (por defecto 3001)
 - `DATABASE_URL` (conexion PostgreSQL)
-- `JWT_ACCESS_SECRET`
-- `JWT_REFRESH_SECRET`
+- `JWT_SECRET` (minimo 256 bits, para firmar tokens con HS256)
 - `CORS_ORIGINS` (lista separada por comas)
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `SMTP_FROM`
-- `APP_BASE_URL` (URL base para links de reset password)
+- `MFA_ENCRYPTION_KEY` (minimo 32 caracteres)
 
 ### Recomendadas
-- `JWT_ACCESS_EXPIRES_IN` (ej: `7d`)
-- `JWT_REFRESH_EXPIRES_IN` (ej: `30d`)
+- `JWT_ACCESS_EXPIRES_IN` (por defecto: `15m` - 15 minutos)
+- `JWT_REFRESH_EXPIRES_IN` (por defecto: `7d` - 7 dias)
+- `JWT_MFA_EXPIRES_IN` (por defecto: `5m` - 5 minutos, token temporal MFA)
 - `BCRYPT_SALT_ROUNDS` (ej: `12`)
 - `MFA_ISSUER` (ej: `TeamHub`)
 - `LOG_LEVEL` (debug | info | warn | error)
@@ -42,16 +37,6 @@ Este documento detalla las variables de entorno requeridas por TeamHub.
 - Mantener `.env.example` actualizado con estas variables.
 - No incluir secretos en el repositorio.
 
-## Archivos por entorno (examples)
-- Backend: `.env.development.example`, `.env.production.example`, `.env.test.example`.
-- Frontend: `.env.development.example`, `.env.production.example`, `.env.test.example`.
-
 ## Archivos en el repositorio
 - `backend/.env.example`
-- `backend/.env.development.example`
-- `backend/.env.production.example`
-- `backend/.env.test.example`
 - `frontend/.env.example`
-- `frontend/.env.development.example`
-- `frontend/.env.production.example`
-- `frontend/.env.test.example`

@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# ============================================================================
+# Branch Name Validation (GitFlow)
+# ============================================================================
+# Valid branches: main, develop, feature/*, bugfix/*, hotfix/*, release/*
+# ============================================================================
+
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Valid branch patterns
+valid_patterns="^(main|develop|feature\/[a-zA-Z0-9_-]+|bugfix\/[a-zA-Z0-9_-]+|hotfix\/[a-zA-Z0-9_-]+|release\/[0-9]+\.[0-9]+\.[0-9]+)$"
+
+if ! echo "$current_branch" | grep -qE "$valid_patterns"; then
+  echo ""
+  echo "❌ ERROR: Invalid branch name '$current_branch'"
+  echo ""
+  echo "GitFlow branch naming convention:"
+  echo "  main              - Production code"
+  echo "  develop           - Integration branch"
+  echo "  feature/<name>    - New features (from develop)"
+  echo "  bugfix/<name>     - Non-urgent fixes (from develop)"
+  echo "  hotfix/<name>     - Urgent production fixes (from main)"
+  echo "  release/x.x.x     - Release preparation (from develop)"
+  echo ""
+  echo "Examples:"
+  echo "  feature/user-authentication"
+  echo "  bugfix/fix-login-error"
+  echo "  hotfix/security-patch"
+  echo "  release/1.2.0"
+  echo ""
+  echo "To rename your branch:"
+  echo "  git branch -m $current_branch <valid-name>"
+  echo ""
+  exit 1
+fi
+
+exit 0

@@ -1,22 +1,23 @@
+import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth';
-import { parseJson, parseParams, parseQuery } from '../validators/parse';
-import { optionalBooleanFromString, uuidSchema } from '../validators/common';
-import { toDepartamentoResponse, toUserResponse } from '../services/mappers';
-import { db } from '../db';
-import { departamentos } from '../db/schema/departamentos';
-import { users } from '../db/schema/users';
+import { authMiddleware } from '../middleware/auth.js';
+import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
+import { optionalBooleanFromString, uuidSchema } from '../validators/common.js';
+import { toDepartamentoResponse, toUserResponse } from '../services/mappers.js';
+import { db } from '../db/index.js';
+import { departamentos } from '../db/schema/departamentos.js';
+import { users } from '../db/schema/users.js';
 import { and, eq, ilike, isNotNull, isNull, or } from 'drizzle-orm';
-import type { Departamento } from '../db/schema/departamentos';
+import type { Departamento } from '../db/schema/departamentos.js';
 import {
   createDepartamento,
   findDepartamentoById,
   findDepartamentoByNombreOrCodigo,
   findDepartamentoByNombreOrCodigoExcludingId,
   updateDepartamentoById,
-} from '../services/departamentos-repository';
+} from '../services/departamentos-repository.js';
 
 const listQuerySchema = z.object({
   search: z.string().optional(),
@@ -44,7 +45,7 @@ const idParamsSchema = z.object({
   id: uuidSchema,
 });
 
-export const departamentosRoutes = new Hono();
+export const departamentosRoutes = new Hono<HonoEnv>();
 
 departamentosRoutes.use('*', authMiddleware);
 
@@ -62,13 +63,13 @@ const buildDepartamentoFilters = (query: z.infer<typeof listQuerySchema>) => {
 
 departamentosRoutes.get('/', async (c) => {
   const query = parseQuery(c, listQuerySchema);
-  const filters = buildDepartamentoFilters(query);
+  const filters = buildDepartamentoFilters({
+    search: query.search,
+    activo: query.activo,
+  });
   const whereClause = filters.length ? and(...filters) : undefined;
-  let queryBuilder = db.select().from(departamentos);
-  if (whereClause) {
-    queryBuilder = queryBuilder.where(whereClause);
-  }
-  const list = await queryBuilder;
+  const baseQuery = db.select().from(departamentos);
+  const list = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
   return c.json({ data: list.map(toDepartamentoResponse) });
 });

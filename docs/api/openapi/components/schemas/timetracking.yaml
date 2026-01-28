@@ -113,6 +113,19 @@ BulkApproveTimetrackingRequest:
         type: string
         format: uuid
 
+BulkRejectTimetrackingRequest:
+  type: object
+  required: [ids, comentario]
+  properties:
+    ids:
+      type: array
+      items:
+        type: string
+        format: uuid
+    comentario:
+      type: string
+      description: Reason for rejection (required)
+
 CopyTimetrackingRequest:
   type: object
   required: [fechaOrigen, fechaDestino]

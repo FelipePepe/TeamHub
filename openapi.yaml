@@ -12,6 +12,8 @@ servers:
 tags:
   - name: Auth
     description: Authentication and MFA
+  - name: Perfil
+    description: User profile management
   - name: Usuarios
     description: User management
   - name: Departamentos
@@ -46,6 +48,23 @@ paths:
     $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1forgot-password'
   /auth/reset-password:
     $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1reset-password'
+  /auth/mfa/backup:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1mfa~1backup'
+  /auth/change-password:
+    $ref: './docs/api/openapi/paths/auth.yaml#/~1auth~1change-password'
+
+  /perfil:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil'
+  /perfil/password:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil~1password'
+  /perfil/avatar:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil~1avatar'
+  /perfil/mfa:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil~1mfa'
+  /perfil/mfa/regenerate:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil~1mfa~1regenerate'
+  /perfil/mfa/backup-codes:
+    $ref: './docs/api/openapi/paths/perfil.yaml#/~1perfil~1mfa~1backup-codes'
 
   /usuarios:
     $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios'
@@ -53,6 +72,10 @@ paths:
     $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}'
   /usuarios/{id}/password:
     $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1password'
+  /usuarios/{id}/reset-password:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1reset-password'
+  /usuarios/{id}/reset-mfa:
+    $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1reset-mfa'
   /usuarios/{id}/restore:
     $ref: './docs/api/openapi/paths/usuarios.yaml#/~1usuarios~1{id}~1restore'
   /usuarios/{id}/unlock:
@@ -106,6 +129,10 @@ paths:
     $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}'
   /procesos/{id}/tareas/{tareaId}/completar:
     $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}~1completar'
+  /procesos/{id}/tareas/{tareaId}/rechazar:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}~1rechazar'
+  /procesos/{id}/tareas/{tareaId}/evidencia:
+    $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}~1evidencia'
 
   /proyectos:
     $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos'
@@ -132,12 +159,16 @@ paths:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1mis-registros'
   /timetracking/semana/{fecha}:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1semana~1{fecha}'
+  /timetracking/mes/{fecha}:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1mes~1{fecha}'
   /timetracking/{id}/aprobar:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1{id}~1aprobar'
   /timetracking/{id}/rechazar:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1{id}~1rechazar'
   /timetracking/aprobar-masivo:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1aprobar-masivo'
+  /timetracking/rechazar-masivo:
+    $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1rechazar-masivo'
   /timetracking/pendientes-aprobacion:
     $ref: './docs/api/openapi/paths/timetracking.yaml#/~1timetracking~1pendientes-aprobacion'
   /timetracking/resumen:

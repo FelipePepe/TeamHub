@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError } from 'zod';
-import { logRequestError } from '../services/logger';
+import { logRequestError } from '../services/logger.js';
 
 const formatZodDetails = (error: ZodError) =>
   error.errors.map((issue) => ({

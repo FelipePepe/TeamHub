@@ -27,18 +27,51 @@ Antes de proponer cambios, consulta estos recursos en orden:
 *   **Headers de Seguridad:** Implementar CSP estricto, `X-Frame-Options: DENY` y forzar HTTPS.
 *   **Inyección:** Usa siempre **Prepared Statements** o el escapado automático de los frameworks para prevenir inyecciones SQL/XSS.
 
-## 5. Calidad, Testing y Gates
+## 5. GitFlow y Convenciones de Git
+
+### Estrategia de Branching (GitFlow)
+*   **main:** Código en producción. Solo recibe merges de `release/` y `hotfix/`.
+*   **develop:** Rama de integración. Las features se mergean aquí.
+*   **feature/xxx:** Nuevas funcionalidades. Se crean desde `develop` y se mergean a `develop`.
+*   **bugfix/xxx:** Correcciones no urgentes. Se crean desde `develop` y se mergean a `develop`.
+*   **release/x.x.x:** Preparación de release. Se crea desde `develop`, se mergea a `main` y `develop`.
+*   **hotfix/xxx:** Correcciones urgentes en producción. Se crea desde `main`, se mergea a `main` y `develop`.
+
+### Convención de Commits (Conventional Commits)
+Formato: `tipo(scope): descripción`
+
+*   **feat:** Nueva funcionalidad
+*   **fix:** Corrección de bug
+*   **docs:** Cambios en documentación
+*   **style:** Formato (sin cambios de lógica)
+*   **refactor:** Refactorización (sin cambios de funcionalidad)
+*   **test:** Añadir o modificar tests
+*   **chore:** Tareas de mantenimiento (deps, config, etc.)
+
+Ejemplo: `feat(auth): add MFA backup codes support`
+
+### Integración de Cambios
+*   Usar **rebase** para integrar cambios de `develop` a feature branches.
+*   Mantener historial lineal y limpio.
+*   Antes de abrir PR, hacer `git rebase develop` en la feature branch.
+
+### Protección de Ramas
+*   **main y develop:** Push directo prohibido.
+*   Requiere Pull Request aprobado.
+*   CI debe pasar (lint, tests, build) antes de mergear.
+
+## 6. Calidad, Testing y Gates
 *   **Coverage Estratégico (100/80/0):**
     *   **100% (CORE):** Lógica que manipula dinero o cálculos críticos.
     *   **80% (IMPORTANT):** Funcionalidades visibles al usuario (UI/Features).
     *   **0% (INFRASTRUCTURE):** Tipos de TypeScript y constantes estáticas.
 *   **Quality Gates:** No eludir los hooks de **Husky**. El `pre-commit` debe ejecutar linting/tests rápidos y el `pre-push` debe validar cobertura y E2E.
 
-## 6. Documentación (Docs as Code)
+## 7. Documentación (Docs as Code)
 *   **Inline:** Usa **JSDoc/TSDoc** para explicar el "por qué" y proporcionar ejemplos técnicos.
 *   **Sincronización:** Cada Pull Request que modifique lógica debe actualizar su respectiva documentación (ADR, Storybook o JSDoc) en el mismo commit.
 
-## 7. Comunicación con Stakeholders
+## 8. Comunicación con Stakeholders
 Al resumir cambios para perfiles no técnicos:
 *   **Prohibido el Jargon:** No hables de "re-renders" o "hooks"; habla de "velocidad", "fiabilidad" e "impacto en conversión".
 *   **Enfoque en ROI:** Traduce mejoras técnicas en beneficios de negocio (ej: "reducción del tiempo de carga en un 20%").

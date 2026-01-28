@@ -8,5 +8,8 @@
     "drizzle-kit": "^0.30.4",
     "drizzle-orm": "^0.36.4",
     "husky": "^9.0.11"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15"
   }
 }

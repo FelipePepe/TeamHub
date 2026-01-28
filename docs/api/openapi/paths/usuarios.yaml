@@ -248,7 +248,7 @@
         content:
           application/json:
             schema:
-              $ref: '../components/index.yaml#/schemas/MessageResponse'
+              $ref: '../components/index.yaml#/schemas/UserResponse'
       '400':
         description: Validation error
         content:
@@ -263,6 +263,86 @@
               $ref: '../components/index.yaml#/schemas/ErrorResponse'
       '403':
         description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/usuarios/{id}/reset-password:
+  patch:
+    tags: [Usuarios]
+    summary: Reset user password
+    description: Generate a temporary password for the user (ADMIN/RRHH).
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Temporary password generated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ResetPasswordResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/usuarios/{id}/reset-mfa:
+  patch:
+    tags: [Usuarios]
+    summary: Reset user MFA
+    description: Generate a new MFA QR/secret for the user (ADMIN only). The new secret is shown once.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: New MFA secret generated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ResetMfaResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
         content:
           application/json:
             schema:
@@ -387,4 +467,3 @@
           application/json:
             schema:
               $ref: '../components/index.yaml#/schemas/ErrorResponse'
-

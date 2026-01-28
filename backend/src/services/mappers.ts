@@ -8,7 +8,7 @@ import type {
   TareaPlantilla,
   Timetracking,
   User,
-} from '../store';
+} from '../store/index.js';
 
 type UserResponseInput = {
   id: string;

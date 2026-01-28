@@ -6,6 +6,10 @@
       "dom.iterable",
       "es2022"
     ],
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -33,7 +37,8 @@
     "next-env.d.ts",
     "src",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "vitest.setup.ts"
   ],
   "exclude": [
     "node_modules"

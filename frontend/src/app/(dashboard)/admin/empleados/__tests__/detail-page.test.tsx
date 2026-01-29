@@ -2,22 +2,25 @@ import React from 'react';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import EmpleadoDetailPage from '../[id]/page';
 import type { User } from '@/types';
 
-// Mock de date-fns
+// Mock de date-fns ANTES de importar el componente
 vi.mock('date-fns', () => ({
-  format: (date: Date | string, formatStr: string) => {
-    if (date === '1985-03-15') return '15 de marzo de 1985';
-    if (date === '2024-01-15T10:30:00Z') return '15 de enero de 2024';
-    if (date === '2024-01-20T14:45:00Z') return '20 de enero de 2024';
-    return new Date(date).toLocaleDateString('es-ES');
-  },
+  format: vi.fn((date: Date | string, formatStr: string) => {
+    const dateStr = typeof date === 'string' ? date : date.toISOString();
+    if (dateStr === '1985-03-15') return '15 de marzo de 1985';
+    if (dateStr.includes('2024-01-15')) return '15 de enero de 2024';
+    if (dateStr.includes('2024-01-20')) return '20 de enero de 2024';
+    return new Date(dateStr).toLocaleDateString('es-ES');
+  }),
 }));
 
 vi.mock('date-fns/locale', () => ({
   es: {},
 }));
+
+// Importar componente DESPUÉS de los mocks
+import EmpleadoDetailPage from '../[id]/page';
 
 // Mock de router
 const routerMocks = vi.hoisted(() => ({

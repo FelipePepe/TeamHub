@@ -29,6 +29,7 @@ import {
 import { useDepartamentos } from '@/hooks/use-departamentos';
 import { useEmpleados } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
+import { IniciarProcesoModal } from '@/components/onboarding/iniciar-proceso-modal';
 import { toast } from 'sonner';
 
 /**
@@ -40,6 +41,7 @@ export default function ProcesosPage() {
   const { canCreateOnboarding, canViewAllOnboardings } = usePermissions();
   const [filters, setFilters] = useState<ProcesoFilters>({});
   const [search, setSearch] = useState('');
+  const [showIniciarModal, setShowIniciarModal] = useState(false);
 
   const { data: procesosData, isLoading, error } = useProcesos(filters);
   const { data: departamentosData } = useDepartamentos();
@@ -167,7 +169,7 @@ export default function ProcesosPage() {
           </p>
         </div>
         {canCreateOnboarding && (
-          <Button onClick={() => router.push('/onboarding/iniciar')}>
+          <Button onClick={() => setShowIniciarModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Iniciar proceso
           </Button>
@@ -422,6 +424,15 @@ export default function ProcesosPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal Iniciar Proceso */}
+      <IniciarProcesoModal
+        open={showIniciarModal}
+        onOpenChange={setShowIniciarModal}
+        onSuccess={(procesoId) => {
+          router.push(`/onboarding/${procesoId}`);
+        }}
+      />
     </div>
   );
 }

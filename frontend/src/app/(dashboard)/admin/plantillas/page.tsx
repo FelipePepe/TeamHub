@@ -102,7 +102,7 @@ export default function PlantillasPage() {
     try {
       const duplicada = await duplicatePlantilla.mutateAsync(id);
       toast.success(`Plantilla "${nombre}" duplicada correctamente`);
-      router.push(`/admin/plantillas/${duplicada.id}/editar`);
+      router.push(`/admin/plantillas/${duplicada.id}`);
     } catch (error) {
       toast.error('Error al duplicar plantilla');
       console.error(error);
@@ -132,7 +132,7 @@ export default function PlantillasPage() {
             Gestiona las plantillas de procesos de onboarding
           </p>
         </div>
-        <Button onClick={() => router.push('/admin/plantillas/nueva')}>
+        <Button onClick={() => router.push('/admin/plantillas/crear')}>
           <Plus className="mr-2 h-4 w-4" />
           Crear plantilla
         </Button>
@@ -245,7 +245,7 @@ export default function PlantillasPage() {
               </p>
               {!search && !filters.departamentoId && filters.activo === undefined && (
                 <Button
-                  onClick={() => router.push('/admin/plantillas/nueva')}
+                  onClick={() => router.push('/admin/plantillas/crear')}
                   className="mt-4"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -318,7 +318,7 @@ export default function PlantillasPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() =>
-                                router.push(`/admin/plantillas/${plantilla.id}/editar`)
+                                router.push(`/admin/plantillas/${plantilla.id}`)
                               }
                               title="Editar"
                             >
@@ -396,7 +396,7 @@ export default function PlantillasPage() {
                           size="sm"
                           className="flex-1"
                           onClick={() =>
-                            router.push(`/admin/plantillas/${plantilla.id}/editar`)
+                            router.push(`/admin/plantillas/${plantilla.id}`)
                           }
                         >
                           <Edit2 className="mr-2 h-4 w-4" />

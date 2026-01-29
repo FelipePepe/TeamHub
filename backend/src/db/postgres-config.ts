@@ -13,7 +13,12 @@ export function normalizeConnectionString(raw: string): string {
 }
 
 export function buildSslConfig(): ConnectionOptions | false {
-  const needsSsl = Boolean(config.PG_SSL_CERT_PATH || config.PG_SSL_REJECT_UNAUTHORIZED === false);
+  const needsSsl = Boolean(
+    config.PG_SSL_CERT_PATH || 
+    config.PG_SSL_CERT_BASE64 || 
+    config.PG_SSL_REJECT_UNAUTHORIZED === false
+  );
+  
   if (!needsSsl) {
     return false;
   }
@@ -22,7 +27,10 @@ export function buildSslConfig(): ConnectionOptions | false {
     rejectUnauthorized: config.PG_SSL_REJECT_UNAUTHORIZED,
   };
 
-  if (config.PG_SSL_CERT_PATH) {
+  // Prioridad: certificado desde base64 (para Render) o desde archivo (para local)
+  if (config.PG_SSL_CERT_BASE64) {
+    ssl.ca = Buffer.from(config.PG_SSL_CERT_BASE64, 'base64').toString('utf-8');
+  } else if (config.PG_SSL_CERT_PATH) {
     ssl.ca = readFileSync(config.PG_SSL_CERT_PATH).toString();
   }
 

@@ -1,8 +1,6 @@
 # TeamHub - Plan de Trabajo y Tareas Pendientes
 
-Documento unificado de seguimiento del proyecto. Consolida planificación general, progreso de fases y tareas específicas pendientes.
-
-**📌 Archivo consolidado:** Este documento reemplaza `CHECKLIST.md` (archivado en `docs/archived/`)
+Documento unificado de seguimiento del proyecto organizado por fases funcionales. Cada fase integra trabajo de backend y frontend.
 
 ---
 
@@ -12,144 +10,268 @@ Documento unificado de seguimiento del proyecto. Consolida planificación genera
 |------|-------------|------------|----------|--------|
 | 0 | Setup inicial del proyecto | 6h | 100% | ✅ Completada |
 | 1 | Autenticación y usuarios | 10h | 100% | ✅ Completada |
-| 2 | Departamentos y empleados | 8h | 100% | ✅ Completada |
-| 3 | Onboarding (plantillas y procesos) | 12h | 100% | ✅ Completada |
-| 4 | Proyectos y asignaciones | 10h | 100% | ✅ Completada |
-| 5 | Timetracking | 8h | 100% | ✅ Completada |
+| 2 | Departamentos y empleados | 8h | 90% | 🟡 En progreso |
+| 3 | Onboarding (plantillas y procesos) | 12h | 60% | 🟡 En progreso |
+| 4 | Proyectos y asignaciones | 10h | 50% | 🟡 En progreso |
+| 5 | Timetracking | 8h | 50% | 🟡 En progreso |
 | 6 | Dashboards y reportes | 6h | 100% | ✅ Completada |
 | 7 | Testing y calidad | 4h | 50% | 🟡 En progreso |
 | 8 | Documentación, deploy y presentación | 6h | 65% | 🟡 En progreso |
-| **Total** | | **70h** | **~90%** | |
+| **Total** | | **70h** | **~80%** | |
 
 **Última actualización:** 2026-01-29
 
 ---
 
-## 🎯 Fase Actual: Hardening y Finalización
+## ✅ Fase 0: Setup Inicial del Proyecto (100%)
 
-### Estado: 65% completado
-**Fases 0-6:** ✅ Completadas (100%)  
-**Fase 7 (Testing):** 🟡 50%  
-**Fase 8 (Docs/Deploy):** 🟡 65%
+**Estado:** Completada
+
+### Backend
+- [x] Estructura de repositorio (monorepo, .gitignore, docs)
+- [x] Setup Node + TypeScript (tsconfig, linting, scripts)
+- [x] Framework Hono configurado
+- [x] Configuración de base de datos (Drizzle, migraciones)
+- [x] Variables de entorno y configuración por entorno
+
+### Frontend
+- [x] Setup Next.js 15 con App Router
+- [x] Instalación de shadcn/ui y Tailwind CSS
+- [x] Estructura de carpetas y configuración
+- [x] Variables de entorno y verificación
+
+### DevOps
+- [x] Configuración de desarrollo (.env.example)
+- [x] Husky + lint-staged
+- [x] Documentación de setup
 
 ---
 
-## 📋 Tareas Pendientes por Prioridad
+## ✅ Fase 1: Autenticación y Usuarios (100%)
 
-### 🔴 Alta Prioridad
+**Estado:** Completada
 
-#### Backend - Seguridad y Robustez
-- [ ] Revisar y validar RBAC en todos los endpoints
-- [ ] Implementar rate limiting global (actualmente solo en login)
-- [ ] Añadir headers de seguridad (CSP, X-Frame-Options, HSTS)
-- [ ] Validar todas las entradas con Zod (revisar endpoints faltantes)
-- [x] Implementar autenticación HMAC para API ✅ (ADR-059, PR #17, 2026-01-29)
+### Backend
+- [x] Modelo de usuarios (schema, roles, migraciones)
+- [x] Servicio de autenticación (JWT, hash passwords)
+- [x] Endpoints de auth (login, register, MFA, refresh, reset)
+- [x] Middlewares (autenticación, autorización RBAC, rate limit)
+- [x] CRUD usuarios con permisos y tests
+- [x] Autenticación HMAC para API (ADR-059, PR #17)
+
+### Frontend
+- [x] API client con interceptores axios
+- [x] Auth provider y hooks (useAuth)
+- [x] Páginas de login/registro con MFA
+- [x] ProtectedRoute component
+- [x] Layout principal (sidebar, header, navegación)
+- [x] Página de perfil
+
+### Testing
+- [x] Tests backend auth (login, MFA, tokens)
+- [x] Tests backend usuarios (CRUD, permisos)
+
+---
+
+## 🟡 Fase 2: Departamentos y Empleados (90%)
+
+**Estado:** En progreso - Falta formulario y detalle de empleados
+
+### Backend
+- [x] Modelo de departamentos (schema, relaciones)
+- [x] Servicio y endpoints de departamentos (CRUD con permisos)
+- [x] Tests de departamentos
+
+### Frontend
+- [x] Hook `useDepartamentos` con TanStack Query ✅
+- [x] Página de listado de departamentos ✅
+- [x] Formulario modal crear/editar departamentos ✅
+- [x] Hook `useEmpleados` con TanStack Query ✅
+- [x] Página de listado de empleados con filtros ✅
+- [x] Tests de hooks y páginas ✅
+- [ ] **Formulario crear/editar empleado** 🔴
+- [ ] **Vista de detalle de empleado** ��
+- [ ] Filtro por departamento (requiere refactor)
+- [ ] Integrar select de responsables en departamentos
+
+### Testing
+- [x] Tests backend departamentos
+- [x] Tests frontend hooks y páginas
+
+---
+
+## 🟡 Fase 3: Onboarding - Plantillas y Procesos (60%)
+
+**Estado:** En progreso - Backend completo, frontend pendiente
+
+### Backend
+- [x] Modelo de plantillas (schema, tareas, dependencias)
+- [x] Modelo de procesos (schema, tareas, estados)
+- [x] Servicios y endpoints de plantillas (CRUD, tareas, reordenar, duplicar)
+- [x] Servicios y endpoints de procesos (crear, tareas, estado, stats)
+- [x] Tests de plantillas y procesos
+
+### Frontend
+- [ ] **Hook `usePlantillas` con TanStack Query** 🔴
+- [ ] **Página de listado de plantillas** 🔴
+- [ ] **Editor de plantillas con tareas y dependencias** 🔴
+- [ ] **Hook `useProcesos` con TanStack Query** 🔴
+- [ ] **Página de listado de procesos** 🔴
+- [ ] **Vista de detalle de proceso** 🔴
+- [ ] **Modal para iniciar nuevo proceso** 🔴
+- [ ] Vista "Mis Tareas" personal
+- [ ] Panel "Mi Onboarding"
+- [ ] Tests de hooks y páginas
+
+### Testing
+- [x] Tests backend plantillas
+- [x] Tests backend procesos
+- [ ] Tests frontend (pendiente implementación)
+
+---
+
+## 🟡 Fase 4: Proyectos y Asignaciones (50%)
+
+**Estado:** En progreso - Backend completo, frontend pendiente
+
+### Backend
+- [x] Modelo de proyectos y asignaciones (schema, enums)
+- [x] Servicios y endpoints de proyectos (CRUD con validaciones)
+- [x] Servicios y endpoints de asignaciones (gestión de equipo)
+- [x] Tests de proyectos y asignaciones
+
+### Frontend
+- [ ] **Hook `useProyectos` con TanStack Query** 🔴
+- [ ] **Página de listado (vista cards y tabla)** 🔴
+- [ ] **Vista de detalle de proyecto** 🔴
+- [ ] **Formulario crear/editar proyecto** 🔴
+- [ ] **Gestión de asignaciones de equipo** 🔴
+- [ ] Vista de carga de trabajo
+- [ ] Tests de hooks y páginas
+
+### Testing
+- [x] Tests backend proyectos
+- [x] Tests backend asignaciones
+- [ ] Tests frontend (pendiente implementación)
+
+---
+
+## 🟡 Fase 5: Timetracking (50%)
+
+**Estado:** En progreso - Backend completo, frontend pendiente
+
+### Backend
+- [x] Modelo de registros de tiempo (schema, constraints)
+- [x] Servicios y endpoints de timetracking (registro, aprobación)
+- [x] Tests de timetracking
+
+### Frontend
+- [ ] **Hook `useTimeEntries` con TanStack Query** 🔴
+- [ ] **Vista semanal/mensual de registro** 🔴
+- [ ] **Formulario de registro de horas** 🔴
+- [ ] **Panel de aprobación para managers** 🔴
+- [ ] Acciones masivas de aprobación
+- [ ] Widgets personales de resumen
+- [ ] Gráficos de horas
+- [ ] Tests de hooks y páginas
+
+### Testing
+- [x] Tests backend timetracking
+- [ ] Tests frontend (pendiente implementación)
+
+---
+
+## ✅ Fase 6: Dashboards y Reportes (100%)
+
+**Estado:** Completada
+
+### Backend
+- [x] Endpoints de métricas y estadísticas
+- [x] Tests de dashboards
+
+### Frontend
+- [x] Dashboard de Admin (métricas generales)
+- [x] Dashboard de RRHH (empleados, departamentos)
+- [x] Dashboard de Manager (equipo, proyectos)
+- [x] Dashboard de Empleado (personal)
+- [x] Gráficos con Recharts (bar-chart, line-chart)
+- [x] Diseño responsive mobile-first (ADR-060, PR #19)
+- [x] Navegación móvil con hamburger menu (Sheet + MobileSidebar)
+- [ ] Completar responsive en dashboards manager/empleado 🟡
+
+### Testing
+- [x] Tests backend dashboards
+- [x] Tests frontend dashboards básicos
+
+---
+
+## 🟡 Fase 7: Testing y Calidad (50%)
+
+**Estado:** En progreso
+
+### Testing
+- [x] Suite completa de tests backend ejecutada (20 tests pasando)
+- [x] Suite completa de tests frontend ejecutada (42 tests pasando)
+- [ ] Verificar cobertura de código (target: 80% features importantes) 🔴
+- [ ] Añadir tests faltantes en módulos críticos 🔴
+- [ ] Tests E2E básicos (login, navegación, CRUD) 🔴
 - [ ] Tests de seguridad (OWASP Top 10)
 
-#### Frontend - Páginas Core Faltantes
-
-**1. Página de Empleados (`/admin/empleados`)**
-- [x] Crear hook `useEmpleados` con TanStack Query ✅
-- [x] Tests del hook ✅ (9 tests pasando)
-- [x] Crear página de listado con tabla ✅
-- [x] Añadir filtros (rol, estado, búsqueda) ✅
-- [x] Tests de la página ✅ (6 tests pasando)
-- [ ] Implementar formulario crear/editar empleado
-- [ ] Añadir vista de detalle de empleado
-- [ ] Añadir filtro por departamento (requiere refactor useDepartamentos)
-
-**2. Página de Onboarding (`/onboarding`)**
-- [ ] Crear hook `useProcesos` con TanStack Query
-- [ ] Crear página de listado de procesos
-- [ ] Implementar vista de detalle de proceso
-- [ ] Añadir modal para iniciar nuevo proceso
-- [ ] Tests del hook
-- [ ] Tests de la página
-
-**3. Página de Proyectos (`/proyectos`)**
-- [ ] Crear hook `useProyectos` con TanStack Query
-- [ ] Crear página de listado (vista cards y tabla)
-- [ ] Implementar vista de detalle de proyecto
-- [ ] Añadir formulario crear/editar proyecto
-- [ ] Implementar gestión de asignaciones
-- [ ] Tests del hook
-- [ ] Tests de la página
-
-**4. Página de Timetracking (`/timetracking`)**
-- [ ] Crear hook `useTimeEntries` con TanStack Query
-- [ ] Crear vista semanal de registro de horas
-- [ ] Implementar formulario de registro
-- [ ] Añadir vista de aprobación (para managers)
-- [ ] Tests del hook
-- [ ] Tests de la página
-
-#### Código y Calidad
-- [ ] Corregir warnings ESLint en backend
-- [ ] Corregir warnings ESLint en frontend
+### Calidad de Código
+- [ ] **Corregir warnings ESLint en backend** 🔴
+- [ ] **Corregir warnings ESLint en frontend** 🔴
 - [ ] Verificar que no hay regresiones
 - [ ] Resolver fallos de tests (si aparecen)
 
----
+### Seguridad
+- [ ] **Revisar y validar RBAC en todos los endpoints** 🔴
+- [ ] **Implementar rate limiting global** (actualmente solo login) 🔴
+- [ ] **Añadir headers de seguridad** (CSP, X-Frame-Options, HSTS) 🔴
+- [ ] **Validar todas las entradas con Zod** 🔴
+- [x] Autenticación HMAC implementada ✅ (ADR-059)
 
-### 🟡 Media Prioridad
+### Accesibilidad
+- [x] Implementar diseño responsive mobile-first ✅ (ADR-060)
+- [x] Accesibilidad base (ARIA labels, navegación teclado) ✅
+- [ ] Implementar A11y completo en formularios (login, etc.) 🟡
+- [ ] Ejecutar Lighthouse audit (target: >90 score A11y) 🟡
 
-#### Documentación
-- [x] Actualizar OpenAPI con todos los endpoints ✅ (2026-01-29)
-- [x] Actualizar documentación backend según cambios ✅ (2026-01-29)
-- [x] Verificar que Swagger UI muestra todo correctamente ✅ (2026-01-29)
-- [x] Crear guía de troubleshooting ✅ (docs/troubleshooting.md, PR #21, 2026-01-29)
-- [x] Documentar configuración HMAC en troubleshooting ✅ (ADR-061, PR #21, 2026-01-29)
-- [ ] Actualizar README con estado actual del proyecto
-- [ ] Documentar arquitectura final (diagramas actualizados)
-
-#### Frontend - Páginas Secundarias
-
-**5. Página de Plantillas (`/admin/plantillas`)**
-- [ ] Crear hook `usePlantillas` con TanStack Query
-- [ ] Crear página de listado
-- [ ] Implementar editor de plantillas con tareas
-- [ ] Añadir funcionalidad de duplicar plantilla
-- [ ] Tests del hook
-- [ ] Tests de la página
-
-**6. Página de Configuración (`/admin/configuracion`)**
-- [ ] Crear página básica de configuración
-- [ ] Implementar gestión de variables de sistema
-- [ ] Tests de la página
-
-**7. Integrar formulario de departamentos**
-- [ ] Integrar `DepartamentoForm` en página de departamentos
-- [ ] Conectar botones "Crear" y "Editar"
-- [ ] Añadir select de responsables (usuarios MANAGER+)
-- [ ] Tests de integración
-
-#### Testing
-- [x] Ejecutar suite completa de tests ✅ (frontend: 42, backend: 20 - todos pasando, 2026-01-29)
-- [ ] Verificar cobertura de código (target: 80% important features)
-- [ ] Añadir tests faltantes en módulos críticos
-- [ ] Tests E2E básicos (login, navegación, CRUD principal)
+### Optimizaciones
+- [ ] Implementar lazy loading de rutas 🟢
+- [ ] Optimizar bundle size 🟢
+- [ ] Añadir error boundaries globales 🟢
+- [ ] Optimizar queries de base de datos 🟢
 
 ---
 
-### 🟢 Baja Prioridad
+## 🟡 Fase 8: Documentación, Deploy y Presentación (65%)
 
-#### Optimizaciones Frontend
-- [ ] Implementar lazy loading de rutas
-- [ ] Optimizar bundle size
-- [ ] Añadir error boundaries globales
-- [x] Implementar diseño responsive mobile-first ✅ (ADR-060, PR #19, 2026-01-29)
-- [x] Añadir navegación móvil con hamburger menu ✅ (Sheet + MobileSidebar, PR #19, 2026-01-29)
-- [x] Refactorizar dashboards admin/RRHH responsive ✅ (grids mobile-first, PR #19, 2026-01-29)
-- [x] Mejorar accesibilidad base (ARIA labels, navegación teclado) ✅ (ADR-060, PR #19, 2026-01-29)
-- [ ] Completar responsive en dashboards manager/empleado
-- [ ] Implementar A11y completo en formularios (login, etc.)
-- [ ] Ejecutar Lighthouse audit (target: >90 score A11y)
+**Estado:** En progreso
 
-#### Optimizaciones Backend
-- [ ] Optimizar queries de base de datos (EXPLAIN ANALYZE)
-- [ ] Implementar caching donde sea apropiado (Redis opcional)
-- [ ] Añadir índices faltantes en BD
-- [ ] Optimizar respuestas de API (paginación, campos selectivos)
+### Documentación
+- [x] Documentación de arquitectura (SAD, ADRs)
+- [x] OpenAPI completo y Swagger UI configurado ✅
+- [x] Documentación backend actualizada ✅
+- [x] Documentación frontend (funcional, técnico)
+- [x] Guía de troubleshooting ✅ (PR #21)
+- [x] Documentar configuración HMAC ✅ (ADR-061)
+- [ ] **Actualizar README con estado actual** 🔴
+- [ ] **Documentar arquitectura final con diagramas** 🔴
+- [ ] Documentación de deployment
+- [ ] Manual de usuario básico
+
+### Deploy
+- [x] Backend desplegado en Render ✅
+- [x] Frontend desplegado en Vercel ✅
+- [x] Base de datos en Aiven PostgreSQL ✅
+- [ ] Configurar CI/CD completo (GitHub Actions) 🟡
+- [ ] Configurar monitoreo y logs 🟡
+
+### Presentación TFM
+- [ ] **Preparar slides de presentación** 🔴
+- [ ] **Preparar demo en vivo** 🔴
+- [ ] **Redactar memoria final del TFM** 🔴
+- [ ] Grabar vídeo demo (opcional)
 
 ---
 
@@ -158,9 +280,9 @@ Documento unificado de seguimiento del proyecto. Consolida planificación genera
 ### Reglas Obligatorias del Proyecto
 
 #### ✅ Completadas
-- [x] Añadir regla explícita de preservación de ramas ✅ (ADR-062, PR #22, 2026-01-29)
-- [x] Añadir regla obligatoria de actualizar decisiones.md ✅ (PR #24, 2026-01-29)
-- [x] Sincronizar archivos de agentes (AGENTS.md, claude.md, copilot-instructions.md) ✅ (2026-01-29)
+- [x] Añadir regla explícita de preservación de ramas (ADR-062, PR #22)
+- [x] Añadir regla obligatoria de actualizar decisiones.md (PR #24)
+- [x] Sincronizar archivos de agentes (AGENTS.md, claude.md, copilot-instructions.md)
 
 #### ⚠️ Pendientes
 - [ ] Mantener archivos de agentes sincronizados en futuros cambios
@@ -193,21 +315,30 @@ Documento unificado de seguimiento del proyecto. Consolida planificación genera
 
 ---
 
-## 🎯 Próximos Pasos Recomendados
+## 🎯 Próximos Pasos Recomendados (Prioridad)
 
-1. **Completar páginas core frontend** (Empleados, Onboarding, Proyectos, Timetracking)
-2. **Endurecer seguridad backend** (RBAC, rate limiting, headers)
-3. **Resolver warnings ESLint** (ambos proyectos)
-4. **Ejecutar suite completa de tests** y resolver fallos
-5. **Aumentar cobertura de tests** a 80% en features importantes
-6. **Completar responsive/A11y** en dashboards manager/empleado
-7. **Actualizar documentación final** (README, arquitectura, diagramas)
-8. **Tests E2E básicos** (flujos principales)
-9. **Lighthouse audit** y optimizaciones finales
-10. **Preparar presentación TFM**
+### 🔴 Alta Prioridad (Crítico para completar MVP)
+1. **Fase 2: Completar Empleados** - Formulario crear/editar y vista detalle
+2. **Fase 3: Frontend Onboarding completo** - Plantillas y Procesos (hooks, páginas, tests)
+3. **Fase 4: Frontend Proyectos completo** - Proyectos y Asignaciones (hooks, páginas, tests)
+4. **Fase 5: Frontend Timetracking completo** - Registro y aprobación (hooks, páginas, tests)
+5. **Fase 7: Endurecer seguridad** - RBAC, rate limiting, headers, validaciones
+
+### 🟡 Media Prioridad (Pulir MVP)
+6. **Fase 7: Corregir warnings ESLint** - Backend y frontend
+7. **Fase 7: Aumentar cobertura de tests** - Target 80% en features importantes
+8. **Fase 8: Actualizar documentación final** - README, arquitectura, diagramas
+9. **Fase 6: Completar responsive** - Dashboards manager/empleado
+
+### 🟢 Baja Prioridad (Post-MVP)
+10. **Fase 7: Tests E2E básicos** - Flujos principales
+11. **Fase 7: Lighthouse audit** - Optimizaciones finales
+12. **Fase 8: Preparar presentación TFM** - Slides, demo, memoria
 
 ---
 
 **Última actualización:** 2026-01-29  
-**Progreso total estimado:** ~90%  
-**Tiempo estimado restante:** ~7-10 horas
+**Progreso total estimado:** ~80%  
+**Tiempo estimado restante:** ~14-18 horas
+
+**Prioridad:** Completar frontend de fases 2-5 (Empleados, Onboarding, Proyectos, Timetracking)

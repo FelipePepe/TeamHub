@@ -62,6 +62,136 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 
 ---
 
+## 📊 Estado Actual del Proyecto
+
+> **Última actualización:** 29 de enero de 2026
+
+### ✅ Progreso General: ~80%
+
+| Componente | Estado | Progreso | Tests |
+|------------|--------|----------|-------|
+| **Backend** | ✅ Completo | 100% | 20/20 ✅ |
+| **Frontend - Fase 1** (Auth) | ✅ Completo | 100% | 10/10 ✅ |
+| **Frontend - Fase 2** (Departamentos) | ✅ Completo | 100% | 15/15 ✅ |
+| **Frontend - Fase 3** (Onboarding) | ✅ Completo | 100% | 35/35 ✅ |
+| **Frontend - Fase 4** (Proyectos) | 🟡 Backend listo | 50% | - |
+| **Frontend - Fase 5** (Timetracking) | 🟡 Backend listo | 50% | - |
+| **Frontend - Fase 6** (Dashboards) | ✅ Completo | 100% | 17/17 ✅ |
+| **Total Tests** | ✅ Pasando | - | **97/97** ✅ |
+
+### 🎯 Features Implementadas
+
+#### ✅ Completo (100%)
+- **Autenticación & Seguridad**
+  - Login con JWT + MFA obligatorio (TOTP)
+  - Backup codes MFA y recuperación de contraseña
+  - HMAC authentication para API (ADR-059)
+  - Rate limiting y RBAC granular
+  - Security headers y CORS configurado
+
+- **Gestión de Usuarios y Departamentos**
+  - CRUD completo usuarios (ADMIN/RRHH/MANAGER/EMPLEADO)
+  - Gestión departamentos con responsables
+  - Perfiles editables y cambio de contraseña
+  - Soft delete y auditoría completa
+
+- **Módulo de Onboarding** (Fase 3)
+  - Plantillas reutilizables con tareas configurables
+  - Editor completo (crear/editar) con drag & drop
+  - Procesos de onboarding con estados y progreso
+  - Mis Tareas (vista empleado/responsable)
+  - Widget Mi Onboarding en dashboard empleado
+  - Dependencias entre tareas y cálculo automático de fechas
+
+- **Dashboards por Rol** (Fase 6)
+  - Admin: Métricas globales del sistema
+  - RRHH: Onboardings, departamentos y alertas
+  - Manager: Equipo, proyectos y aprobaciones
+  - Empleado: Onboarding personal y accesos rápidos
+  - Diseño responsive mobile-first (ADR-060)
+
+#### 🟡 En Progreso (50%)
+- **Proyectos y Asignaciones** (Backend completo, frontend pendiente)
+  - 14 endpoints backend listos ✅
+  - Gestión de proyectos con estados
+  - Asignaciones con validación de dedicación
+  - Frontend: Hooks, páginas y formularios pendientes
+
+- **Timetracking** (Backend completo, frontend pendiente)
+  - 13 endpoints backend listos ✅
+  - Registro de horas por proyecto
+  - Aprobación/rechazo por managers
+  - Frontend: Vista semanal y panel aprobación pendientes
+
+### 📡 API REST - 149 Endpoints
+
+| Módulo | Endpoints | Estado |
+|--------|-----------|--------|
+| Auth | 7 | ✅ |
+| Usuarios | 7 | ✅ |
+| Departamentos | 5 | ✅ |
+| Plantillas Onboarding | 10 | ✅ |
+| Procesos Onboarding | 13 | ✅ |
+| Proyectos | 14 | ✅ |
+| Timetracking | 13 | ✅ |
+| Dashboards | 80+ (computed) | ✅ |
+
+**Documentación:** Swagger UI disponible en `/docs` ([ver OpenAPI](openapi.yaml))
+
+### 🔧 Stack Tecnológico
+
+**Frontend:**
+- Next.js 15 (App Router) + React 19
+- TypeScript 5.7 + TanStack Query v5
+- Tailwind CSS + shadcn/ui
+- React Hook Form + Zod
+- D3.js (gráficos interactivos - ADR-063)
+
+**Backend:**
+- Hono 4.6 (ultraligero, 3-4x más rápido que Express)
+- Drizzle ORM + PostgreSQL 16
+- JWT + MFA (TOTP)
+- Zod validation en runtime
+- Pino logging estructurado
+
+**Infraestructura:**
+- Frontend: Vercel (edge network)
+- Backend: Render
+- DB: Aiven PostgreSQL (managed)
+- CI/CD: GitHub Actions
+
+### 🧪 Calidad del Código
+
+- ✅ **Zero ESLint warnings** (backend + frontend)
+- ✅ **97 tests passing** (20 backend, 77 frontend)
+- ✅ **100% coverage** en hooks críticos
+- ✅ **Type-safe** end-to-end (TypeScript + Zod)
+- ✅ **Responsive design** (mobile-first, ADR-060)
+- ✅ **Accesibilidad** (ARIA labels, navegación teclado)
+
+### 📝 Documentación Disponible
+
+- 📘 [Documentación Completa](docs/README.md)
+- 🏗️ [Arquitectura (SAD)](docs/architecture/sad.md)
+- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 63 decisiones documentadas
+- 🔧 [Troubleshooting](docs/troubleshooting.md)
+- 📊 [Estado y Progreso](docs/decisiones.md)
+- 🔌 [API Reference](openapi.yaml) + Swagger UI
+
+### 🚀 Próximos Pasos
+
+**Prioridad ALTA:**
+1. ✅ ~~Lint & Tests verification~~ (Completado)
+2. 🔄 Security hardening (rate limiting global, headers CSP)
+3. 📝 Actualizar OpenAPI con endpoints de onboarding
+
+**Prioridad MEDIA:**
+4. 🎨 Completar frontend Proyectos (hooks + páginas)
+5. ⏱️ Completar frontend Timetracking (vista semanal + aprobaciones)
+6. 📊 Migrar gráficos a D3.js (tooltips, interactividad)
+
+---
+
 ## Arquitectura del Sistema
 
 ### Diagrama de Arquitectura
@@ -987,60 +1117,169 @@ Configuración estricta mediante `CORS_ORIGINS` (lista separada por comas).
 
 ## Testing
 
-### Backend
+### 🧪 Estado de Tests
 
-#### Configuración
+**Total:** 97/97 tests passing ✅
+
+| Suite | Tests | Estado | Comando |
+|-------|-------|--------|---------|
+| **Backend** | 20/20 | ✅ | `cd backend && npm test` |
+| **Frontend** | 77/77 | ✅ | `cd frontend && npm test` |
+
+### Backend Tests (Vitest)
+
+#### Ejecutar Tests
 ```bash
-# Ejecutar todos los tests
-npm run test
+cd backend
 
-# Ejecutar en modo watch
+# Todos los tests
+npm test
+
+# Watch mode
 npm run test:watch
+
+# Con coverage
+npm run test:coverage
 ```
 
-#### Tipos de Tests
-- **Unit tests**: Servicios y utilidades
-- **Integration tests**: Endpoints de API
-- **Database tests**: Queries y migraciones
+#### Cobertura por Módulo
+| Módulo | Tests | Descripción |
+|--------|-------|-------------|
+| Auth | 4 tests | Login, MFA, refresh tokens, bootstrap |
+| Usuarios | 3 tests | CRUD, duplicados, permisos |
+| Departamentos | 4 tests | CRUD, soft delete, duplicados |
+| Plantillas | 3 tests | Creación con tareas, duplicación |
+| Procesos | 2 tests | Iniciar proceso, completar tareas |
+| Proyectos | 2 tests | CRUD, asignaciones |
+| Timetracking | 1 test | Resumen de horas |
+| Dashboard | 1 test | Métricas por rol |
 
 #### Estructura
 ```
-backend/
-├── src/
-│   └── __tests__/
-│       ├── auth.test.ts
-│       ├── usuarios.test.ts
-│       └── ...
+backend/src/__tests__/
+├── auth.test.ts           # Autenticación y MFA
+├── usuarios.test.ts       # Gestión de usuarios
+├── departamentos.test.ts  # Departamentos
+├── plantillas.test.ts     # Templates onboarding
+├── procesos.test.ts       # Procesos onboarding
+├── proyectos.test.ts      # Proyectos y asignaciones
+├── timetracking.test.ts   # Registro de horas
+└── dashboard.test.ts      # Métricas
 ```
 
-### Frontend
+### Frontend Tests (Vitest + React Testing Library)
 
-#### Configuración
+#### Ejecutar Tests
 ```bash
-# Ejecutar tests
-npm run test
+cd frontend
+
+# Todos los tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# UI mode
+npm run test:ui
 ```
 
-#### Tipos de Tests
-- **Component tests**: Renderizado y comportamiento
-- **Hook tests**: Custom hooks
-- **Integration tests**: Flujos de usuario
+#### Cobertura por Tipo
+| Categoría | Tests | Descripción |
+|-----------|-------|-------------|
+| **Hooks** | 44 tests | TanStack Query hooks (100% coverage) |
+| - use-empleados | 9 tests | CRUD empleados |
+| - use-plantillas | 15 tests | CRUD plantillas + tareas |
+| - use-procesos | 20 tests | CRUD procesos + estado transitions |
+| **Pages** | 6 tests | Páginas completas con interacciones |
+| **Forms** | 1 test | LoginForm con MFA flow |
+| **Lib** | 26 tests | Utilidades (auth, navigation, utils) |
+
+#### Estructura
+```
+frontend/src/
+├── hooks/__tests__/
+│   ├── use-empleados.test.tsx      # 9 tests
+│   ├── use-plantillas.test.tsx     # 15 tests
+│   └── use-procesos.test.tsx       # 20 tests
+├── app/(dashboard)/admin/empleados/__tests__/
+│   └── page.test.tsx               # 6 tests
+├── components/forms/__tests__/
+│   └── login-form.test.tsx         # 1 test (MFA flow)
+└── lib/__tests__/
+    ├── auth.test.ts                # 9 tests
+    ├── navigation.test.ts          # 10 tests
+    └── utils.test.ts               # 7 tests
+```
+
+### Quality Gates
+
+#### Pre-commit (Husky)
+```bash
+# Ejecutado automáticamente en cada commit
+- Lint staged files (ESLint)
+- Format (Prettier si configurado)
+```
+
+#### Pre-push (Husky)
+```bash
+# Ejecutado antes de push
+- npm run lint (backend + frontend)
+- npm test (todos los tests)
+- Type check (tsc --noEmit)
+```
+
+#### CI/CD (GitHub Actions)
+```yaml
+# Ejecutado en cada PR y push a main
+- ESLint validation
+- TypeScript type check
+- All tests (backend + frontend)
+- Build verification
+```
+
+### Coverage Strategy (ADR-055)
+
+| Prioridad | Coverage Target | Alcance |
+|-----------|----------------|---------|
+| **CORE** | 100% | Lógica crítica (auth, cálculos, transacciones) |
+| **IMPORTANT** | 80% | Features visibles al usuario |
+| **INFRASTRUCTURE** | 0% | Tipos, constantes, configs |
 
 ---
 
 ## Despliegue
 
-### URLs de Producción
+### 🌐 URLs de Producción
 
-| Servicio | URL |
-|----------|-----|
-| **Aplicación** | https://teamhub.vercel.app |
-| **API** | https://teamhub-api.railway.app |
+| Servicio | URL | Estado |
+|----------|-----|--------|
+| **Frontend** | https://teamhub-tfm.vercel.app | ✅ Desplegado |
+| **Backend API** | https://teamhub-backend-production.up.railway.app | ✅ Desplegado |
+| **Base de Datos** | Aiven PostgreSQL (managed) | ✅ Activo |
+| **Swagger UI** | https://teamhub-backend-production.up.railway.app/docs | ✅ Disponible |
 
 ### Frontend (Vercel)
 
-#### Despliegue Automático
-1. Push a rama `main` → Deploy automático
+**Plataforma:** Vercel Edge Network  
+**Rama:** `main` (auto-deploy activado)
+
+#### Configuración
+```bash
+# Build command
+npm run build
+
+# Output directory
+.next
+
+# Framework preset
+Next.js
+```
+
+#### Variables de Entorno
+```env
+NEXT_PUBLIC_API_URL=https://teamhub-backend-production.up.railway.app/api
+NEXT_PUBLIC_APP_URL=https://teamhub-tfm.vercel.app
+```
 
 #### Despliegue Manual
 ```bash
@@ -1049,39 +1288,80 @@ npm run build
 vercel --prod
 ```
 
-#### Variables de Entorno (Vercel)
-```
-NEXT_PUBLIC_API_URL=https://teamhub-api.railway.app/api
-```
+### Backend (Render → Railway)
 
-### Backend (Railway)
+**Plataforma:** Railway  
+**Rama:** `main` (auto-deploy activado desde GitHub)
 
-#### Despliegue Automático
-1. Push a rama `main` → Deploy automático
-
-#### Despliegue Manual
+#### Configuración
 ```bash
-cd backend
-railway up
+# Start command
+npm run start
+
+# Health check
+GET /api/health
+
+# Port
+3001 (auto-asignado por Railway)
 ```
 
 #### Variables de Entorno (Railway)
-```
-DATABASE_URL=postgresql://...
-JWT_ACCESS_SECRET=tu-clave-secreta-produccion
-JWT_REFRESH_SECRET=tu-clave-secreta-produccion
+```env
+# Database (Aiven PostgreSQL)
+DATABASE_URL=postgresql://avnadmin:AVNS_xxx@teamhub-xxx.aivencloud.com:12345/teamhub?sslmode=require
+PG_SSL_CERT_PATH=/app/ca-certificate.crt
+
+# JWT Secrets (generar con: openssl rand -base64 32)
+JWT_ACCESS_SECRET=<secret-32-chars-minimum>
+JWT_REFRESH_SECRET=<secret-32-chars-minimum>
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
-CORS_ORIGINS=https://teamhub.vercel.app
-APP_BASE_URL=https://teamhub.vercel.app
-MFA_ENCRYPTION_KEY=tu-clave-secreta-produccion
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=change-me
-SMTP_PASS=change-me
-SMTP_FROM=TeamHub <no-reply@example.com>
+
+# MFA
+MFA_ENCRYPTION_KEY=<secret-32-chars-minimum>
+MFA_ISSUER=TeamHub
+
+# CORS & App
+CORS_ORIGINS=https://teamhub-tfm.vercel.app
+APP_BASE_URL=https://teamhub-tfm.vercel.app
 NODE_ENV=production
 PORT=3001
+
+# HMAC Authentication (ADR-059)
+HMAC_SECRET=<secret-32-chars-minimum>
+HMAC_ENABLED=false  # Deshabilitado para frontend (solo APIs externas)
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=100
+LOGIN_RATE_LIMIT_WINDOW_MS=60000
+LOGIN_RATE_LIMIT_MAX=5
+
+# Logging
+LOG_LEVEL=info
+
+# SMTP (opcional - para recuperación de contraseña)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=<email>
+SMTP_PASS=<app-password>
+SMTP_FROM=TeamHub <no-reply@teamhub.com>
+
+# Security
+BCRYPT_SALT_ROUNDS=12
+```
+
+### Base de Datos (Aiven PostgreSQL)
+
+**Proveedor:** Aiven (managed PostgreSQL 16)  
+**SSL:** Obligatorio con certificado CA  
+**Backups:** Automáticos diarios
+
+#### Migraciones
+```bash
+cd backend
+npm run db:push    # Push schema changes
+npm run db:studio  # GUI para inspeccionar datos
 ```
 
 ### CI/CD (GitHub Actions)

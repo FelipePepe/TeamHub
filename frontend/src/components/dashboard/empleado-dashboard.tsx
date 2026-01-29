@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { KpiCard, BarChart, LineChart } from '@/components/dashboard';
+import { MiOnboardingWidget } from '@/components/onboarding/mi-onboarding-widget';
 import { getEmpleadoDashboard } from '@/lib/dashboard';
 import type { EmpleadoDashboardData } from '@/types/dashboard';
 
@@ -77,7 +78,7 @@ export function EmpleadoDashboard() {
           </Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/onboarding/mis-tareas">
+          <Link href="/mis-tareas">
             Ver mis tareas
           </Link>
         </Button>
@@ -101,60 +102,8 @@ export function EmpleadoDashboard() {
 
       {/* Sections */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Mi onboarding */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Mi onboarding</CardTitle>
-            <CardDescription>Tu progreso de incorporacion</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                <div className="animate-pulse h-4 bg-slate-100 rounded w-full" />
-                <div className="animate-pulse h-20 bg-slate-100 rounded" />
-              </div>
-            ) : (
-              <>
-                {/* Progress bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-slate-500">Progreso</span>
-                    <span className="text-sm font-medium">{data?.sections.onboarding.progreso ?? 0}%</span>
-                  </div>
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 rounded-full transition-all"
-                      style={{ width: `${data?.sections.onboarding.progreso ?? 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Proximas tareas */}
-                {data?.sections.onboarding.proximasTareas.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-4">
-                    No tienes tareas de onboarding pendientes
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {data?.sections.onboarding.proximasTareas.slice(0, 3).map((tarea) => (
-                      <li key={tarea.tareaId} className="flex items-center justify-between p-2 border rounded">
-                        <span className="text-sm truncate">{tarea.titulo}</span>
-                        {tarea.fechaLimite && (
-                          <Badge variant="outline" className="text-xs">
-                            {new Date(tarea.fechaLimite).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: 'short',
-                            })}
-                          </Badge>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {/* Mi onboarding - New Widget */}
+        <MiOnboardingWidget />
 
         {/* Mis proyectos */}
         <Card>

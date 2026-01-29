@@ -251,6 +251,46 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Backend: Middleware `hmac-validation.ts` valida antes del rate limiting
   - Frontend: Interceptor axios genera firma en cada request
 
+### ADR-060: Diseño Responsive y Accesibilidad (A11y)
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: El frontend no era responsive al cargar en móvil tras despliegue en Vercel, no cumplía con estándares de accesibilidad.
+- Decision: Implementar diseño responsive mobile-first con Tailwind breakpoints y cumplir con WCAG 2.1 AA.
+- Estándares:
+  - **Responsive**: Mobile-first desde 320px, breakpoints estándar (sm:640px, md:768px, lg:1024px)
+  - **A11y**: Navegación por teclado, ARIA labels, contraste 4.5:1, HTML semántico
+- Consecuencias:
+  - (+) Experiencia consistente en todos los dispositivos
+  - (+) Cumplimiento de estándares de accesibilidad
+  - (-) Requiere refactorizar componentes existentes
+- Implementación:
+  - Sheet UI component para menú móvil (slide-in)
+  - MobileSidebar con hamburger menu
+  - Grids responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - ARIA: `aria-label`, `aria-current`, `aria-hidden`, `role="list"`
+
+### ADR-061: Troubleshooting de Configuración HMAC
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Desarrolladores encontraban error "HMAC key data must not be empty" al ejecutar el proyecto localmente porque faltaba `API_HMAC_SECRET` en `.env`.
+- Decision: Documentar guía completa de troubleshooting en `docs/troubleshooting.md` con diagnóstico, solución y verificación.
+- Consecuencias:
+  - (+) Reduce tiempo de onboarding de nuevos desarrolladores
+  - (+) Centraliza soluciones a problemas comunes
+  - Los archivos `.env` no se versionan (están en `.gitignore`)
+
+### ADR-062: Preservación Explícita de Ramas en GitFlow
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Ocurrió un incidente donde se usó `--delete-branch` al mergear PR, borrando rama `bugfix/hmac-env-config`. Aunque se recuperó, violó la política del proyecto.
+- Decision: Añadir sección explícita "Preservación de Ramas" en archivos de instrucciones de agentes (AGENTS.md, claude.md, copilot-instructions.md).
+- Regla: **CRÍTICO - NUNCA borrar ramas después de mergear (ni local ni remotamente)**. Usar `gh pr merge <number> --squash` SIN `--delete-branch`.
+- Consecuencias:
+  - (+) Previene borrado accidental de ramas
+  - (+) Facilita auditorías y revisiones históricas
+  - (+) Mantiene trazabilidad completa del proyecto
+  - Los 3 archivos de agentes deben mantenerse sincronizados
+
 ### ADR-046: Endpoints de Perfil separados de Usuarios
 - Fecha: 2026-01-25
 - Estado: Aceptado
@@ -542,7 +582,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (60%)
+### Fase 4: Hardening y documentacion (65%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
@@ -552,6 +592,8 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Refactorizar frontend para responsive design - Layout (ADR-060). (2026-01-29)
 - [x] Refactorizar frontend para responsive design - Dashboards admin/RRHH (ADR-060). (2026-01-29)
 - [x] Implementar mejoras A11y en navegación (ADR-060). (2026-01-29)
+- [x] Documentar troubleshooting de configuración HMAC en entornos locales (ADR-061). (2026-01-29)
+- [x] Añadir regla explícita de preservación de ramas en GitFlow (ADR-062). (2026-01-29)
 - [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).
 - [ ] Actualizar OpenAPI y docs backend segun cambios.
@@ -593,3 +635,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
 - [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)
 - [x] Implementar autenticacion HMAC para API (ADR-059). (2026-01-29)
+- [x] Implementar diseño responsive y accesibilidad (ADR-060). (2026-01-29)
+- [x] Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)
+- [x] Añadir regla explícita de preservación de ramas (ADR-062). (2026-01-29)

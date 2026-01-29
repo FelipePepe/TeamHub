@@ -23,18 +23,13 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 /**
- * Página de detalle de empleado
- * Muestra información completa de un empleado específico
+ * Componente interno que muestra el detalle del empleado
+ * Separado para facilitar testing
  */
-export default function EmpleadoDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const resolvedParams = use(params);
+export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
   const router = useRouter();
   const { canManageUsers } = usePermissions();
-  const { data: empleado, isLoading, error } = useEmpleado(resolvedParams.id);
+  const { data: empleado, isLoading, error } = useEmpleado(empleadoId);
   const deleteEmpleado = useDeleteEmpleado();
 
   // Verificar permisos
@@ -274,4 +269,17 @@ export default function EmpleadoDetailPage({
       </Card>
     </div>
   );
+}
+
+/**
+ * Página de detalle de empleado (wrapper para Next.js App Router)
+ * Resuelve params y pasa al componente de contenido
+ */
+export default function EmpleadoDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = use(params);
+  return <EmpleadoDetailContent empleadoId={resolvedParams.id} />;
 }

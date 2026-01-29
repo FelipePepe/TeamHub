@@ -20,7 +20,7 @@ vi.mock('date-fns/locale', () => ({
 }));
 
 // Importar componente DESPUÉS de los mocks
-import EmpleadoDetailPage from '../[id]/page';
+import { EmpleadoDetailContent } from '../[id]/page';
 
 // Mock de router
 const routerMocks = vi.hoisted(() => ({
@@ -107,7 +107,7 @@ describe('EmpleadoDetailPage', () => {
   it('muestra acceso denegado sin permisos', () => {
     permissionsMocks.canManageUsers = false;
 
-    render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+    render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
     expect(screen.getByText(/acceso denegado/i)).toBeInTheDocument();
     expect(screen.getByText(/no tienes permisos para ver esta información/i)).toBeInTheDocument();
@@ -119,15 +119,15 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('renderiza información básica del empleado', () => {
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
-      expect(screen.getByText('Juan Pérez García')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Juan Pérez García' })).toBeInTheDocument();
       expect(screen.getByText('juan.perez@example.com')).toBeInTheDocument();
       expect(screen.getByText('+34 600 123 456')).toBeInTheDocument();
     });
 
     it('renderiza información organizacional', () => {
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       expect(screen.getByText('MANAGER')).toBeInTheDocument();
       expect(screen.getByText(/ID: dept-456/i)).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('muestra badge de estado activo', () => {
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       const activoBadge = screen.getByText('Activo');
       expect(activoBadge).toBeInTheDocument();
@@ -144,15 +144,16 @@ describe('EmpleadoDetailPage', () => {
     it('no muestra teléfono si no está presente', () => {
       empleadosMocks.data = { ...mockEmpleado, telefono: null };
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
+      expect(screen.getByRole('heading', { name: 'Juan Pérez García' })).toBeInTheDocument();
       expect(screen.queryByText('+34 600 123 456')).not.toBeInTheDocument();
     });
 
     it('muestra "Sin asignar" cuando no hay departamento', () => {
       empleadosMocks.data = { ...mockEmpleado, departamentoId: null };
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       expect(screen.getByText('Sin asignar')).toBeInTheDocument();
     });
@@ -166,8 +167,8 @@ describe('EmpleadoDetailPage', () => {
     it('botón volver navega hacia atrás', async () => {
       const user = userEvent.setup();
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
-
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
+      
       const backButton = screen.getByRole('button', { name: /volver/i });
       await user.click(backButton);
 
@@ -178,7 +179,7 @@ describe('EmpleadoDetailPage', () => {
       const user = userEvent.setup();
       (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       const deleteButton = screen.getByRole('button', { name: /eliminar/i });
       await user.click(deleteButton);
@@ -194,7 +195,7 @@ describe('EmpleadoDetailPage', () => {
       (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
       empleadosMocks.mutateAsync.mockResolvedValue(undefined);
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       const deleteButton = screen.getByRole('button', { name: /eliminar/i });
       await user.click(deleteButton);
@@ -211,7 +212,7 @@ describe('EmpleadoDetailPage', () => {
       (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
       empleadosMocks.mutateAsync.mockRejectedValue(new Error('Database error'));
 
-      render(<EmpleadoDetailPage params={Promise.resolve({ id: 'emp-123' })} />);
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       const deleteButton = screen.getByRole('button', { name: /eliminar/i });
       await user.click(deleteButton);

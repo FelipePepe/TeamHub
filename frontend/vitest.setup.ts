@@ -1,4 +1,11 @@
 import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+// Configurar cleanup automático después de cada test
+afterEach(() => {
+  cleanup();
+});
 
 const storage = new Map<string, string>();
 

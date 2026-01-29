@@ -4,7 +4,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { del, get, patch, post, put } from '@/lib/api';
+import { get, patch, post, put } from '@/lib/api';
 import type { ApiError } from '@/types';
 
 // ============================================================================

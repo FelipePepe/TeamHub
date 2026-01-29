@@ -24,7 +24,6 @@ import {
   useReanudarProceso,
   useCancelarProceso,
   useCompletarTarea,
-  useUpdateTareaProceso,
   type EstadoProceso,
   type EstadoTarea,
 } from '@/hooks/use-procesos';
@@ -48,7 +47,6 @@ export default function ProcesoDetailPage({
   const reanudarProceso = useReanudarProceso();
   const cancelarProceso = useCancelarProceso();
   const completarTarea = useCompletarTarea();
-  const updateTarea = useUpdateTareaProceso();
 
   if (isLoading) {
     return (

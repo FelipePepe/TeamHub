@@ -319,7 +319,7 @@ export default function CrearPlantillaPage() {
                 <Select
                   value={form.watch('rolDestino') || ''}
                   onValueChange={(value) =>
-                    form.setValue('rolDestino', value as any || undefined)
+                    form.setValue('rolDestino', (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN') || undefined)
                   }
                 >
                   <SelectTrigger>

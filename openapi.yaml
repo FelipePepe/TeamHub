@@ -4,10 +4,10 @@ info:
   version: 0.1.0
   description: TeamHub API contract (Auth, Users, Departments, Onboarding, Projects, Timetracking, Dashboard).
 servers:
-  - url: http://localhost:3001/api
-    description: Development
-  - url: https://teamhub-api.railway.app/api
+  - url: https://teamhub-bxi0.onrender.com/api
     description: Production
+  - url: http://localhost:3001/api
+    description: Local Development
 
 tags:
   - name: Auth

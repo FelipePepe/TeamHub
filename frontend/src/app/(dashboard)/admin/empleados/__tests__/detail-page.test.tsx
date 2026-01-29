@@ -5,6 +5,20 @@ import userEvent from '@testing-library/user-event';
 import EmpleadoDetailPage from '../[id]/page';
 import type { User } from '@/types';
 
+// Mock de date-fns
+vi.mock('date-fns', () => ({
+  format: (date: Date | string, formatStr: string) => {
+    if (date === '1985-03-15') return '15 de marzo de 1985';
+    if (date === '2024-01-15T10:30:00Z') return '15 de enero de 2024';
+    if (date === '2024-01-20T14:45:00Z') return '20 de enero de 2024';
+    return new Date(date).toLocaleDateString('es-ES');
+  },
+}));
+
+vi.mock('date-fns/locale', () => ({
+  es: {},
+}));
+
 // Mock de router
 const routerMocks = vi.hoisted(() => ({
   push: vi.fn(),

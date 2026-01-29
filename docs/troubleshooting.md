@@ -72,3 +72,39 @@ Y en el navegador: Ctrl+Shift+R (hard refresh).
 1. Todas las variables de entorno estan configuradas (ver `docs/architecture/env-vars.md`)
 2. La base de datos esta accesible
 3. No hay errores de TypeScript: `npx tsc --noEmit`
+
+### Error: "HMAC key data must not be empty"
+
+**Síntoma:** El backend o frontend fallan al iniciar con el error "HMAC key data must not be empty".
+
+**Causa:** Falta configurar `API_HMAC_SECRET` en los archivos `.env` locales.
+
+**Solución:**
+
+1. **Genera un secreto HMAC:**
+   ```bash
+   openssl rand -hex 32
+   ```
+
+2. **Configura backend** (`backend/.env`):
+   ```bash
+   API_HMAC_SECRET=<secreto-generado-64-caracteres>
+   ```
+
+3. **Configura frontend** (`frontend/.env`):
+   ```bash
+   NEXT_PUBLIC_API_HMAC_SECRET=<mismo-secreto-64-caracteres>
+   ```
+
+4. **Verifica que coincidan:** El secreto debe ser **idéntico** en backend y frontend.
+
+5. **Reinicia los servidores:**
+   ```bash
+   # Backend
+   cd backend && npm run dev
+   
+   # Frontend  
+   cd frontend && npm run dev
+   ```
+
+**Nota:** Los archivos `.env.example` ya tienen la documentación, pero los valores reales NO se versionan (están en `.gitignore`).

@@ -542,17 +542,22 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (50%)
+### Fase 4: Hardening y documentacion (60%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
 - [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
 - [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
 - [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
+- [x] Refactorizar frontend para responsive design - Layout (ADR-060). (2026-01-29)
+- [x] Refactorizar frontend para responsive design - Dashboards admin/RRHH (ADR-060). (2026-01-29)
+- [x] Implementar mejoras A11y en navegación (ADR-060). (2026-01-29)
 - [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).
 - [ ] Actualizar OpenAPI y docs backend segun cambios.
 - [ ] Ejecutar lint/tests y resolver fallos.
+- [ ] Completar responsive en dashboards manager/empleado.
+- [ ] Implementar A11y completo en formularios (login, etc.).
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)

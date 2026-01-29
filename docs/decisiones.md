@@ -583,7 +583,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 | Fase 1: Auth y Usuarios | ✅ Completada | 100% |
 | Fase 2: Dominios principales | ✅ Completada | 100% |
 | Fase 3: Dashboards | ✅ Completada | 100% |
-| Fase 4: Hardening y documentacion | 🔄 En progreso | 80% |
+| Fase 4: Hardening y documentacion | 🔄 En progreso | 82% |
 
 ### Fase 0: Preparacion y pruebas (100%)
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -608,7 +608,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (80%)
+### Fase 4: Hardening y documentacion (82%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
@@ -628,6 +628,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Implementar páginas de procesos (listado + detalle) para Fase 3: Onboarding (PR #36). (2026-01-29)
 - [x] Implementar editor completo de plantillas (crear + editar) para Fase 3: Onboarding (PR #38). (2026-01-29)
 - [x] Implementar modal iniciar proceso de onboarding para Fase 3: Onboarding (PR #40). (2026-01-29)
+- [x] Implementar página Mis Tareas para Fase 3: Onboarding (PR #42). (2026-01-29)
 - [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).
 - [ ] Actualizar OpenAPI y docs backend segun cambios.
@@ -680,3 +681,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Implementar páginas de procesos (listado + detalle) para Fase 3: Onboarding (2026-01-29)
 - [x] Implementar editor completo de plantillas (crear + editar) para Fase 3: Onboarding (2026-01-29)
 - [x] Implementar modal iniciar proceso de onboarding para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar página Mis Tareas para Fase 3: Onboarding (2026-01-29)

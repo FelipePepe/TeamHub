@@ -608,7 +608,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (65%)
+### Fase 4: Hardening y documentacion (68%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
@@ -620,6 +620,8 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Implementar mejoras A11y en navegación (ADR-060). (2026-01-29)
 - [x] Documentar troubleshooting de configuración HMAC en entornos locales (ADR-061). (2026-01-29)
 - [x] Añadir regla explícita de preservación de ramas en GitFlow (ADR-062). (2026-01-29)
+- [x] Decidir tecnología de visualización: D3.js (ADR-063). (2026-01-29)
+- [x] Auditar backend y clarificar estado real (100% completo con 149 endpoints). (2026-01-29)
 - [ ] Endurecer seguridad (RBAC, rate limiting, headers, Zod) y revisar regresiones.
 - [ ] Corregir warnings ESLint identificados en revision (ADR-051).
 - [ ] Actualizar OpenAPI y docs backend segun cambios.
@@ -665,3 +667,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)
 - [x] Añadir regla explícita de preservación de ramas (ADR-062). (2026-01-29)
 - [x] Decidir tecnología de visualización de datos: D3.js (ADR-063). (2026-01-29)
+- [x] Auditar backend y clarificar estado real del proyecto (2026-01-29)

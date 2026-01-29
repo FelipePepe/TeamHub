@@ -83,6 +83,12 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 *   Requiere Pull Request aprobado.
 *   CI debe pasar (lint, tests, build) antes de mergear.
 
+### Preservación de Ramas
+*   **CRÍTICO:** NUNCA borrar ramas después de mergear (ni local ni remotamente).
+*   Usar `gh pr merge <number> --squash` SIN `--delete-branch`.
+*   Las ramas se mantienen para trazabilidad histórica del proyecto.
+*   Git reflog preserva el historial, pero las ramas facilitan auditorías y revisiones.
+
 ## 6. Calidad, Testing y Gates
 *   **Coverage Estratégico (100/80/0):**
     *   **100% (CORE):** Lógica que manipula dinero o cálculos críticos.

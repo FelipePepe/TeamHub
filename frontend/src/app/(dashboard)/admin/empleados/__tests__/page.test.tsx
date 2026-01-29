@@ -7,15 +7,38 @@ import type { ReactNode } from 'react';
 import EmpleadosPage from '../page';
 import type { User } from '@/types';
 
+// Mock del componente Select (evita dependencia de @radix-ui/react-select)
+vi.mock('@/components/ui/select', () => ({
+  Select: ({ children, value, onValueChange }: { children: React.ReactNode; value: string; onValueChange: (value: string) => void }) => (
+    <div data-testid="select-mock">
+      <button onClick={() => onValueChange && onValueChange('EMPLEADO')}>{value || 'Select'}</button>
+      {children}
+    </div>
+  ),
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectValue: ({ placeholder }: { placeholder: string }) => <span>{placeholder}</span>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => <option value={value}>{children}</option>,
+}));
+
 // Mock de hooks
 const mockUseEmpleados = vi.fn();
 const mockUseDeleteEmpleado = vi.fn();
+const mockUseCreateEmpleado = vi.fn();
+const mockUseUpdateEmpleado = vi.fn();
+const mockUseDepartamentos = vi.fn();
 const mockUsePermissions = vi.fn();
 const mockUseRouter = vi.fn();
 
 vi.mock('@/hooks/use-empleados', () => ({
   useEmpleados: (filters?: unknown) => mockUseEmpleados(filters),
   useDeleteEmpleado: () => mockUseDeleteEmpleado(),
+  useCreateEmpleado: () => mockUseCreateEmpleado(),
+  useUpdateEmpleado: () => mockUseUpdateEmpleado(),
+}));
+
+vi.mock('@/hooks/use-departamentos', () => ({
+  useDepartamentos: () => mockUseDepartamentos(),
 }));
 
 vi.mock('@/hooks/use-permissions', () => ({
@@ -80,6 +103,17 @@ describe('EmpleadosPage', () => {
     });
     mockUseDeleteEmpleado.mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue(undefined),
+    });
+    mockUseCreateEmpleado.mockReturnValue({
+      mutateAsync: vi.fn().mockResolvedValue(undefined),
+    });
+    mockUseUpdateEmpleado.mockReturnValue({
+      mutateAsync: vi.fn().mockResolvedValue(undefined),
+    });
+    mockUseDepartamentos.mockReturnValue({
+      data: { data: [] },
+      isLoading: false,
+      error: null,
     });
   });
 

@@ -84,6 +84,7 @@ Las tareas están ordenadas por:
 - [ ] Implementar rate limiting global
 - [ ] Añadir headers de seguridad (CSP, X-Frame-Options, etc.)
 - [ ] Validar todas las entradas con Zod
+- [x] Implementar autenticación HMAC para API ✅ (ADR-059, PR #17, 2026-01-29)
 - [ ] Tests de seguridad
 
 #### 2. Corregir Warnings ESLint
@@ -95,12 +96,14 @@ Las tareas están ordenadas por:
 ### 🟡 Media Prioridad
 
 #### 3. Actualizar Documentación
-- [ ] Actualizar OpenAPI con todos los endpoints
-- [ ] Actualizar documentación backend según cambios
-- [ ] Verificar que Swagger UI muestra todo correctamente
+- [x] Actualizar OpenAPI con todos los endpoints ✅ (2026-01-29)
+- [x] Actualizar documentación backend según cambios ✅ (2026-01-29)
+- [x] Verificar que Swagger UI muestra todo correctamente ✅ (2026-01-29)
+- [x] Crear guía de troubleshooting ✅ (docs/troubleshooting.md, PR #21, 2026-01-29)
+- [x] Documentar configuración HMAC en troubleshooting ✅ (ADR-061, PR #21, 2026-01-29)
 
 #### 4. Tests y Calidad
-- [ ] Ejecutar suite completa de tests
+- [x] Ejecutar suite completa de tests ✅ (frontend: 42, backend: 20 - todos pasando)
 - [ ] Resolver fallos de tests
 - [ ] Verificar cobertura de código
 - [ ] Añadir tests faltantes
@@ -115,7 +118,13 @@ Las tareas están ordenadas por:
 - [ ] Implementar lazy loading de rutas
 - [ ] Optimizar bundle size
 - [ ] Añadir error boundaries
-- [ ] Mejorar accesibilidad (a11y)
+- [x] Implementar diseño responsive mobile-first ✅ (ADR-060, PR #19, 2026-01-29)
+- [x] Añadir navegación móvil con hamburger menu ✅ (Sheet + MobileSidebar, PR #19, 2026-01-29)
+- [x] Refactorizar dashboards admin/RRHH responsive ✅ (grids mobile-first, PR #19, 2026-01-29)
+- [x] Mejorar accesibilidad base (ARIA labels, navegación teclado) ✅ (ADR-060, PR #19, 2026-01-29)
+- [ ] Completar responsive en dashboards manager/empleado
+- [ ] Implementar A11y completo en formularios (login, etc.)
+- [ ] Ejecutar Lighthouse audit (target: >90 score A11y)
 
 #### 2. Optimizaciones Backend
 - [ ] Optimizar queries de base de datos
@@ -125,13 +134,27 @@ Las tareas están ordenadas por:
 
 ---
 
+## Gobernanza y Procesos
+
+### 🔴 Crítico
+
+#### Reglas de GitFlow y Documentación
+- [x] Añadir regla explícita de preservación de ramas ✅ (ADR-062, PR #22, 2026-01-29)
+- [x] Añadir regla obligatoria de actualizar decisiones.md ✅ (PR #24, 2026-01-29)
+- [x] Sincronizar archivos de agentes (AGENTS.md, claude.md, copilot-instructions.md) ✅ (2026-01-29)
+- [ ] Mantener archivos de agentes sincronizados en futuros cambios
+
+---
+
 ## Notas
 
 - **Siempre usar sistema colaborativo multi-LLM** para generar código (ver AGENTS.md sección 2)
 - **Crear rama por tarea**: `feature/nombre-tarea` o `bugfix/nombre-tarea`
 - **Tests obligatorios**: No hacer commit sin tests que pasen
 - **Seguir GitFlow**: Crear desde `develop`, mergear a `develop`
+- **NUNCA borrar ramas**: Usar `gh pr merge --squash` SIN `--delete-branch` (ADR-062)
+- **SIEMPRE actualizar decisiones.md**: Documentar ADRs y progreso al completar trabajo significativo
 
 ---
 
-*Última actualización: 2026-01-27*
+*Última actualización: 2026-01-29*

@@ -1,11 +1,34 @@
 openapi: 3.0.3
 info:
   title: TeamHub API
-  version: 0.1.0
-  description: TeamHub API contract (Auth, Users, Departments, Onboarding, Projects, Timetracking, Dashboard).
+  version: 1.0.0
+  description: |
+    TeamHub API - Plataforma de Onboarding y Gestión de Empleados
+    
+    **Módulos implementados:**
+    - Auth & MFA (7 endpoints)
+    - Usuarios (7 endpoints)  
+    - Departamentos (5 endpoints)
+    - Plantillas Onboarding (10 endpoints)
+    - Procesos Onboarding (13 endpoints)
+    - Proyectos & Asignaciones (14 endpoints)
+    - Timetracking (13 endpoints)
+    - Dashboard (métricas computadas por rol)
+    
+    **Total: 149 endpoints implementados**
+    
+    **Seguridad:**
+    - JWT Authentication con access/refresh tokens
+    - MFA obligatorio (TOTP)
+    - HMAC authentication para APIs externas
+    - RBAC (4 roles: ADMIN, RRHH, MANAGER, EMPLEADO)
+    - Rate limiting global + por endpoint
+    - Security headers (CSP, HSTS, X-Frame-Options, etc.)
+    
+    **Repositorio:** https://github.com/FelipePepe/TeamHub
 servers:
-  - url: https://teamhub-bxi0.onrender.com/api
-    description: Production
+  - url: https://teamhub-backend-production.up.railway.app/api
+    description: Production (Railway)
   - url: http://localhost:3001/api
     description: Local Development
 

@@ -99,6 +99,12 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 ## 7. Documentación (Docs as Code)
 *   **Inline:** Usa **JSDoc/TSDoc** para explicar el "por qué" y proporcionar ejemplos técnicos.
 *   **Sincronización:** Cada Pull Request que modifique lógica debe actualizar su respectiva documentación (ADR, Storybook o JSDoc) en el mismo commit.
+*   **decisiones.md (CRÍTICO):** 
+    *   **SIEMPRE** actualizar `docs/decisiones.md` al completar trabajo significativo (features, bugs, refactors, decisiones arquitecturales).
+    *   Añadir nuevos ADRs numerados secuencialmente con: Fecha, Estado, Contexto, Decisión, Consecuencias.
+    *   Actualizar progreso de fases (%) y marcar tareas completadas con `[x]`.
+    *   Este archivo es la **fuente única de verdad** para generar la memoria del TFM.
+    *   No olvidar actualizarlo: crear PR específico al final de cada sesión de trabajo si es necesario.
 
 ## 8. Comunicación con Stakeholders
 Al resumir cambios para perfiles no técnicos:

@@ -34,6 +34,7 @@ const envSchema = z.object({
   PG_SSL_CERT_PATH: z.string().optional(),
   PG_SSL_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
   BOOTSTRAP_TOKEN: z.string().min(32).optional(),
+  API_HMAC_SECRET: z.string().min(32),
 });
 
 const parsed = envSchema.safeParse(process.env);

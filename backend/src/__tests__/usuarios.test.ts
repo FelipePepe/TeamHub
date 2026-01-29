@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -19,10 +19,8 @@ const loginAsAdmin = async () => {
   return { token: verifyBody.accessToken as string, user: verifyBody.user };
 };
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 beforeAll(async () => {
   applyTestEnv();
@@ -37,7 +35,9 @@ beforeEach(async () => {
 
 describe('usuarios routes', () => {
   it('requires auth to list users', async () => {
-    const response = await app.request('/api/usuarios');
+    const response = await app.request('/api/usuarios', {
+      headers: getSignedHeaders('GET', '/api/usuarios'),
+    });
 
     expect(response.status).toBe(401);
     const body = await response.json();
@@ -56,7 +56,7 @@ describe('usuarios routes', () => {
 
     const createResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
@@ -69,7 +69,7 @@ describe('usuarios routes', () => {
     });
 
     const listResponse = await app.request('/api/usuarios', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/usuarios'),
     });
     expect(listResponse.status).toBe(200);
     const listBody = await listResponse.json();
@@ -90,14 +90,14 @@ describe('usuarios routes', () => {
 
     const createResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
 
     const duplicateResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(duplicateResponse.status).toBe(400);

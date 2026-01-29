@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -15,10 +15,8 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const loginAsAdmin = async () => {
   const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -38,7 +36,9 @@ beforeEach(async () => {
 
 describe('departamentos routes', () => {
   it('requires auth to list departamentos', async () => {
-    const response = await app.request('/api/departamentos');
+    const response = await app.request('/api/departamentos', {
+      headers: getSignedHeaders('GET', '/api/departamentos'),
+    });
 
     expect(response.status).toBe(401);
     const body = await response.json();
@@ -55,7 +55,7 @@ describe('departamentos routes', () => {
 
     const createResponse = await app.request('/api/departamentos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/departamentos'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
@@ -68,7 +68,7 @@ describe('departamentos routes', () => {
     });
 
     const listResponse = await app.request('/api/departamentos', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/departamentos'),
     });
     expect(listResponse.status).toBe(200);
     const listBody = await listResponse.json();
@@ -85,14 +85,14 @@ describe('departamentos routes', () => {
 
     const createResponse = await app.request('/api/departamentos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/departamentos'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
 
     const duplicateResponse = await app.request('/api/departamentos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/departamentos'),
       body: JSON.stringify(payload),
     });
     expect(duplicateResponse.status).toBe(400);
@@ -107,26 +107,26 @@ describe('departamentos routes', () => {
 
     const createResponse = await app.request('/api/departamentos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/departamentos'),
       body: JSON.stringify(payload),
     });
     const created = await createResponse.json();
 
     const deleteResponse = await app.request(`/api/departamentos/${created.id}`, {
       method: 'DELETE',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'DELETE', `/api/departamentos/${created.id}`),
     });
     expect(deleteResponse.status).toBe(200);
 
     const inactiveResponse = await app.request('/api/departamentos?activo=false', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/departamentos'),
     });
     expect(inactiveResponse.status).toBe(200);
     const inactiveBody = await inactiveResponse.json();
     expect(inactiveBody.data).toHaveLength(1);
 
     const activeResponse = await app.request('/api/departamentos?activo=true', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/departamentos'),
     });
     expect(activeResponse.status).toBe(200);
     const activeBody = await activeResponse.json();

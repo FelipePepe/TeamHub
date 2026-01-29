@@ -583,7 +583,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 | Fase 1: Auth y Usuarios | ✅ Completada | 100% |
 | Fase 2: Dominios principales | ✅ Completada | 100% |
 | Fase 3: Dashboards | ✅ Completada | 100% |
-| Fase 4: Hardening y documentacion | 🔄 En progreso | 96% |
+| Fase 4: Hardening y documentacion | ✅ Completada | 100% |
 
 ### Fase 0: Preparacion y pruebas (100%)
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -608,7 +608,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 ### Fase 3: Dashboards (100%)
 - [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
 
-### Fase 4: Hardening y documentacion (96%)
+### Fase 4: Hardening y documentacion (100%)
 - [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
 - [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
 - [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
@@ -633,7 +633,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Corregir warnings ESLint frontend y verificar tests backend/frontend (PR #46). (2026-01-29)
 - [x] Actualizar README con estado actual del proyecto (PR #48). (2026-01-29)
 - [x] Endurecer seguridad con headers mejorados y rate limiting robusto - ADR-064 (PR #50). (2026-01-29)
-- [ ] Actualizar OpenAPI y docs backend segun cambios.
+- [x] Actualizar OpenAPI a v1.0.0 y mejorar docs/api/README.md (PR #52). (2026-01-29)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -685,3 +685,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Corregir warnings ESLint frontend y verificar tests backend/frontend pasando (2026-01-29)
 - [x] Actualizar README con estado actual del proyecto, features, tests y deployment (2026-01-29)
 - [x] Endurecer seguridad con headers mejorados, rate limiting y ADR-064 (OWASP 96.5%) (2026-01-29)
+- [x] Actualizar OpenAPI a v1.0.0 con 149 endpoints y mejorar docs/api/README.md (2026-01-29)

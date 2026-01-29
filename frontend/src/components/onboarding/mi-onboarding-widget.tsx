@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
   Circle,
-  Clock,
   AlertCircle,
   ArrowRight,
 } from 'lucide-react';

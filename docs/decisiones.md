@@ -660,6 +660,9 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     - `frontend/src/components/ui/select.tsx` (150 líneas)
   - **Progreso:** Fase 2 completada al 100% (antes estaba en 90%)
   - **ESLint:** 0 errores, 0 warnings
+- [x] Añadir tests para componentes empleados (PR #56). (2026-01-29)
+- [x] Corregir mocks faltantes en tests de empleados (PR #57). (2026-01-29)
+- [x] Añadir dependencias date-fns y @radix-ui/react-select (commit directo). (2026-01-29)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -713,3 +716,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Endurecer seguridad con headers mejorados, rate limiting y ADR-064 (OWASP 96.5%) (2026-01-29)
 - [x] Actualizar OpenAPI a v1.0.0 con 149 endpoints y mejorar docs/api/README.md (2026-01-29)
 - [x] Completar Fase 2: Empleados con formulario crear/editar y vista detalle (PR #54) (2026-01-29)
+- [x] Añadir tests para EmpleadoForm y EmpleadoDetailPage (PR #56) (2026-01-29)
+- [x] Corregir mocks faltantes en tests de empleados (PR #57) (2026-01-29)
+- [x] Añadir dependencias date-fns y @radix-ui/react-select al package.json (2026-01-29)

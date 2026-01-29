@@ -634,6 +634,32 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Actualizar README con estado actual del proyecto (PR #48). (2026-01-29)
 - [x] Endurecer seguridad con headers mejorados y rate limiting robusto - ADR-064 (PR #50). (2026-01-29)
 - [x] Actualizar OpenAPI a v1.0.0 y mejorar docs/api/README.md (PR #52). (2026-01-29)
+- [x] Completar Fase 2: Empleados con formulario y vista detalle (PR #54). (2026-01-29)
+  - **Componentes implementados:**
+    - `EmpleadoForm`: Modal formulario con React Hook Form + Zod para crear/editar empleados
+      - Campos: email, nombre, apellidos, rol, departamento, teléfono, fecha de nacimiento
+      - Integración con `useEmpleados` (create/update mutations)
+      - Validación fail-fast en tiempo de ejecución con Zod
+      - Selector de departamentos integrado con `useDepartamentos`
+    - `EmpleadoDetailPage`: Vista detalle completa con información personal y organizacional
+      - Grid responsive 2 columnas (info básica + organizacional)
+      - Formato de fechas con date-fns (locale español)
+      - Badges para rol y estado activo/inactivo
+      - Acciones: editar, eliminar con confirmación
+    - `Select UI Component`: Componente basado en Radix UI siguiendo patrón shadcn/ui
+      - Accesibilidad completa (keyboard navigation, ARIA)
+      - Consistente con resto de componentes UI
+  - **Modificaciones:**
+    - `frontend/src/app/(dashboard)/admin/empleados/page.tsx`: Actualizada para usar modal en lugar de rutas
+      - Botón "Crear" abre EmpleadoForm en modo creación
+      - Botón "Editar" abre EmpleadoForm con datos del empleado
+      - Botón "Ver" navega a página de detalle
+  - **Archivos nuevos:**
+    - `frontend/src/components/forms/empleado-form.tsx` (361 líneas)
+    - `frontend/src/app/(dashboard)/admin/empleados/[id]/page.tsx` (277 líneas)
+    - `frontend/src/components/ui/select.tsx` (150 líneas)
+  - **Progreso:** Fase 2 completada al 100% (antes estaba en 90%)
+  - **ESLint:** 0 errores, 0 warnings
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -686,3 +712,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Actualizar README con estado actual del proyecto, features, tests y deployment (2026-01-29)
 - [x] Endurecer seguridad con headers mejorados, rate limiting y ADR-064 (OWASP 96.5%) (2026-01-29)
 - [x] Actualizar OpenAPI a v1.0.0 con 149 endpoints y mejorar docs/api/README.md (2026-01-29)
+- [x] Completar Fase 2: Empleados con formulario crear/editar y vista detalle (PR #54) (2026-01-29)

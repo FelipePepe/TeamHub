@@ -194,7 +194,14 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 - [x] Dashboard de RRHH (empleados, departamentos)
 - [x] Dashboard de Manager (equipo, proyectos)
 - [x] Dashboard de Empleado (personal)
-- [x] Gráficos con Recharts (bar-chart, line-chart)
+- [x] Gráficos con CSS/HTML simple ✅ (implementación inicial)
+- [ ] **Migrar gráficos a D3.js** 🟡 (ADR-063, decisión arquitectural tomada)
+  - [ ] Refactorizar `bar-chart.tsx` con D3.js (interactividad, tooltips)
+  - [ ] Refactorizar `line-chart.tsx` con D3.js (interactividad, animaciones)
+  - [ ] Añadir tooltips y hover effects
+  - [ ] Mantener responsive design (ADR-060)
+  - [ ] Mantener accesibilidad (ARIA, teclado)
+  - [ ] Actualizar tests de componentes
 - [x] Diseño responsive mobile-first (ADR-060, PR #19)
 - [x] Navegación móvil con hamburger menu (Sheet + MobileSidebar)
 - [ ] Completar responsive en dashboards manager/empleado 🟡

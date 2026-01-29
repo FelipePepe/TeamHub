@@ -291,6 +291,32 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - (+) Mantiene trazabilidad completa del proyecto
   - Los 3 archivos de agentes deben mantenerse sincronizados
 
+### ADR-063: Uso de D3.js para Visualizaciones de Datos
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Los dashboards actualmente usan gráficos simples con CSS/HTML (divs con Tailwind). D3.js está instalado pero no se usa. Se necesita decidir la tecnología definitiva para visualizaciones.
+- Decision: Utilizar **D3.js v7** para todos los componentes de gráficos y visualizaciones de datos.
+- Alternativas consideradas:
+  1. CSS/HTML simple - Limitado, sin interactividad
+  2. **D3.js** - Elegida: Máxima flexibilidad y control
+  3. Recharts - Más simple pero menos personalizable
+  4. Chart.js - Muy simple pero limitado para casos avanzados
+- Consecuencias:
+  - (+) Gráficos interactivos (tooltips, hover, zoom)
+  - (+) Animaciones fluidas y profesionales
+  - (+) Amplia variedad de tipos de visualizaciones
+  - (+) Escalabilidad para datos complejos
+  - (+) Control total sobre renderizado y comportamiento
+  - (-) Mayor complejidad de código
+  - (-) Incremento en tamaño del bundle (~200KB)
+  - (-) Requiere conocimiento de D3.js
+- Implementación pendiente:
+  - Refactorizar `bar-chart.tsx` con D3.js
+  - Refactorizar `line-chart.tsx` con D3.js
+  - Añadir interactividad (tooltips, hover effects)
+  - Mantener responsive design y accesibilidad
+  - Tests de componentes actualizados
+
 ### ADR-046: Endpoints de Perfil separados de Usuarios
 - Fecha: 2026-01-25
 - Estado: Aceptado
@@ -638,3 +664,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Implementar diseño responsive y accesibilidad (ADR-060). (2026-01-29)
 - [x] Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)
 - [x] Añadir regla explícita de preservación de ramas (ADR-062). (2026-01-29)
+- [x] Decidir tecnología de visualización de datos: D3.js (ADR-063). (2026-01-29)

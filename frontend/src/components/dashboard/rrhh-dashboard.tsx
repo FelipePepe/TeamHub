@@ -34,9 +34,9 @@ export function RRHHDashboard() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Onboardings en curso"
           value={data?.kpis.onboardingsEnCurso ?? 0}
@@ -66,7 +66,7 @@ export function RRHHDashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <BarChart
           title="Empleados por departamento"
           data={data?.charts.empleadosPorDepartamento ?? []}
@@ -85,7 +85,7 @@ export function RRHHDashboard() {
       </div>
 
       {/* Sections */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Onboardings en curso */}
         <Card>
           <CardHeader>

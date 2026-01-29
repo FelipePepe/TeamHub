@@ -231,6 +231,26 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Documentar como requisito que el servidor debe tener NTP habilitado para sincronizacion de tiempo. En Linux: `timedatectl set-ntp true`.
 - Consecuencias: Los codigos TOTP coinciden entre servidor y cliente; requisito de infraestructura documentado en troubleshooting.
 
+### ADR-059: Autenticación de Origen con HMAC
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Las APIs están expuestas públicamente y cualquier cliente podría intentar acceder sin pasar por el frontend oficial.
+- Decision: Implementar validación HMAC con timestamp en todas las peticiones a `/api/*`.
+- Alternativas consideradas:
+  1. API Key estática - Menos segura, vulnerable a replay attacks
+  2. CORS estricto - Headers se pueden falsificar
+  3. **HMAC con timestamp** - Elegida: Segura y sin necesidad de SSO
+- Consecuencias:
+  - (+) Solo clientes con el secreto pueden acceder
+  - (+) Protección contra replay attacks con timestamp (máximo 5 minutos)
+  - (-) Requiere sincronización de secreto entre frontend y backend
+  - (-) Pequeño overhead en cada request
+- Implementación:
+  - Header: `X-Request-Signature` con formato `t=<timestamp>,s=<signature>`
+  - Firma: HMAC-SHA256(timestamp + method + path, SECRET)
+  - Backend: Middleware `hmac-validation.ts` valida antes del rate limiting
+  - Frontend: Interceptor axios genera firma en cada request
+
 ### ADR-046: Endpoints de Perfil separados de Usuarios
 - Fecha: 2026-01-25
 - Estado: Aceptado
@@ -567,3 +587,4 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
 - [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
 - [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)
+- [x] Implementar autenticacion HMAC para API (ADR-059). (2026-01-29)

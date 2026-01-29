@@ -227,13 +227,6 @@ MFA_ENCRYPTION_KEY=tu-clave-secreta-muy-larga-y-segura-minimo-32-caracteres
 MFA_ISSUER=TeamHub
 BCRYPT_SALT_ROUNDS=12
 
-# Email (reset password)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=change-me
-SMTP_PASS=change-me
-SMTP_FROM=TeamHub <no-reply@example.com>
-
 # Rate limiting y logs
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX=100

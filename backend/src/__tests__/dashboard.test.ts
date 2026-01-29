@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 import { plantillasOnboarding } from '../db/schema/plantillas.js';
 import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos.js';
@@ -19,10 +19,8 @@ const USER_PASSWORD = 'ValidPassword1!';
 let app: Hono<HonoEnv>;
 let db: typeof import('../db/index.js').db;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const toDateString = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -43,7 +41,7 @@ const loginAs = async (email: string, password: string) => {
 const createUser = async (token: string, payload: Record<string, unknown>) => {
   const response = await app.request('/api/usuarios', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/usuarios'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
@@ -53,7 +51,7 @@ const createUser = async (token: string, payload: Record<string, unknown>) => {
 const createProject = async (token: string, payload: Record<string, unknown>) => {
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/proyectos'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
@@ -105,16 +103,18 @@ describe('dashboard metrics', () => {
       codigo: 'TEAM',
     });
 
-    const estadoResponse = await app.request(`/api/proyectos/${project.id}/estado`, {
+    const estadoPath = `/api/proyectos/${project.id}/estado`;
+    const estadoResponse = await app.request(estadoPath, {
       method: 'PATCH',
-      headers: authHeaders(managerSession.token),
+      headers: authHeaders(managerSession.token, 'PATCH', estadoPath),
       body: JSON.stringify({ estado: 'ACTIVO' }),
     });
     expect(estadoResponse.status).toBe(200);
 
-    const assignResponse = await app.request(`/api/proyectos/${project.id}/asignaciones`, {
+    const assignPath = `/api/proyectos/${project.id}/asignaciones`;
+    const assignResponse = await app.request(assignPath, {
       method: 'POST',
-      headers: authHeaders(managerSession.token),
+      headers: authHeaders(managerSession.token, 'POST', assignPath),
       body: JSON.stringify({
         usuarioId: employee.id,
         fechaInicio: today,
@@ -125,7 +125,7 @@ describe('dashboard metrics', () => {
 
     const timeResponse = await app.request('/api/timetracking', {
       method: 'POST',
-      headers: authHeaders(managerSession.token),
+      headers: authHeaders(managerSession.token, 'POST', '/api/timetracking'),
       body: JSON.stringify({
         proyectoId: project.id,
         usuarioId: employee.id,
@@ -173,7 +173,7 @@ describe('dashboard metrics', () => {
     });
 
     const adminResponse = await app.request('/api/dashboard/admin', {
-      headers: authHeaders(admin.token),
+      headers: authHeaders(admin.token, 'GET', '/api/dashboard/admin'),
     });
     expect(adminResponse.status).toBe(200);
     const adminBody = await adminResponse.json();
@@ -184,7 +184,7 @@ describe('dashboard metrics', () => {
     expect(adminBody.kpis.tareasVencidas).toBe(1);
 
     const rrhhResponse = await app.request('/api/dashboard/rrhh', {
-      headers: authHeaders(admin.token),
+      headers: authHeaders(admin.token, 'GET', '/api/dashboard/rrhh'),
     });
     expect(rrhhResponse.status).toBe(200);
     const rrhhBody = await rrhhResponse.json();
@@ -192,7 +192,7 @@ describe('dashboard metrics', () => {
     expect(rrhhBody.kpis.tareasVencidas).toBe(1);
 
     const managerResponse = await app.request('/api/dashboard/manager', {
-      headers: authHeaders(managerSession.token),
+      headers: authHeaders(managerSession.token, 'GET', '/api/dashboard/manager'),
     });
     expect(managerResponse.status).toBe(200);
     const managerBody = await managerResponse.json();
@@ -201,7 +201,7 @@ describe('dashboard metrics', () => {
     expect(managerBody.kpis.horasPendientesAprobar).toBe(4);
 
     const empleadoResponse = await app.request('/api/dashboard/empleado', {
-      headers: authHeaders(employeeSession.token),
+      headers: authHeaders(employeeSession.token, 'GET', '/api/dashboard/empleado'),
     });
     expect(empleadoResponse.status).toBe(200);
     const empleadoBody = await empleadoResponse.json();

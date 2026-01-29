@@ -344,11 +344,6 @@
   BCRYPT_SALT_ROUNDS=12
   MFA_ISSUER=TeamHub
   CORS_ORIGINS=http://localhost:3000
-  SMTP_HOST=smtp.example.com
-  SMTP_PORT=587
-  SMTP_USER=replace_me
-  SMTP_PASS=replace_me
-  SMTP_FROM=TeamHub <no-reply@teamhub.com>
   APP_BASE_URL=http://localhost:3000
   LOG_LEVEL=info
   RATE_LIMIT_WINDOW_MS=60000

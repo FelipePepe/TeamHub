@@ -8,7 +8,7 @@ import {
   resetDatabase,
   migrateTestDatabase,
   findUserByEmail,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -54,7 +54,9 @@ describe('auth routes', () => {
   });
 
   it('rejects /auth/me without authentication', async () => {
-    const response = await app.request('/api/auth/me');
+    const response = await app.request('/api/auth/me', {
+      headers: getSignedHeaders('GET', '/api/auth/me'),
+    });
 
     expect(response.status).toBe(401);
     const body = await response.json();
@@ -67,7 +69,7 @@ describe('auth routes', () => {
 
     const refreshResponse = await app.request('/api/auth/refresh', {
       method: 'POST',
-      headers: JSON_HEADERS,
+      headers: getSignedHeaders('POST', '/api/auth/refresh'),
       body: JSON.stringify({ refreshToken }),
     });
     expect(refreshResponse.status).toBe(200);
@@ -79,7 +81,7 @@ describe('auth routes', () => {
 
     const reuseResponse = await app.request('/api/auth/refresh', {
       method: 'POST',
-      headers: JSON_HEADERS,
+      headers: getSignedHeaders('POST', '/api/auth/refresh'),
       body: JSON.stringify({ refreshToken }),
     });
     expect(reuseResponse.status).toBe(401);
@@ -88,7 +90,7 @@ describe('auth routes', () => {
   it('returns validation errors for malformed login payloads', async () => {
     const response = await app.request('/api/auth/login', {
       method: 'POST',
-      headers: JSON_HEADERS,
+      headers: getSignedHeaders('POST', '/api/auth/login'),
       body: JSON.stringify({}),
     });
 

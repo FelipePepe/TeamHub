@@ -12,7 +12,7 @@ export function Sidebar() {
   const navItems = getNavigationForRole(user?.rol);
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
+    <aside className="hidden md:flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-slate-200 px-6">
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -24,8 +24,8 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4" aria-label="Navegación principal">
+        <ul className="space-y-1" role="list">
           {navItems.map((item) => {
             const isActive = isNavItemActive(item.href, pathname);
             const Icon = item.icon;
@@ -40,8 +40,9 @@ export function Sidebar() {
                       ? 'bg-slate-100 text-slate-900'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   )}
+                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                   {item.title}
                 </Link>
               </li>

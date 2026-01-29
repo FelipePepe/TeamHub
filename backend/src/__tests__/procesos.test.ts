@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -17,10 +17,8 @@ const EMPLOYEE_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const loginAsAdmin = async () => {
   const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -35,7 +33,7 @@ const loginAsEmployee = async () => {
 const createEmployee = async (token: string) => {
   const response = await app.request('/api/usuarios', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/usuarios'),
     body: JSON.stringify({
       email: EMPLOYEE_EMAIL,
       password: EMPLOYEE_PASSWORD,
@@ -51,7 +49,7 @@ const createEmployee = async (token: string) => {
 const createPlantillaWithTasks = async (token: string) => {
   const plantillaResponse = await app.request('/api/plantillas', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/plantillas'),
     body: JSON.stringify({ nombre: 'Plantilla Base' }),
   });
   expect(plantillaResponse.status).toBe(201);
@@ -65,7 +63,7 @@ const createPlantillaWithTasks = async (token: string) => {
   for (const payload of tareaPayloads) {
     const tareaResponse = await app.request(`/api/plantillas/${plantilla.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', `/api/plantillas/${plantilla.id}/tareas`),
       body: JSON.stringify(payload),
     });
     expect(tareaResponse.status).toBe(201);
@@ -93,7 +91,7 @@ describe('procesos routes', () => {
 
     const createResponse = await app.request('/api/procesos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/procesos'),
       body: JSON.stringify({
         empleadoId,
         plantillaId,
@@ -104,7 +102,7 @@ describe('procesos routes', () => {
     const proceso = await createResponse.json();
 
     const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
     });
     expect(detailResponse.status).toBe(200);
     const detail = await detailResponse.json();
@@ -118,7 +116,7 @@ describe('procesos routes', () => {
 
     const createResponse = await app.request('/api/procesos', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/procesos'),
       body: JSON.stringify({
         empleadoId,
         plantillaId,
@@ -128,20 +126,18 @@ describe('procesos routes', () => {
     const proceso = await createResponse.json();
 
     const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
     });
     const detail = await detailResponse.json();
     const tareaId = detail.tareas[0].id as string;
 
     const { token: empleadoToken } = await loginAsEmployee();
-    const completeResponse = await app.request(
-      `/api/procesos/${proceso.id}/tareas/${tareaId}/completar`,
-      {
-        method: 'PATCH',
-        headers: authHeaders(empleadoToken),
-        body: JSON.stringify({ notas: 'Completada' }),
-      }
-    );
+    const completePath = `/api/procesos/${proceso.id}/tareas/${tareaId}/completar`;
+    const completeResponse = await app.request(completePath, {
+      method: 'PATCH',
+      headers: authHeaders(empleadoToken, 'PATCH', completePath),
+      body: JSON.stringify({ notas: 'Completada' }),
+    });
     expect(completeResponse.status).toBe(200);
     const completed = await completeResponse.json();
     expect(completed.estado).toBe('COMPLETADA');

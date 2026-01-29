@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@/types';
+import { generateRequestSignature } from './hmac';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -12,14 +13,20 @@ const api: AxiosInstance = axios.create({
   timeout: 10000,
 });
 
-// Request interceptor: add auth token
+// Request interceptor: add auth token and HMAC signature
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('accessToken');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+
+      // Añadir firma HMAC
+      const method = config.method?.toUpperCase() || 'GET';
+      const path = `/api${config.url || ''}`;
+      const signature = await generateRequestSignature(method, path);
+      config.headers['X-Request-Signature'] = signature;
     }
     return config;
   },

@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -15,10 +15,8 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const loginAsAdmin = async () => {
   const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -38,7 +36,9 @@ beforeEach(async () => {
 
 describe('plantillas routes', () => {
   it('requires auth to list plantillas', async () => {
-    const response = await app.request('/api/plantillas');
+    const response = await app.request('/api/plantillas', {
+      headers: getSignedHeaders('GET', '/api/plantillas'),
+    });
 
     expect(response.status).toBe(401);
     const body = await response.json();
@@ -54,7 +54,7 @@ describe('plantillas routes', () => {
 
     const createResponse = await app.request('/api/plantillas', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/plantillas'),
       body: JSON.stringify(plantillaPayload),
     });
     expect(createResponse.status).toBe(201);
@@ -70,13 +70,13 @@ describe('plantillas routes', () => {
 
     const tareaResponse = await app.request(`/api/plantillas/${created.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/tareas`),
       body: JSON.stringify(tareaPayload),
     });
     expect(tareaResponse.status).toBe(201);
 
     const detailResponse = await app.request(`/api/plantillas/${created.id}`, {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', `/api/plantillas/${created.id}`),
     });
     expect(detailResponse.status).toBe(200);
     const detail = await detailResponse.json();
@@ -93,14 +93,14 @@ describe('plantillas routes', () => {
 
     const createResponse = await app.request('/api/plantillas', {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', '/api/plantillas'),
       body: JSON.stringify(plantillaPayload),
     });
     const created = await createResponse.json();
 
     await app.request(`/api/plantillas/${created.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/tareas`),
       body: JSON.stringify({
         titulo: 'Alta en herramientas',
         categoria: 'ACCESOS',
@@ -111,14 +111,14 @@ describe('plantillas routes', () => {
 
     const duplicateResponse = await app.request(`/api/plantillas/${created.id}/duplicar`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/duplicar`),
     });
     expect(duplicateResponse.status).toBe(201);
     const duplicated = await duplicateResponse.json();
     expect(duplicated.nombre).toContain('(copy)');
 
     const detailResponse = await app.request(`/api/plantillas/${duplicated.id}`, {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', `/api/plantillas/${duplicated.id}`),
     });
     const detail = await detailResponse.json();
     expect(detail.tareas).toHaveLength(1);

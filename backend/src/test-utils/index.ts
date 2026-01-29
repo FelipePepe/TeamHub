@@ -1,5 +1,6 @@
 import type { Hono } from 'hono';
 import type { HonoEnv } from '../types/hono.js';
+import { createHmac } from 'node:crypto';
 import dotenv from 'dotenv';
 import { store } from '../store/index.js';
 const TEST_ENV: Record<string, string> = {
@@ -14,6 +15,7 @@ const TEST_ENV: Record<string, string> = {
   BCRYPT_SALT_ROUNDS: '4',
   MFA_ENCRYPTION_KEY: 'test-mfa-encryption-key-0000000000000000000000000000',
   BOOTSTRAP_TOKEN: 'test-bootstrap-token-000000000000000000000000000000',
+  API_HMAC_SECRET: 'test-hmac-secret-00000000000000000000000000000000',
 };
 
 export const applyTestEnv = () => {
@@ -40,6 +42,30 @@ export const resetStore = () => {
 };
 
 export const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+/**
+ * Genera la firma HMAC para autenticar requests en tests
+ */
+export const generateHmacSignature = (method: string, path: string): string => {
+  const timestamp = Date.now();
+  const secret = TEST_ENV.API_HMAC_SECRET;
+  const message = `${timestamp}${method}${path}`;
+  const signature = createHmac('sha256', secret).update(message).digest('hex');
+  return `t=${timestamp},s=${signature}`;
+};
+
+/**
+ * Genera headers con firma HMAC para requests de test
+ */
+export const getSignedHeaders = (
+  method: string,
+  path: string,
+  extraHeaders: Record<string, string> = {}
+): Record<string, string> => ({
+  ...JSON_HEADERS,
+  'X-Request-Signature': generateHmacSignature(method, path),
+  ...extraHeaders,
+});
 
 let dbCache: typeof import('../db/index.js') | null = null;
 let migrationsApplied = false;
@@ -100,13 +126,13 @@ export const loginWithMfa = async (
   password: string
 ) => {
   const bootstrapToken = process.env.BOOTSTRAP_TOKEN;
-  const headers = bootstrapToken
-    ? { ...JSON_HEADERS, 'X-Bootstrap-Token': bootstrapToken }
-    : JSON_HEADERS;
+  const loginHeaders = getSignedHeaders('POST', '/api/auth/login', {
+    ...(bootstrapToken ? { 'X-Bootstrap-Token': bootstrapToken } : {}),
+  });
 
   const loginResponse = await app.request('/api/auth/login', {
     method: 'POST',
-    headers,
+    headers: loginHeaders,
     body: JSON.stringify({ email, password }),
   });
   const loginBody = await loginResponse.json();
@@ -115,6 +141,7 @@ export const loginWithMfa = async (
   const setupResponse = await app.request('/api/auth/mfa/setup', {
     method: 'POST',
     headers: {
+      ...getSignedHeaders('POST', '/api/auth/mfa/setup'),
       Authorization: `Bearer ${mfaToken}`,
     },
   });
@@ -124,7 +151,7 @@ export const loginWithMfa = async (
   const code = generateTotpCode(setupBody.secret as string);
   const verifyResponse = await app.request('/api/auth/mfa/verify', {
     method: 'POST',
-    headers: JSON_HEADERS,
+    headers: getSignedHeaders('POST', '/api/auth/mfa/verify'),
     body: JSON.stringify({ mfaToken, code }),
   });
   const verifyBody = await verifyResponse.json();

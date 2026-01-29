@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -15,10 +15,8 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const loginAsAdmin = async () => {
   const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -36,7 +34,7 @@ const createProject = async (token: string, overrides?: Record<string, unknown>)
   };
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/proyectos'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
@@ -68,7 +66,7 @@ describe('proyectos routes', () => {
     });
 
     const listResponse = await app.request('/api/proyectos', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/proyectos'),
     });
     expect(listResponse.status).toBe(200);
     const listBody = await listResponse.json();
@@ -80,9 +78,10 @@ describe('proyectos routes', () => {
     const { token, user } = await loginAsAdmin();
     const project = await createProject(token, { codigo: 'BETA', nombre: 'Proyecto Beta' });
 
-    const assignResponse = await app.request(`/api/proyectos/${project.id}/asignaciones`, {
+    const assignPath = `/api/proyectos/${project.id}/asignaciones`;
+    const assignResponse = await app.request(assignPath, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'POST', assignPath),
       body: JSON.stringify({
         usuarioId: user.id,
         fechaInicio: '2024-01-01',
@@ -98,20 +97,18 @@ describe('proyectos routes', () => {
     });
 
     const myProjectsResponse = await app.request('/api/proyectos/mis-proyectos', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/proyectos/mis-proyectos'),
     });
     expect(myProjectsResponse.status).toBe(200);
     const myProjects = await myProjectsResponse.json();
     expect(myProjects.data).toHaveLength(1);
     expect(myProjects.data[0]).toMatchObject({ id: project.id });
 
-    const finalizeResponse = await app.request(
-      `/api/proyectos/${project.id}/asignaciones/${asignacion.id}/finalizar`,
-      {
-        method: 'PATCH',
-        headers: authHeaders(token),
-      }
-    );
+    const finalizePath = `/api/proyectos/${project.id}/asignaciones/${asignacion.id}/finalizar`;
+    const finalizeResponse = await app.request(finalizePath, {
+      method: 'PATCH',
+      headers: authHeaders(token, 'PATCH', finalizePath),
+    });
     expect(finalizeResponse.status).toBe(200);
     const finalized = await finalizeResponse.json();
     expect(finalized.activo).toBe(false);

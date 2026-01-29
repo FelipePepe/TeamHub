@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import swaggerUiDist from 'swagger-ui-dist';
 import { errorHandler } from './middleware/error-handler.js';
+import { hmacValidation } from './middleware/hmac-validation.js';
 import { securityHeaders } from './middleware/security-headers.js';
 import { createRateLimiter, getRateLimitIp } from './middleware/rate-limit.js';
 import { config } from './config/env.js';
@@ -91,6 +92,7 @@ const globalRateLimit = createRateLimiter({
 
 app.use('*', securityHeaders);
 app.use('*', cors({ origin: config.corsOrigins }));
+app.use('/api/*', hmacValidation);
 app.use('/api/*', globalRateLimit);
 app.onError(errorHandler);
 

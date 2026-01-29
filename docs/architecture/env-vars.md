@@ -24,6 +24,7 @@ Este documento detalla las variables de entorno requeridas por TeamHub.
 - `LOGIN_RATE_LIMIT_WINDOW_MS` (ej: `60000`)
 - `LOGIN_RATE_LIMIT_MAX` (ej: `5`)
 - `PG_SSL_CERT_PATH` (ruta al certificado CA para conexiones PostgreSQL con SSL)
+- `API_HMAC_SECRET` (secreto HMAC para firmar requests, minimo 32 caracteres)
 
 ## Frontend (`frontend/.env.local`)
 
@@ -32,6 +33,7 @@ Este documento detalla las variables de entorno requeridas por TeamHub.
 
 ### Recomendadas
 - `NEXT_PUBLIC_APP_URL` (URL publica del frontend)
+- `NEXT_PUBLIC_API_HMAC_SECRET` (secreto HMAC compartido con backend, debe coincidir con `API_HMAC_SECRET`)
 
 ## Notas
 - Mantener `.env.example` actualizado con estas variables.

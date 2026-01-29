@@ -7,7 +7,7 @@ import {
   resetStore,
   resetDatabase,
   migrateTestDatabase,
-  JSON_HEADERS,
+  getSignedHeaders,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -22,10 +22,8 @@ const DATE_TWO = '2024-01-11';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string) => ({
-  ...JSON_HEADERS,
-  Authorization: `Bearer ${token}`,
-});
+const authHeaders = (token: string, method: string, path: string) =>
+  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
 
 const loginAsAdmin = async () => {
   const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -35,7 +33,7 @@ const loginAsAdmin = async () => {
 const createProject = async (token: string) => {
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: authHeaders(token, 'POST', '/api/proyectos'),
     body: JSON.stringify({
       nombre: PROJECT_NAME,
       codigo: PROJECT_CODE,
@@ -65,7 +63,7 @@ describe('timetracking resumen', () => {
     const createRegistro = async (payload: Record<string, unknown>) => {
       const response = await app.request('/api/timetracking', {
         method: 'POST',
-        headers: authHeaders(token),
+        headers: authHeaders(token, 'POST', '/api/timetracking'),
         body: JSON.stringify(payload),
       });
       expect(response.status).toBe(201);
@@ -87,15 +85,16 @@ describe('timetracking resumen', () => {
       facturable: false,
     });
 
-    const approveResponse = await app.request(`/api/timetracking/${registroA.id}/aprobar`, {
+    const approvePath = `/api/timetracking/${registroA.id}/aprobar`;
+    const approveResponse = await app.request(approvePath, {
       method: 'PATCH',
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'PATCH', approvePath),
       body: JSON.stringify({}),
     });
     expect(approveResponse.status).toBe(200);
 
     const resumenResponse = await app.request('/api/timetracking/resumen', {
-      headers: authHeaders(token),
+      headers: authHeaders(token, 'GET', '/api/timetracking/resumen'),
     });
     expect(resumenResponse.status).toBe(200);
     const resumen = await resumenResponse.json();

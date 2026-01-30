@@ -1,6 +1,5 @@
 'use client';
 import type { Departamento } from '@/types';
-import type { CreateTareaPlantillaData } from '@/hooks/use-plantillas';
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -209,7 +208,7 @@ export default function EditarPlantillaPage({
           plantillaId: id,
           ...data,
           orden: tareas.length + 1,
-        } as unknown as { plantillaId: string; data: CreateTareaPlantillaData });
+        });
         toast.success('Tarea añadida');
         tareaForm.reset();
         setShowTareaForm(false);

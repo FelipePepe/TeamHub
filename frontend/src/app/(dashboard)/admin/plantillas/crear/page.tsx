@@ -1,6 +1,5 @@
 'use client';
 import type { Departamento } from '@/types';
-import type { CreateTareaPlantillaData } from '@/hooks/use-plantillas';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -210,7 +209,7 @@ export default function CrearPlantillaPage() {
           esOpcional: tarea.esOpcional,
           requiereAprobacion: tarea.requiereAprobacion,
           dependencias: tarea.dependencias,
-        } as unknown as { plantillaId: string; data: CreateTareaPlantillaData });
+        });
       }
 
       toast.success('Plantilla creada correctamente');

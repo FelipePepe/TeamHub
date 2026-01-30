@@ -101,6 +101,25 @@ export interface CreateTareaPlantillaData {
   dependencias?: string[];
 }
 
+export interface CreateTareaPlantillaMutationParams {
+  plantillaId: string;
+  data: CreateTareaPlantillaData;
+}
+
+export interface CreateTareaPlantillaWithAllFields {
+  plantillaId: string;
+  titulo: string;
+  descripcion?: string;
+  orden: number;
+  categoria: CategoriaTarea;
+  responsable: TipoResponsable;
+  responsablePersonalizadoId?: string;
+  duracionEstimadaDias?: number;
+  esOpcional?: boolean;
+  requiereAprobacion?: boolean;
+  dependencias?: string[];
+}
+
 export interface UpdateTareaPlantillaData {
   titulo?: string;
   descripcion?: string;
@@ -424,13 +443,13 @@ export function useCreateTareaPlantilla() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      plantillaId,
-      data,
-    }: {
-      plantillaId: string;
-      data: CreateTareaPlantillaData;
-    }) => createTareaPlantilla(plantillaId, data),
+    mutationFn: (params: CreateTareaPlantillaMutationParams | CreateTareaPlantillaWithAllFields) => {
+      if ('data' in params) {
+        return createTareaPlantilla(params.plantillaId, params.data);
+      }
+      const { plantillaId, ...data } = params;
+      return createTareaPlantilla(plantillaId, data);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: plantillasKeys.tareas(variables.plantillaId),

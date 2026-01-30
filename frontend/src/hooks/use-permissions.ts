@@ -24,6 +24,7 @@ export function usePermissions() {
       canCreateOnboarding: (['ADMIN', 'RRHH', 'MANAGER'] as UserRole[]).includes(rol as UserRole),
       canViewAllOnboardings: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
       canManageTemplates: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
+      canManageProjects: (['ADMIN', 'RRHH', 'MANAGER'] as UserRole[]).includes(rol as UserRole),
 
       // Helper
       hasRole: (roles: UserRole[]) => roles.includes(rol as UserRole),

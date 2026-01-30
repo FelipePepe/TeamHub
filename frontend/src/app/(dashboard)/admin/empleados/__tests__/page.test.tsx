@@ -30,8 +30,10 @@ const mockUseDepartamentos = vi.fn();
 const mockUsePermissions = vi.fn();
 const mockUseRouter = vi.fn();
 
+const mockUseEmpleado = vi.fn();
 vi.mock('@/hooks/use-empleados', () => ({
   useEmpleados: (filters?: unknown) => mockUseEmpleados(filters),
+  useEmpleado: (id: string, enabled?: boolean) => mockUseEmpleado(id, enabled),
   useDeleteEmpleado: () => mockUseDeleteEmpleado(),
   useCreateEmpleado: () => mockUseCreateEmpleado(),
   useUpdateEmpleado: () => mockUseUpdateEmpleado(),
@@ -45,8 +47,10 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermissions: () => mockUsePermissions(),
 }));
 
+const mockSearchParams = { get: vi.fn((_key: string) => null) };
 vi.mock('next/navigation', () => ({
   useRouter: () => mockUseRouter(),
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock('sonner', () => ({
@@ -111,10 +115,12 @@ describe('EmpleadosPage', () => {
       mutateAsync: vi.fn().mockResolvedValue(undefined),
     });
     mockUseDepartamentos.mockReturnValue({
-      data: { data: [] },
+      data: { departamentos: [] },
       isLoading: false,
       error: null,
     });
+    mockUseEmpleado.mockReturnValue({ data: undefined });
+    mockSearchParams.get.mockReturnValue(null);
   });
 
   it('debe mostrar mensaje de acceso denegado si no tiene permisos', () => {

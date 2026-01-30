@@ -52,6 +52,23 @@ Antes de proponer cambios, consulta estos recursos en orden:
 - Push si los tests fallan
 - Merge sin PR aprobado
 
+### ⚠️ REGLA CRÍTICA: NUNCA USAR --no-verify
+**PROHIBIDO ABSOLUTAMENTE:** Usar `git push --no-verify`, `git commit --no-verify` o cualquier comando con `--no-verify`.
+
+**Razón:** Los hooks de Husky (pre-commit, pre-push, commit-msg) son **quality gates obligatorios** que:
+- Validan linting y formateo
+- Ejecutan tests
+- Verifican convenciones de commits
+- Previenen vulnerabilidades de seguridad
+
+**Si un hook falla:**
+1. **Leer el error** y entender qué regla se violó
+2. **Corregir el problema** en el código
+3. **Reintentar el commit/push** sin `--no-verify`
+4. **NUNCA saltarse** los hooks para "ir más rápido"
+
+**Única excepción:** Operaciones administrativas de GitFlow que requieren push directo a `main`/`develop` (ya cubiertas por protecciones de rama en el servidor).
+
 ### Estrategia de Branching (GitFlow)
 *   **main:** Código en producción. Solo recibe merges de `release/` y `hotfix/`.
 *   **develop:** Rama de integración. Las features se mergean aquí.

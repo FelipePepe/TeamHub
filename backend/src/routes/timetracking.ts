@@ -222,10 +222,11 @@ timetrackingRoutes.get('/pendientes-aprobacion', async (c) => {
 
 timetrackingRoutes.get('/resumen', async (c) => {
   const query = parseQuery(c, listQuerySchema);
+  const user = c.get('user') as User;
   const clauses = [];
-  if (query.usuarioId) {
-    clauses.push(eq(timetracking.usuarioId, query.usuarioId));
-  }
+  // Default to current user if no usuarioId specified
+  const targetUserId = query.usuarioId ?? user.id;
+  clauses.push(eq(timetracking.usuarioId, targetUserId));
   if (query.proyectoId) {
     clauses.push(eq(timetracking.proyectoId, query.proyectoId));
   }

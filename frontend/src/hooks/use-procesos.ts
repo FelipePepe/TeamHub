@@ -104,6 +104,19 @@ export interface CompletarTareaData {
   notas?: string;
 }
 
+export interface CompletarTareaMutationParams {
+  procesoId: string;
+  tareaId: string;
+  data?: CompletarTareaData;
+}
+
+export interface CompletarTareaWithAllFields {
+  procesoId: string;
+  tareaId: string;
+  notas?: string;
+  evidenciaUrl?: string;
+}
+
 // ============================================================================
 // Query Keys
 // ============================================================================
@@ -580,15 +593,16 @@ export function useCompletarTarea() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      procesoId,
-      tareaId,
-      data,
-    }: {
-      procesoId: string;
-      tareaId: string;
-      data?: CompletarTareaData;
-    }) => completarTarea(procesoId, tareaId, data || {}),
+    mutationFn: (params: CompletarTareaMutationParams | CompletarTareaWithAllFields) => {
+      if ('data' in params) {
+        return completarTarea(params.procesoId, params.tareaId, params.data || {});
+      }
+      const withAllFields = params as CompletarTareaWithAllFields;
+      return completarTarea(withAllFields.procesoId, withAllFields.tareaId, { 
+        notas: withAllFields.notas, 
+        evidenciaUrl: withAllFields.evidenciaUrl 
+      });
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: procesosKeys.tareas(variables.procesoId),

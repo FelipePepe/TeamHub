@@ -19,7 +19,7 @@ vi.mock('@/components/forms/departamento-form', () => ({
 
 // Mock de hooks
 const departamentosMocks = vi.hoisted(() => ({
-  data: null as { departamentos: Departamento[] } | null,
+  data: null as { data: Departamento[] } | null,
   isLoading: false,
   error: null,
   mutateAsync: vi.fn(),

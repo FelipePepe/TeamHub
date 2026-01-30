@@ -5,6 +5,34 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
+
+/**
+ * Genera una contraseña temporal segura que cumple con los requisitos del backend
+ * - Mínimo 12 caracteres
+ * - Al menos una mayúscula, una minúscula, un número y un carácter especial
+ */
+function generateTempPassword(): string {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const special = '!@#$%&*';
+  const all = uppercase + lowercase + numbers + special;
+
+  // Asegurar al menos uno de cada tipo
+  let password =
+    uppercase[Math.floor(Math.random() * uppercase.length)] +
+    lowercase[Math.floor(Math.random() * lowercase.length)] +
+    numbers[Math.floor(Math.random() * numbers.length)] +
+    special[Math.floor(Math.random() * special.length)];
+
+  // Completar hasta 12 caracteres
+  for (let i = password.length; i < 12; i++) {
+    password += all[Math.floor(Math.random() * all.length)];
+  }
+
+  // Mezclar los caracteres
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -172,10 +200,10 @@ export function EmpleadoForm({ open, onOpenChange, empleado, onSuccess }: Emplea
         });
         toast.success('Empleado actualizado correctamente');
       } else {
-        // Crear nuevo empleado
+        // Crear nuevo empleado con contraseña temporal
         await createEmpleado.mutateAsync({
           email: data.email,
-          password: '', // El backend generará una contraseña temporal
+          password: generateTempPassword(),
           nombre: data.nombre,
           apellidos: data.apellidos,
           rol: data.rol,

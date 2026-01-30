@@ -1,41 +1,139 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, Plus, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useMisRegistros,
   useResumenTimetracking,
   useCreateTimeEntry,
+  useTimeEntriesSemana,
+  useUpdateTimeEntry,
+  useCopiarRegistros,
 } from '@/hooks/use-timetracking';
-import { useProyectos } from '@/hooks/use-proyectos';
+import { useProyectos, useMisProyectos, type Proyecto, type Asignacion } from '@/hooks/use-proyectos';
 import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, startOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+// Componentes Timesheet
+import { WeekNavigation } from '@/components/timetracking/week-navigation';
+import { TimesheetGrid } from '@/components/timetracking/timesheet-grid';
+import { CopyWeekDialog } from '@/components/timetracking/copy-week-dialog';
+
+// Componentes Gantt
+import { GanttChart } from '@/components/timetracking/gantt-chart';
+import type { GanttProyecto } from '@/types/timetracking';
+import { calculateProgress } from '@/lib/gantt-utils';
 
 export default function TimetrackingPage() {
   const router = useRouter();
   const { canApproveHours } = usePermissions();
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('registros');
 
+  // Timesheet state
+  const [timesheetDate, setTimesheetDate] = useState(new Date());
+  const [showCopyDialog, setShowCopyDialog] = useState(false);
+
+  // Data hooks
   const { data: misRegistrosData, isLoading, error } = useMisRegistros();
   const { data: resumen } = useResumenTimetracking();
   const createEntry = useCreateTimeEntry();
+  const updateEntry = useUpdateTimeEntry();
   const { data: proyectosData } = useProyectos({});
+  const { data: misProyectosData, isLoading: isLoadingMisProyectos } = useMisProyectos();
+  const copiarRegistros = useCopiarRegistros();
+
   const proyectos = proyectosData?.data ?? [];
+  const misProyectos = misProyectosData?.data ?? [];
   const registros = misRegistrosData?.data ?? [];
+
+  // Timesheet data
+  const weekStartStr = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+  const { data: semanaData, isLoading: isLoadingSemana } = useTimeEntriesSemana(weekStartStr);
+  const registrosSemana = semanaData?.data ?? [];
+
+  const handleCellChange = useCallback(
+    async (proyectoId: string, fecha: string, horas: number) => {
+      const existingEntry = registrosSemana.find(
+        (r) => r.proyectoId === proyectoId && r.fecha.startsWith(fecha)
+      );
+
+      try {
+        if (existingEntry) {
+          if (horas === 0) {
+            // Optionally delete - for now just set to 0
+            await updateEntry.mutateAsync({ id: existingEntry.id, data: { horas: 0 } });
+          } else {
+            await updateEntry.mutateAsync({ id: existingEntry.id, data: { horas } });
+          }
+        } else if (horas > 0) {
+          await createEntry.mutateAsync({
+            proyectoId,
+            fecha,
+            horas,
+            descripcion: 'Registro desde timesheet',
+          });
+        }
+        toast.success('Horas actualizadas');
+      } catch {
+        toast.error('Error al actualizar horas');
+      }
+    },
+    [registrosSemana, updateEntry, createEntry]
+  );
+
+  const handleCopyWeek = useCallback(async () => {
+    const currentWeekStart = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    const prevWeekStart = format(startOfWeek(subWeeks(timesheetDate, 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+
+    try {
+      const result = await copiarRegistros.mutateAsync({
+        fechaOrigen: prevWeekStart,
+        fechaDestino: currentWeekStart,
+      });
+      toast.success(result.message || `${result.copied} registros copiados`);
+      setShowCopyDialog(false);
+    } catch {
+      toast.error('Error al copiar registros');
+    }
+  }, [timesheetDate, copiarRegistros]);
+
+  // Gantt data
+  const ganttProyectos = useMemo<GanttProyecto[]>(() => {
+    return misProyectos
+      .filter((p) => p.fechaInicio && (p.fechaFinEstimada || p.fechaFinReal))
+      .map((p) => {
+        const fechaInicio = new Date(p.fechaInicio!);
+        const fechaFin = new Date(p.fechaFinReal || p.fechaFinEstimada!);
+
+        return {
+          id: p.id,
+          nombre: p.nombre,
+          codigo: p.codigo,
+          fechaInicio,
+          fechaFin,
+          estado: p.estado,
+          color: p.color,
+          progreso: calculateProgress(fechaInicio, fechaFin, p.horasConsumidas, p.presupuestoHoras),
+          asignaciones: [], // Se cargarían por separado si fuera necesario
+        };
+      });
+  }, [misProyectos]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Timetracking</h1>
-          <p className="text-slate-500">Registro y consulta de horas (OpenAPI Timetracking)</p>
+          <p className="text-slate-500">Registro y consulta de horas</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowForm(true)}>
@@ -55,7 +153,7 @@ export default function TimetrackingPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Resumen (GET /timetracking/resumen)
+              Resumen
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -77,58 +175,103 @@ export default function TimetrackingPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Mis registros (GET /timetracking/mis-registros)</CardTitle>
-          <CardDescription>Listado de entradas de tiempo</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12" />
-              ))}
-            </div>
-          ) : error ? (
-            <p className="text-sm text-red-600">Error al cargar registros</p>
-          ) : registros.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Clock className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">No hay registros</p>
-              <Button onClick={() => setShowForm(true)} className="mt-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Registrar horas
-              </Button>
-            </div>
-          ) : (
-            <ul className="divide-y divide-slate-200">
-              {registros.slice(0, 50).map((r) => (
-                <li key={r.id} className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    <span className="font-medium">{format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}</span>
-                    <span className="text-slate-600">{r.horas}h</span>
-                    <span className="text-sm text-slate-500 truncate max-w-[200px]">{r.descripcion}</span>
-                  </div>
-                  <Badge
-                    variant={
-                      r.estado === 'APROBADO'
-                        ? 'default'
-                        : r.estado === 'RECHAZADO'
-                          ? 'destructive'
-                          : 'secondary'
-                    }
-                  >
-                    {r.estado === 'APROBADO' && <CheckCircle className="mr-1 h-3 w-3" />}
-                    {r.estado === 'RECHAZADO' && <XCircle className="mr-1 h-3 w-3" />}
-                    {r.estado}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="registros">Mis Registros</TabsTrigger>
+          <TabsTrigger value="timesheet">Timesheet Semanal</TabsTrigger>
+          <TabsTrigger value="gantt">Diagrama Gantt</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="registros">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mis registros</CardTitle>
+              <CardDescription>Listado de entradas de tiempo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-12" />
+                  ))}
+                </div>
+              ) : error ? (
+                <p className="text-sm text-red-600">Error al cargar registros</p>
+              ) : registros.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Clock className="mb-4 h-12 w-12 text-slate-400" />
+                  <p className="text-sm text-slate-500">No hay registros</p>
+                  <Button onClick={() => setShowForm(true)} className="mt-4">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Registrar horas
+                  </Button>
+                </div>
+              ) : (
+                <ul className="divide-y divide-slate-200">
+                  {registros.slice(0, 50).map((r) => (
+                    <li key={r.id} className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        <span className="font-medium">{format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}</span>
+                        <span className="text-slate-600">{r.horas}h</span>
+                        <span className="text-sm text-slate-500 truncate max-w-[200px]">{r.descripcion}</span>
+                      </div>
+                      <Badge
+                        variant={
+                          r.estado === 'APROBADO'
+                            ? 'default'
+                            : r.estado === 'RECHAZADO'
+                              ? 'destructive'
+                              : 'secondary'
+                        }
+                      >
+                        {r.estado === 'APROBADO' && <CheckCircle className="mr-1 h-3 w-3" />}
+                        {r.estado === 'RECHAZADO' && <XCircle className="mr-1 h-3 w-3" />}
+                        {r.estado}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="timesheet">
+          <Card>
+            <CardHeader>
+              <CardTitle>Timesheet Semanal</CardTitle>
+              <CardDescription>Vista de horas por proyecto y día de la semana</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <WeekNavigation
+                currentDate={timesheetDate}
+                onDateChange={setTimesheetDate}
+                onCopyWeek={() => setShowCopyDialog(true)}
+              />
+              <TimesheetGrid
+                currentDate={timesheetDate}
+                registros={registrosSemana}
+                proyectos={misProyectos}
+                isLoading={isLoadingSemana}
+                onCellChange={handleCellChange}
+              />
+            </CardContent>
+          </Card>
+
+          <CopyWeekDialog
+            open={showCopyDialog}
+            onOpenChange={setShowCopyDialog}
+            currentDate={timesheetDate}
+            onConfirm={handleCopyWeek}
+            isPending={copiarRegistros.isPending}
+          />
+        </TabsContent>
+
+        <TabsContent value="gantt">
+          <GanttChart proyectos={ganttProyectos} isLoading={isLoadingMisProyectos} />
+        </TabsContent>
+      </Tabs>
 
       {showForm && (
         <RegistroHorasModal
@@ -197,7 +340,7 @@ function RegistroHorasModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Registrar horas (CreateTimetrackingRequest)</CardTitle>
+          <CardTitle>Registrar horas</CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">
             ×
           </Button>

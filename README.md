@@ -66,7 +66,7 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 
 > **Última actualización:** 29 de enero de 2026
 
-### ✅ Progreso General: ~80%
+### ✅ Progreso General: ~90%
 
 | Componente | Estado | Progreso | Tests |
 |------------|--------|----------|-------|
@@ -74,10 +74,10 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 | **Frontend - Fase 1** (Auth) | ✅ Completo | 100% | 10/10 ✅ |
 | **Frontend - Fase 2** (Departamentos) | ✅ Completo | 100% | 15/15 ✅ |
 | **Frontend - Fase 3** (Onboarding) | ✅ Completo | 100% | 35/35 ✅ |
-| **Frontend - Fase 4** (Proyectos) | 🟡 Backend listo | 50% | - |
-| **Frontend - Fase 5** (Timetracking) | 🟡 Backend listo | 50% | - |
-| **Frontend - Fase 6** (Dashboards) | ✅ Completo | 100% | 17/17 ✅ |
-| **Total Tests** | ✅ Pasando | - | **97/97** ✅ |
+| **Frontend - Fase 4** (Proyectos) | ✅ Completo | 100% | 44/44 ✅ |
+| **Frontend - Fase 5** (Timetracking) | ✅ Completo | 100% | - |
+| **Frontend - Fase 6** (Dashboards) | ✅ Completo | 100% | - |
+| **Total Tests** | ✅ Pasando | - | **124/124** ✅ |
 
 ### 🎯 Features Implementadas
 
@@ -110,18 +110,27 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
   - Empleado: Onboarding personal y accesos rápidos
   - Diseño responsive mobile-first (ADR-060)
 
-#### 🟡 En Progreso (50%)
-- **Proyectos y Asignaciones** (Backend completo, frontend pendiente)
-  - 14 endpoints backend listos ✅
-  - Gestión de proyectos con estados
-  - Asignaciones con validación de dedicación
-  - Frontend: Hooks, páginas y formularios pendientes
+- **Proyectos y Asignaciones** (Fase 4) ✅
+  - CRUD completo de proyectos (crear, editar, eliminar, finalizar)
+  - Vista listado con cards y tabla
+  - Vista detalle con estadísticas y progreso
+  - Gestión de asignaciones de equipo con validación de dedicación
+  - Estadísticas por proyecto (total empleados, horas registradas, completitud)
+  - Hook `useProyectos` con TanStack Query
+  - Tipos alineados con OpenAPI (ProyectoResponse, AsignacionResponse)
 
-- **Timetracking** (Backend completo, frontend pendiente)
-  - 13 endpoints backend listos ✅
-  - Registro de horas por proyecto
-  - Aprobación/rechazo por managers
-  - Frontend: Vista semanal y panel aprobación pendientes
+- **Timetracking** (Fase 5) ✅
+  - Registro de horas por proyecto con formulario validado
+  - Vista "Mis Registros" con resumen semanal/mensual
+  - **Weekly Timesheet**: Grid editable con proyectos/días, navegación semanal, copiar semana
+  - **Gantt Chart**: Visualización D3.js con timeline, zoom controls, tooltips interactivos, progress bars
+  - Panel de aprobación para managers (aprobar/rechazar individual y masivo)
+  - Filtros por estado (pendiente, aprobado, rechazado)
+  - Hook `useTimetracking` con TanStack Query
+  - Tabs navigation (My Records, Weekly Timesheet, Gantt Chart)
+  - Visualizaciones avanzadas con D3.js (ADR-065)
+
+#### 🟡 En Progreso (50%)
 
 ### 📡 API REST - 149 Endpoints
 

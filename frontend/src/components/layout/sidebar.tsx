@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getNavigationForRole, isNavItemActive } from '@/lib/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import logoTeamHub from '@/assets/logo-teamhub-alt.png';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -15,11 +17,15 @@ export function Sidebar() {
     <aside className="hidden md:flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-slate-200 px-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white font-semibold">
-            T
-          </div>
-          <span className="text-xl font-semibold text-slate-900">TeamHub</span>
+        <Link href="/dashboard" className="flex items-center">
+          <Image
+            src={logoTeamHub}
+            alt="TeamHub Logo"
+            width={180}
+            height={45}
+            style={{ width: 'auto', height: 'auto' }}
+            priority
+          />
         </Link>
       </div>
 

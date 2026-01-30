@@ -19,7 +19,7 @@ vi.mock('@/components/forms/departamento-form', () => ({
 
 // Mock de hooks
 const departamentosMocks = vi.hoisted(() => ({
-  data: null as { departamentos: Departamento[] } | null,
+  data: null as { data: Departamento[] } | null,
   isLoading: false,
   error: null,
   mutateAsync: vi.fn(),
@@ -65,9 +65,9 @@ const mockDepartamentos: Departamento[] = [
     descripcion: 'Departamento de tecnología',
     color: '#3B82F6',
     activo: true,
-    responsableId: null,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
+    responsableId: undefined,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
     _count: { usuarios: 15 },
   },
   {
@@ -77,9 +77,9 @@ const mockDepartamentos: Departamento[] = [
     descripcion: 'Recursos Humanos',
     color: '#10B981',
     activo: true,
-    responsableId: null,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
+    responsableId: undefined,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
     _count: { usuarios: 5 },
   },
   {
@@ -89,9 +89,9 @@ const mockDepartamentos: Departamento[] = [
     descripcion: 'Departamento de ventas',
     color: '#F59E0B',
     activo: false,
-    responsableId: null,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
+    responsableId: undefined,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
     _count: { usuarios: 0 },
   },
 ];
@@ -127,7 +127,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('muestra mensaje cuando no hay departamentos', () => {
-    departamentosMocks.data = { departamentos: [] };
+    departamentosMocks.data = { data: [] };
 
     render(<DepartamentosPage />);
 
@@ -136,7 +136,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('muestra lista de departamentos', () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
 
     render(<DepartamentosPage />);
 
@@ -150,7 +150,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('abre modal al hacer clic en crear', async () => {
-    departamentosMocks.data = { departamentos: [] };
+    departamentosMocks.data = { data: [] };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -162,7 +162,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('abre modal al hacer clic en editar', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -174,7 +174,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('elimina departamento tras confirmación', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     departamentosMocks.mutateAsync.mockResolvedValue(undefined);
     (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
     const user = userEvent.setup();
@@ -194,7 +194,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('no elimina si se cancela confirmación', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
     const user = userEvent.setup();
 
@@ -208,7 +208,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('filtra por búsqueda', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -220,7 +220,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('cambia filtro a inactivos', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);

@@ -1,4 +1,6 @@
 'use client';
+import type { Departamento } from '@/types';
+import type { CreateTareaPlantillaData } from '@/hooks/use-plantillas';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -208,7 +210,7 @@ export default function CrearPlantillaPage() {
           esOpcional: tarea.esOpcional,
           requiereAprobacion: tarea.requiereAprobacion,
           dependencias: tarea.dependencias,
-        });
+        } as unknown as { plantillaId: string; data: CreateTareaPlantillaData });
       }
 
       toast.success('Plantilla creada correctamente');
@@ -221,7 +223,7 @@ export default function CrearPlantillaPage() {
     }
   };
 
-  const departamentos = departamentosData?.departamentos ?? [];
+  const departamentos = departamentosData?.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -304,7 +306,7 @@ export default function CrearPlantillaPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todos los departamentos</SelectItem>
-                    {departamentos.map((dept) => (
+                    {departamentos.map((dept: Departamento) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.nombre}
                       </SelectItem>

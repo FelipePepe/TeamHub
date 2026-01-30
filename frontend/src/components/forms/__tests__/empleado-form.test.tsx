@@ -109,7 +109,7 @@ describe('EmpleadoForm', () => {
       apellidos: 'García López',
       rol: 'MANAGER',
       departamentoId: 'dept-1',
-      managerId: null,
+      managerId: undefined,
       telefono: '+34 600 123 456',
       fechaNacimiento: '1990-05-15',
       activo: true,

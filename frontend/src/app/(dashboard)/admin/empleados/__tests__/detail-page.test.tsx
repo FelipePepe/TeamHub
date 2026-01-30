@@ -142,7 +142,7 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('no muestra teléfono si no está presente', () => {
-      empleadosMocks.data = { ...mockEmpleado, telefono: null };
+      empleadosMocks.data = { ...mockEmpleado, telefono: null } as any;
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
@@ -151,7 +151,7 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('muestra "Sin asignar" cuando no hay departamento', () => {
-      empleadosMocks.data = { ...mockEmpleado, departamentoId: null };
+      empleadosMocks.data = { ...mockEmpleado, departamentoId: undefined };
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 

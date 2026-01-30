@@ -1,4 +1,5 @@
 'use client';
+import type { Departamento } from '@/types';
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -174,7 +175,7 @@ export default function EditarPlantillaPage({
   }
 
   const tareas = tareasData?.tareas ?? [];
-  const departamentos = departamentosData?.departamentos ?? [];
+  const departamentos = departamentosData?.data ?? [];
 
   // ============================================================================
   // Tareas Management
@@ -207,7 +208,7 @@ export default function EditarPlantillaPage({
           plantillaId: id,
           ...data,
           orden: tareas.length + 1,
-        });
+        } as any);
         toast.success('Tarea añadida');
         tareaForm.reset();
         setShowTareaForm(false);
@@ -373,7 +374,7 @@ export default function EditarPlantillaPage({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todos los departamentos</SelectItem>
-                    {departamentos.map((dept) => (
+                    {departamentos.map((dept: Departamento) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.nombre}
                       </SelectItem>

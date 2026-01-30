@@ -1,4 +1,5 @@
 'use client';
+import type { User } from '@/types';
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -120,7 +121,7 @@ export function IniciarProcesoModal({
   };
 
   const plantillas = plantillasData?.plantillas ?? [];
-  const empleados = empleadosData?.empleados ?? [];
+  const empleados = empleadosData?.data ?? [];
   const selectedPlantilla = plantillas.find(
     (p) => p.id === form.watch('plantillaId')
   );
@@ -151,7 +152,7 @@ export function IniciarProcesoModal({
                 <SelectValue placeholder="Selecciona un empleado" />
               </SelectTrigger>
               <SelectContent>
-                {empleados.map((emp) => (
+                {empleados.map((emp: User) => (
                   <SelectItem key={emp.id} value={emp.id}>
                     {emp.nombre} {emp.apellidos} - {emp.departamentoNombre || 'Sin departamento'}
                   </SelectItem>
@@ -253,7 +254,7 @@ export function IniciarProcesoModal({
                 <Calendar
                   mode="single"
                   selected={form.watch('fechaInicio')}
-                  onSelect={(date) => {
+                  onSelect={(date: Date | undefined) => {
                     if (date) {
                       form.setValue('fechaInicio', date);
                       setCalendarOpen(false);

@@ -1,6 +1,5 @@
 'use client';
 
-import type { CompletarTareaData } from '@/hooks/use-procesos';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -100,7 +99,7 @@ export default function MisTareasPage() {
         tareaId: completingTarea,
         notas: notas || undefined,
         evidenciaUrl: evidenciaUrl || undefined,
-      } as unknown as { procesoId: string; tareaId: string; data?: CompletarTareaData });
+      });
 
       toast.success('Tarea completada correctamente');
       setCompletingTarea(null);

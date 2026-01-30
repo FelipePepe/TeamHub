@@ -55,7 +55,8 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock de confirm
-global.confirm = vi.fn();
+const mockConfirm = vi.fn() as ReturnType<typeof vi.fn>;
+global.confirm = mockConfirm as typeof global.confirm;
 
 const mockDepartamentos: Departamento[] = [
   {
@@ -105,7 +106,7 @@ describe('DepartamentosPage', () => {
     permissionsMocks.canManageUsers = true;
     toastMocks.success.mockReset();
     toastMocks.error.mockReset();
-    (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReset();
+    mockConfirm.mockReset();
   });
 
   it('muestra acceso denegado sin permisos', () => {
@@ -176,7 +177,7 @@ describe('DepartamentosPage', () => {
   it('elimina departamento tras confirmación', async () => {
     departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     departamentosMocks.mutateAsync.mockResolvedValue(undefined);
-    (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    mockConfirm.mockReturnValue(true);
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -195,7 +196,7 @@ describe('DepartamentosPage', () => {
 
   it('no elimina si se cancela confirmación', async () => {
     departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
-    (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    mockConfirm.mockReturnValue(false);
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);

@@ -70,7 +70,8 @@ vi.mock('sonner', () => ({
 }));
 
 // Mock de confirm
-global.confirm = vi.fn();
+const mockConfirm = vi.fn() as ReturnType<typeof vi.fn>;
+global.confirm = mockConfirm as typeof global.confirm;
 
 const mockEmpleado: User = {
   id: 'emp-123',
@@ -101,7 +102,7 @@ describe('EmpleadoDetailPage', () => {
     routerMocks.back.mockReset();
     toastMocks.success.mockReset();
     toastMocks.error.mockReset();
-    (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReset();
+    mockConfirm.mockReset();
   });
 
   it('muestra acceso denegado sin permisos', () => {
@@ -142,7 +143,7 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('no muestra teléfono si no está presente', () => {
-      empleadosMocks.data = { ...mockEmpleado, telefono: null } as unknown as User;
+      empleadosMocks.data = { ...mockEmpleado, telefono: undefined } as User;
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
@@ -177,7 +178,7 @@ describe('EmpleadoDetailPage', () => {
 
     it('botón eliminar pide confirmación', async () => {
       const user = userEvent.setup();
-      (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      mockConfirm.mockReturnValue(false);
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
@@ -192,7 +193,7 @@ describe('EmpleadoDetailPage', () => {
 
     it('elimina empleado tras confirmación', async () => {
       const user = userEvent.setup();
-      (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      mockConfirm.mockReturnValue(true);
       empleadosMocks.mutateAsync.mockResolvedValue(undefined);
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
@@ -209,7 +210,7 @@ describe('EmpleadoDetailPage', () => {
 
     it('muestra error al fallar eliminación', async () => {
       const user = userEvent.setup();
-      (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      mockConfirm.mockReturnValue(true);
       empleadosMocks.mutateAsync.mockRejectedValue(new Error('Database error'));
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);

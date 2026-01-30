@@ -1,5 +1,6 @@
 'use client';
 import type { Departamento } from '@/types';
+import type { CreateTareaPlantillaData } from '@/hooks/use-plantillas';
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

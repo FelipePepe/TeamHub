@@ -1,5 +1,6 @@
 'use client';
 
+import type { CompletarTareaData } from '@/hooks/use-procesos';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {

@@ -209,7 +209,7 @@ export default function CrearPlantillaPage() {
           esOpcional: tarea.esOpcional,
           requiereAprobacion: tarea.requiereAprobacion,
           dependencias: tarea.dependencias,
-        } as any);
+        } as unknown as { plantillaId: string; data: CreateTareaPlantillaData });
       }
 
       toast.success('Plantilla creada correctamente');

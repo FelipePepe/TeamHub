@@ -99,7 +99,7 @@ export default function MisTareasPage() {
         tareaId: completingTarea,
         notas: notas || undefined,
         evidenciaUrl: evidenciaUrl || undefined,
-      } as any);
+      } as unknown as { procesoId: string; tareaId: string; data?: CompletarTareaData });
 
       toast.success('Tarea completada correctamente');
       setCompletingTarea(null);

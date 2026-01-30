@@ -142,7 +142,7 @@ describe('EmpleadoDetailPage', () => {
     });
 
     it('no muestra teléfono si no está presente', () => {
-      empleadosMocks.data = { ...mockEmpleado, telefono: null } as any;
+      empleadosMocks.data = { ...mockEmpleado, telefono: null } as unknown as User;
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 

@@ -208,7 +208,7 @@ export default function EditarPlantillaPage({
           plantillaId: id,
           ...data,
           orden: tareas.length + 1,
-        } as any);
+        } as unknown as { plantillaId: string; data: CreateTareaPlantillaData });
         toast.success('Tarea añadida');
         tareaForm.reset();
         setShowTareaForm(false);

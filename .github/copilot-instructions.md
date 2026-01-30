@@ -83,6 +83,12 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 *   Requiere Pull Request aprobado.
 *   CI debe pasar (lint, tests, build) antes de mergear.
 
+### Preservación de Ramas
+*   **CRÍTICO:** NUNCA borrar ramas después de mergear (ni local ni remotamente).
+*   Usar `gh pr merge <number> --squash` SIN `--delete-branch`.
+*   Las ramas se mantienen para trazabilidad histórica del proyecto.
+*   Git reflog preserva el historial, pero las ramas facilitan auditorías y revisiones.
+
 ## 6. Calidad, Testing y Gates
 *   **Coverage Estratégico (100/80/0):**
     *   **100% (CORE):** Lógica que manipula dinero o cálculos críticos.
@@ -93,6 +99,12 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 ## 7. Documentación (Docs as Code)
 *   **Inline:** Usa **JSDoc/TSDoc** para explicar el "por qué" y proporcionar ejemplos técnicos.
 *   **Sincronización:** Cada Pull Request que modifique lógica debe actualizar su respectiva documentación (ADR, Storybook o JSDoc) en el mismo commit.
+*   **decisiones.md (CRÍTICO):** 
+    *   **SIEMPRE** actualizar `docs/decisiones.md` al completar trabajo significativo (features, bugs, refactors, decisiones arquitecturales).
+    *   Añadir nuevos ADRs numerados secuencialmente con: Fecha, Estado, Contexto, Decisión, Consecuencias.
+    *   Actualizar progreso de fases (%) y marcar tareas completadas con `[x]`.
+    *   Este archivo es la **fuente única de verdad** para generar la memoria del TFM.
+    *   No olvidar actualizarlo: crear PR específico al final de cada sesión de trabajo si es necesario.
 
 ## 8. Comunicación con Stakeholders
 Al resumir cambios para perfiles no técnicos:

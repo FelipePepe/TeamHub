@@ -11,6 +11,16 @@ export interface User {
   activo: boolean;
   departamentoId?: string;
   managerId?: string;
+  // Extended properties (may not be in all responses)
+  telefono?: string;
+  fechaNacimiento?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  bloqueado?: boolean;
+  departamentoNombre?: string;
+  managerNombre?: string;
+  intentosFallidos?: number;
+  mfaActivo?: boolean;
 }
 
 // Auth
@@ -100,6 +110,8 @@ export interface CreateEmpleadoData {
   departamentoId?: string;
   managerId?: string;
   activo?: boolean;
+  telefono?: string;
+  fechaNacimiento?: string;
 }
 
 export interface UpdateEmpleadoData {
@@ -110,6 +122,8 @@ export interface UpdateEmpleadoData {
   departamentoId?: string;
   managerId?: string;
   activo?: boolean;
+  telefono?: string;
+  fechaNacimiento?: string;
 }
 
 // Departamentos
@@ -123,6 +137,8 @@ export interface Departamento {
   activo: boolean;
   createdAt?: string;
   updatedAt?: string;
+  // Extended properties
+  _count?: { usuarios: number };
 }
 
 export interface DepartamentoFilters {

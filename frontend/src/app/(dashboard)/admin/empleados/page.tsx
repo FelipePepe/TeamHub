@@ -20,8 +20,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEmpleados, useDeleteEmpleado } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
+import { EmpleadoForm } from '@/components/forms/empleado-form';
 import { toast } from 'sonner';
 import type { EmpleadoFilters } from '@/types';
+import type { User } from '@/types';
 
 /**
  * Página de listado de empleados para administradores y RRHH
@@ -36,6 +38,8 @@ export default function EmpleadosPage() {
     activo: true,
   });
   const [search, setSearch] = useState('');
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedEmpleado, setSelectedEmpleado] = useState<User | undefined>();
 
   const { data, isLoading, error } = useEmpleados(filters);
   const deleteEmpleado = useDeleteEmpleado();
@@ -83,6 +87,18 @@ export default function EmpleadosPage() {
     }));
   };
 
+  // Abrir modal crear
+  const handleCreate = () => {
+    setSelectedEmpleado(undefined);
+    setShowFormModal(true);
+  };
+
+  // Abrir modal editar
+  const handleEdit = (empleado: User) => {
+    setSelectedEmpleado(empleado);
+    setShowFormModal(true);
+  };
+
   // Manejar eliminación
   const handleDelete = async (id: string, nombre: string) => {
     if (!confirm(`¿Estás seguro de que quieres eliminar a ${nombre}?`)) {
@@ -113,7 +129,7 @@ export default function EmpleadosPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Empleados</h1>
           <p className="text-slate-500">Gestiona los empleados de la organización</p>
         </div>
-        <Button onClick={() => router.push('/admin/empleados/nuevo')}>
+        <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />
           Crear empleado
         </Button>
@@ -296,9 +312,7 @@ export default function EmpleadosPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() =>
-                                router.push(`/admin/empleados/${empleado.id}/editar`)
-                              }
+                              onClick={() => handleEdit(empleado)}
                               title="Editar"
                             >
                               <Edit2 className="h-4 w-4" />
@@ -357,6 +371,16 @@ export default function EmpleadosPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Crear/Editar */}
+      <EmpleadoForm
+        open={showFormModal}
+        onOpenChange={setShowFormModal}
+        empleado={selectedEmpleado}
+        onSuccess={() => {
+          // El modal ya hace el toast, solo cerramos
+        }}
+      />
     </div>
   );
 }

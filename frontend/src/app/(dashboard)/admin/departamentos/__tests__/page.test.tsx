@@ -127,7 +127,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('muestra mensaje cuando no hay departamentos', () => {
-    departamentosMocks.data = { departamentos: [] };
+    departamentosMocks.data = { data: [] };
 
     render(<DepartamentosPage />);
 
@@ -150,7 +150,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('abre modal al hacer clic en crear', async () => {
-    departamentosMocks.data = { departamentos: [] };
+    departamentosMocks.data = { data: [] };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);

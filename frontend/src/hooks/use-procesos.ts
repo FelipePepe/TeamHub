@@ -51,6 +51,7 @@ export interface TareaOnboarding {
   completadaPor?: string;
   creadoEn: string;
   actualizadoEn: string;
+  duracionEstimadaDias?: number;
 }
 
 export interface ProcesoFilters {

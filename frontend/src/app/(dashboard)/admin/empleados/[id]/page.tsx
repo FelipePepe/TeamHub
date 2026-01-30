@@ -225,7 +225,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
             <div>
               <p className="text-sm text-slate-500">Fecha de registro</p>
               <p className="text-base text-slate-900">
-                {format(new Date(empleado.createdAt), 'PPP', { locale: es })}
+                {format(new Date(empleado.createdAt!), 'PPP', { locale: es })}
               </p>
             </div>
 
@@ -233,7 +233,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
             <div>
               <p className="text-sm text-slate-500">Última actualización</p>
               <p className="text-base text-slate-900">
-                {format(new Date(empleado.updatedAt), 'PPP', { locale: es })}
+                {format(new Date(empleado.updatedAt!), 'PPP', { locale: es })}
               </p>
             </div>
           </CardContent>

@@ -1,4 +1,5 @@
 'use client';
+import type { Departamento } from '@/types';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -51,7 +52,7 @@ export default function ProcesosPage() {
   const cancelarProceso = useCancelarProceso();
 
   const procesos = procesosData?.data ?? [];
-  const departamentos = departamentosData?.departamentos ?? [];
+  const departamentos = departamentosData?.data ?? [];
   const empleados = empleadosData?.data ?? [];
 
   // Verificar permisos - cualquier usuario puede ver su onboarding
@@ -244,7 +245,7 @@ export default function ProcesosPage() {
                 className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
                 <option value="">Todos los departamentos</option>
-                {departamentos.map((dept) => (
+                {departamentos.map((dept: Departamento) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.nombre}
                   </option>

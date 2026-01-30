@@ -107,7 +107,7 @@ export default function DepartamentosPage() {
     toast.success(selectedDepartamentoId ? 'Departamento actualizado' : 'Departamento creado');
   };
 
-  const departamentos = data?.departamentos ?? [];
+  const departamentos = data?.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -202,7 +202,7 @@ export default function DepartamentosPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {departamentos.map((departamento) => (
+          {departamentos.map((departamento: Departamento) => (
             <Card key={departamento.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">

@@ -164,10 +164,10 @@ export function EmpleadoForm({ open, onOpenChange, empleado, onSuccess }: Emplea
             nombre: data.nombre,
             apellidos: data.apellidos,
             rol: data.rol,
-            departamentoId: data.departamentoId || null,
-            managerId: data.managerId || null,
-            telefono: data.telefono || null,
-            fechaNacimiento: data.fechaNacimiento || null,
+            departamentoId: data.departamentoId || undefined,
+            managerId: data.managerId || undefined,
+            telefono: data.telefono || undefined,
+            fechaNacimiento: data.fechaNacimiento || undefined,
           },
         });
         toast.success('Empleado actualizado correctamente');
@@ -175,13 +175,14 @@ export function EmpleadoForm({ open, onOpenChange, empleado, onSuccess }: Emplea
         // Crear nuevo empleado
         await createEmpleado.mutateAsync({
           email: data.email,
+          password: '', // El backend generará una contraseña temporal
           nombre: data.nombre,
           apellidos: data.apellidos,
           rol: data.rol,
-          departamentoId: data.departamentoId || null,
-          managerId: data.managerId || null,
-          telefono: data.telefono || null,
-          fechaNacimiento: data.fechaNacimiento || null,
+          departamentoId: data.departamentoId || undefined,
+          managerId: data.managerId || undefined,
+          telefono: data.telefono || undefined,
+          fechaNacimiento: data.fechaNacimiento || undefined,
         });
         toast.success('Empleado creado correctamente');
       }

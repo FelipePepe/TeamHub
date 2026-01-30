@@ -1,5 +1,6 @@
 'use client';
 
+import type { CompletarTareaData } from '@/hooks/use-procesos';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -99,7 +100,7 @@ export default function MisTareasPage() {
         tareaId: completingTarea,
         notas: notas || undefined,
         evidenciaUrl: evidenciaUrl || undefined,
-      });
+      } as unknown as { procesoId: string; tareaId: string; data?: CompletarTareaData });
 
       toast.success('Tarea completada correctamente');
       setCompletingTarea(null);
@@ -266,7 +267,7 @@ export default function MisTareasPage() {
               <Input
                 placeholder="Buscar tareas..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSearch(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -274,7 +275,7 @@ export default function MisTareasPage() {
             {/* Estado */}
             <select
               value={estadoFilter}
-              onChange={(e) => setEstadoFilter(e.target.value as EstadoTarea | '')}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEstadoFilter(e.target.value as EstadoTarea | '')}
               className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
             >
               <option value="">Todos los estados</option>
@@ -288,7 +289,7 @@ export default function MisTareasPage() {
             {/* Prioridad */}
             <select
               value={prioridadFilter}
-              onChange={(e) => setPrioridadFilter(e.target.value as PrioridadTarea | '')}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPrioridadFilter(e.target.value as PrioridadTarea | '')}
               className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
             >
               <option value="">Todas las prioridades</option>
@@ -418,7 +419,7 @@ export default function MisTareasPage() {
               <label className="text-sm font-medium">Notas (opcional)</label>
               <Textarea
                 value={notas}
-                onChange={(e) => setNotas(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setNotas(e.target.value)}
                 placeholder="Añade notas sobre cómo se completó la tarea..."
                 rows={4}
               />
@@ -430,7 +431,7 @@ export default function MisTareasPage() {
               <Input
                 type="url"
                 value={evidenciaUrl}
-                onChange={(e) => setEvidenciaUrl(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setEvidenciaUrl(e.target.value)}
                 placeholder="https://..."
               />
             </div>

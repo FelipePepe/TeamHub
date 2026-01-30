@@ -172,16 +172,19 @@ export default function ProyectoDetailPage({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p><span className="font-medium">Estado:</span> <Badge variant="outline">{estadoLabel}</Badge></p>
-            {proyecto.cliente && <p><span className="font-medium">Cliente:</span> {proyecto.cliente}</p>}
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Estado:</span>
+              <Badge variant="outline">{estadoLabel}</Badge>
+            </div>
+            {proyecto.cliente && <div><span className="font-medium">Cliente:</span> {proyecto.cliente}</div>}
             {proyecto.fechaInicio && (
-              <p className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Inicio: {format(new Date(proyecto.fechaInicio), 'd MMM yyyy', { locale: es })}
-              </p>
+              </div>
             )}
             {proyecto.fechaFinEstimada && (
-              <p>Fin estimado: {format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })}</p>
+              <div>Fin estimado: {format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })}</div>
             )}
             {proyecto.descripcion && <p className="text-sm text-slate-600">{proyecto.descripcion}</p>}
           </CardContent>

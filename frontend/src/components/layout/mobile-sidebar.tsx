@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getNavigationForRole, isNavItemActive } from '@/lib/navigation';
@@ -11,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import logoTeamHub from '@/assets/logo-teamhub-alt.png';
 
 interface MobileSidebarProps {
   open: boolean;
@@ -29,13 +31,17 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           <SheetTitle>
             <Link
               href="/dashboard"
-              className="flex items-center gap-2"
+              className="flex items-center"
               onClick={() => onOpenChange(false)}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white font-semibold">
-                T
-              </div>
-              <span className="text-xl font-semibold text-slate-900">TeamHub</span>
+              <Image
+                src={logoTeamHub}
+                alt="TeamHub Logo"
+                width={180}
+                height={45}
+                style={{ width: 'auto', height: 'auto' }}
+                priority
+              />
             </Link>
           </SheetTitle>
         </SheetHeader>

@@ -571,6 +571,67 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     3. Código resultante cumple estándares (Clean Code, TypeScript, tests)
     4. Implementación directa en el proyecto sin necesidad de refactorización mayor
     5. Feedback estructurado en \`.llm-context/review_feedback.md\` para trazabilidad
+
+### ADR-064: Uso productivo de Claude Opus 4.5 en desarrollo frontend
+- Fecha: 2026-01-30
+- Estado: Aceptado
+- Contexto: Tras validar el sistema multi-LLM con éxito, se aprovechó Claude Opus 4.5 directamente para completar las fases 4 y 5 del frontend (Proyectos y Timetracking).
+- Decision: Usar Claude Opus 4.5 como generador principal para implementaciones complejas de frontend, aprovechando su capacidad de razonamiento avanzado y generación de código de alta calidad.
+- Resultados concretos (2026-01-30):
+  - **PR #61 - Fase 4 y 5 Frontend:**
+    - Hook `use-proyectos.ts`: 440 líneas con CRUD completo, estado, stats, asignaciones
+    - Páginas proyectos: listado (cards/tabla), crear, detalle con estadísticas
+    - Hook `use-timetracking.ts`: 356 líneas con CRUD, aprobación, resumen, copiar
+    - Páginas timetracking: mis registros, aprobación para managers
+    - Código alineado 100% con OpenAPI spec (fuente de verdad)
+    - Tipos TypeScript correctos inferidos de esquemas OpenAPI
+    - Integración correcta con TanStack Query y React Hook Form
+  - **PR #64 - UI Components:**
+    - Calendar component usando react-day-picker v9
+    - Popover y Textarea components
+    - Fix de todos los TypeScript errors
+    - 104 tests frontend pasando
+  - **Commit 9512ed4 - Timetracking Advanced (Co-authored):**
+    - Tabs navigation: My Records, Weekly Timesheet, Gantt Chart
+    - Weekly Timesheet: grid editable con navegación semanal, copiar semana
+    - Gantt Chart: visualización D3.js con zoom, tooltips, progress bars
+    - +2326 líneas de código de alta calidad
+    - Implementación parcial de ADR-063 (D3.js visualization)
+- Consecuencias:
+  - Alta velocidad de desarrollo manteniendo calidad
+  - Código generado cumple estándares del proyecto (Clean Code, tipos estrictos, tests)
+  - Reducción significativa de errores TypeScript gracias a inferencia correcta
+  - Implementación directa sin refactorización posterior
+  - Visualizaciones avanzadas (D3.js) implementadas en primera iteración
+  - Fase 4 y 5 completadas al 100% en menos de 24 horas
+- Co-autoría: Claude Opus 4.5 reconocido en commits relevantes
+
+### ADR-065: Implementación de visualizaciones D3.js para timetracking
+- Fecha: 2026-01-30
+- Estado: En progreso (50%)
+- Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
+- Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
+- Implementado:
+  - **Gantt Chart en Timetracking** ✅ (commit 9512ed4)
+    - Visualización de timeline de registros de tiempo por proyecto
+    - Zoom controls (fit, zoom in, zoom out)
+    - Tooltips interactivos con datos detallados
+    - Progress bars por proyecto
+    - Responsive design adaptativo
+    - Integración con hook `useTimetracking`
+    - Utilidades reutilizables en `lib/gantt-utils.ts`
+- Pendiente:
+  - [ ] Migrar `bar-chart.tsx` de dashboards a D3.js
+  - [ ] Migrar `line-chart.tsx` de dashboards a D3.js
+  - [ ] Añadir interactividad (hover effects, click events)
+  - [ ] Mantener accesibilidad (ARIA, keyboard navigation)
+  - [ ] Actualizar tests de componentes
+- Consecuencias:
+  - Visualizaciones más ricas e interactivas para usuarios
+  - Mejor UX en módulo de timetracking
+  - Patrón establecido para futuras visualizaciones
+  - Incremento moderado de bundle size (D3.js es modular)
+  - Requiere conocimiento de D3.js para mantenimiento
 ---
 
 ## Registro de Ejecución
@@ -719,7 +780,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Añadir tests para EmpleadoForm y EmpleadoDetailPage (PR #56) (2026-01-29)
 - [x] Corregir mocks faltantes en tests de empleados (PR #57) (2026-01-29)
 - [x] Añadir dependencias date-fns y @radix-ui/react-select al package.json (2026-01-29)
-- [x] Implementar frontend Fase 4 (Proyectos) y Fase 5 (Timetracking) según OpenAPI (2026-01-30)
+- [x] Implementar frontend Fase 4 (Proyectos) y Fase 5 (Timetracking) según OpenAPI - PR #61 (2026-01-30)
   - **Fuente de verdad:** `docs/api/openapi/paths/proyectos.yaml`, `docs/api/openapi/paths/timetracking.yaml`, schemas en `docs/api/openapi/components/schemas/`.
   - **Hook use-proyectos.ts:** list, get, create, update, delete, estado, stats, asignaciones (CRUD y finalizar). Tipos alineados con ProyectoResponse, AsignacionResponse, CreateProyectoRequest, etc.
   - **Páginas proyectos:** listado (cards/tabla), crear (form CreateProyectoRequest), detalle [id] con estadísticas (ProyectoStatsResponse) y gestión de asignaciones (modal CreateAsignacionRequest).
@@ -727,3 +788,22 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Páginas timetracking:** vista principal (mis registros + resumen + formulario crear), aprobación (pendientes para managers, aprobar/rechazar individual y masivo).
   - **Permiso:** `canManageProjects` en use-permissions para ADMIN, RRHH, MANAGER.
   - **Rama:** feature/fase4-fase5-proyectos-timetracking (GitFlow).
+  - **Colaboración:** Generado con Claude Opus 4.5 (ADR-064).
+- [x] Añadir componentes UI faltantes (Calendar, Popover, Textarea) - PR #64 (2026-01-30)
+  - **Calendar:** react-day-picker v9 integrado
+  - **Popover:** floating elements para selects y tooltips
+  - **Textarea:** inputs multi-línea
+  - **Fix TypeScript:** extensión de tipos User y Departamento, imports faltantes
+  - **Tests:** 104 tests frontend pasando
+  - **Colaboración:** Generado con Claude Opus 4.5 (ADR-064).
+- [x] Implementar vistas avanzadas de timetracking con D3.js - Commit 9512ed4 (2026-01-30)
+  - **Tabs navigation:** My Records, Weekly Timesheet, Gantt Chart
+  - **Weekly Timesheet:** grid editable con proyectos/días, navegación semanal, copiar semana
+  - **Gantt Chart:** visualización D3.js con zoom controls, tooltips, progress bars
+  - **Backend fix:** endpoint /resumen filtra por usuario actual por defecto
+  - **Dependencias:** @radix-ui/react-tabs añadida
+  - **Componentes nuevos:** tabs UI, timesheet-grid, timesheet-cell, gantt-chart, gantt-tooltip, gantt-zoom-controls, week-navigation, copy-week-dialog
+  - **Utilidades:** lib/gantt-utils.ts con helpers reutilizables
+  - **Tipos:** types/timetracking.ts con interfaces para componentes
+  - **Líneas de código:** +2326 líneas
+  - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).

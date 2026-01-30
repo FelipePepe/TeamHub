@@ -719,3 +719,11 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Añadir tests para EmpleadoForm y EmpleadoDetailPage (PR #56) (2026-01-29)
 - [x] Corregir mocks faltantes en tests de empleados (PR #57) (2026-01-29)
 - [x] Añadir dependencias date-fns y @radix-ui/react-select al package.json (2026-01-29)
+- [x] Implementar frontend Fase 4 (Proyectos) y Fase 5 (Timetracking) según OpenAPI (2026-01-30)
+  - **Fuente de verdad:** `docs/api/openapi/paths/proyectos.yaml`, `docs/api/openapi/paths/timetracking.yaml`, schemas en `docs/api/openapi/components/schemas/`.
+  - **Hook use-proyectos.ts:** list, get, create, update, delete, estado, stats, asignaciones (CRUD y finalizar). Tipos alineados con ProyectoResponse, AsignacionResponse, CreateProyectoRequest, etc.
+  - **Páginas proyectos:** listado (cards/tabla), crear (form CreateProyectoRequest), detalle [id] con estadísticas (ProyectoStatsResponse) y gestión de asignaciones (modal CreateAsignacionRequest).
+  - **Hook use-timetracking.ts:** list, mis-registros, semana, create, update, delete, aprobar, rechazar, aprobar-masivo, pendientes-aprobacion, resumen, copiar. Tipos alineados con TimetrackingResponse, CreateTimetrackingRequest, PendientesAprobacionResponse, etc.
+  - **Páginas timetracking:** vista principal (mis registros + resumen + formulario crear), aprobación (pendientes para managers, aprobar/rechazar individual y masivo).
+  - **Permiso:** `canManageProjects` en use-permissions para ADMIN, RRHH, MANAGER.
+  - **Rama:** feature/fase4-fase5-proyectos-timetracking (GitFlow).

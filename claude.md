@@ -29,6 +29,29 @@ Antes de proponer cambios, consulta estos recursos en orden:
 
 ## 5. GitFlow y Convenciones de Git
 
+### FLUJO DE TRABAJO OBLIGATORIO (Checklist)
+
+**ANTES de empezar cualquier tarea:**
+1. `git checkout main && git pull origin main`
+2. `git checkout -b <tipo>/<nombre-descriptivo>`
+
+**ANTES de hacer commit (OBLIGATORIO):**
+1. Ejecutar linter: `npm run lint` o equivalente
+2. Ejecutar tests: `npm test` o equivalente
+3. **SI LOS TESTS FALLAN → NO HACER COMMIT NI PUSH**
+
+**Para subir cambios:**
+1. `git add <archivos-específicos>` (NO usar `git add .`)
+2. `git commit -m "tipo(scope): descripción"`
+3. `git push -u origin <rama>`
+4. `gh pr create` para crear Pull Request
+
+**NUNCA:**
+- Push directo a main/develop
+- Commit sin ejecutar tests
+- Push si los tests fallan
+- Merge sin PR aprobado
+
 ### Estrategia de Branching (GitFlow)
 *   **main:** Código en producción. Solo recibe merges de `release/` y `hotfix/`.
 *   **develop:** Rama de integración. Las features se mergean aquí.

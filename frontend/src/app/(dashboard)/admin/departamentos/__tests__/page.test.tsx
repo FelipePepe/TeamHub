@@ -136,7 +136,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('muestra lista de departamentos', () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
 
     render(<DepartamentosPage />);
 
@@ -162,7 +162,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('abre modal al hacer clic en editar', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -174,7 +174,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('elimina departamento tras confirmación', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     departamentosMocks.mutateAsync.mockResolvedValue(undefined);
     (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
     const user = userEvent.setup();
@@ -194,7 +194,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('no elimina si se cancela confirmación', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     (global.confirm as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
     const user = userEvent.setup();
 
@@ -208,7 +208,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('filtra por búsqueda', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);
@@ -220,7 +220,7 @@ describe('DepartamentosPage', () => {
   });
 
   it('cambia filtro a inactivos', async () => {
-    departamentosMocks.data = { departamentos: mockDepartamentos.filter(d => d.activo) };
+    departamentosMocks.data = { data: mockDepartamentos.filter(d => d.activo) };
     const user = userEvent.setup();
 
     render(<DepartamentosPage />);

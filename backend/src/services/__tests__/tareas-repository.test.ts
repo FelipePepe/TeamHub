@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { db } from '../../db/index.js';
 import { tareas } from '../../db/schema/tareas.js';
 import { proyectos } from '../../db/schema/proyectos.js';
@@ -9,6 +9,7 @@ import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.j
 import { TareasRepository } from '../tareas-repository.js';
 import type { NuevaTarea } from '../../db/schema/tareas.js';
 import { eq } from 'drizzle-orm';
+import { applyTestEnv, migrateTestDatabase } from '../../test-utils/index.js';
 
 /**
  * Tests para TareasRepository (100% Coverage - CORE)
@@ -19,6 +20,11 @@ describe('TareasRepository', () => {
   let testProyectoId: string;
   let testUsuarioId: string;
   let testTareaId: string;
+
+  beforeAll(async () => {
+    applyTestEnv();
+    await migrateTestDatabase();
+  });
 
   beforeEach(async () => {
     repository = new TareasRepository();

@@ -1,6 +1,6 @@
 import { HTTPException } from 'hono/http-exception';
-import type { EstadoTarea } from '../db/schema/tareas.js';
-import type { User } from '../db/schema/users.js';
+import type { EstadoTarea } from '../../db/schema/tareas.js';
+import type { User } from '../../db/schema/users.js';
 
 const PRIVILEGED_ROLES: User['rol'][] = ['ADMIN', 'RRHH', 'MANAGER'];
 
@@ -14,7 +14,7 @@ export type TareaUpdateInput = {
   titulo?: string;
   descripcion?: string | null;
   estado?: EstadoTarea;
-  prioridad?: typeof import('../db/schema/tareas.js').prioridadTareaEnum.enumValues[number];
+  prioridad?: typeof import('../../db/schema/tareas.js').prioridadTareaEnum.enumValues[number];
   usuarioAsignadoId?: string | null;
   fechaInicio?: string | null;
   fechaFin?: string | null;

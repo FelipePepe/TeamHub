@@ -160,15 +160,15 @@ export default function TimetrackingPage() {
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <p className="text-sm text-slate-500">Total horas</p>
-                <p className="text-2xl font-semibold">{resumen.totalHoras ?? 0}</p>
+                <p className="text-2xl font-semibold">{Number(resumen.totalHoras ?? 0).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-500">Facturables</p>
-                <p className="text-2xl font-semibold">{resumen.horasFacturables ?? 0}</p>
+                <p className="text-2xl font-semibold">{Number(resumen.horasFacturables ?? 0).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-500">No facturables</p>
-                <p className="text-2xl font-semibold">{resumen.horasNoFacturables ?? 0}</p>
+                <p className="text-2xl font-semibold">{Number(resumen.horasNoFacturables ?? 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>

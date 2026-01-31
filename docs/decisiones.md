@@ -807,3 +807,103 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Tipos:** types/timetracking.ts con interfaces para componentes
   - **Líneas de código:** +2326 líneas
   - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).
+- [x] Crear scripts de seed data para testing de visualizaciones - PR #70 (2026-01-31)
+  - **seed-proyectos-gantt.sql:** 6 proyectos, 6 asignaciones, 15 registros timetracking
+  - **seed-complete-data.sql:** 4 departamentos, 6 usuarios con roles, 10 proyectos, 37 registros
+  - **seed-proyectos-gantt.sh:** helper bash con variables de entorno
+  - **scripts/README.md:** documentación completa con troubleshooting y cleanup
+  - **Fix:** formateo decimal en timetracking (120.77 vs 120.770000001)
+  - **Release:** v1.1.0 desplegado en main
+- [x] Implementar Gantt Chart responsive y mejorar espaciado cabeceras - PR #72 (2026-01-31)
+  - **Responsive:** Ancho dinámico con useEffect, mínimo 600px, funciona en mobile/tablet/desktop
+  - **Fix espaciado:** Vista año muestra meses alternos (ene, mar, may...) con formato corto
+  - **Limpieza Husky:** Removidas líneas obsoletas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"`
+  - **Sin warnings DEPRECATED:** Hooks funcionan igual sin mensajes deprecation
+  - **Tests:** 124/124 pasando (20 backend + 104 frontend)
+  - **Release:** v1.2.0 desplegado en main
+- [x] Hotfix SelectItem empty value error - PR #74 (2026-01-31)
+  - **Problema:** Error producción en `/admin/plantillas/crear`: `A <Select.Item /> must have a value prop that is not an empty string`
+  - **Solución:** Reemplazados `value=""` con sentinel values `"all"` y `"any"`
+  - **Handlers:** Actualizados para mapear sentinel values a `undefined`
+  - **Archivos:** `frontend/src/app/(dashboard)/admin/plantillas/crear/page.tsx`
+  - **Release:** v1.2.1 (hotfix) desplegado en main
+
+### ADR-066: Scripts de seed data para testing
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: El Gantt Chart y Timesheet requieren datos de prueba realistas con proyectos con fechas, usuarios asignados y registros de tiempo para validar visualizaciones.
+- Decision: Crear scripts SQL reutilizables (`seed-proyectos-gantt.sql`, `seed-complete-data.sql`) con helper bash y documentación completa.
+- Consecuencias:
+  - (+) Testing manual de visualizaciones D3.js más fácil
+  - (+) Onboarding rápido para desarrolladores nuevos
+  - (+) Scripts reutilizables en diferentes entornos
+  - (-) Requiere mantener sincronizados con esquema de BD
+
+### ADR-067: Gantt Chart responsive con ancho dinámico
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: El Gantt Chart tenía ancho fijo de 800px y mostraba mensaje "Vista no disponible en móvil", limitando accesibilidad.
+- Decision: Implementar ancho dinámico con `useEffect` detectando tamaño del contenedor, responsive en todos los dispositivos (mobile/tablet/desktop).
+- Consecuencias:
+  - (+) Accesible desde cualquier dispositivo
+  - (+) Mejor UX con scroll horizontal automático
+  - (+) Cumple estándares de responsive design (ADR-060)
+  - (-) Requiere recálculo en cada resize (optimizado con debounce implícito)
+
+### ADR-068: Optimización espaciado cabeceras Gantt en vista año
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: En vista año, el Gantt mostraba 12 meses juntos causando sobreposición visual de etiquetas.
+- Decision: Filtrar meses alternos (mostrar solo 6: ene, mar, may, jul, sep, nov) y usar formato corto ("ene 26" vs "ene 2026").
+- Consecuencias:
+  - (+) Mejor legibilidad en vista año
+  - (+) Sin cambios en vistas mes y trimestre
+  - (-) Pérdida de granularidad mensual (aceptable para vista anual)
+
+### ADR-069: Limpieza hooks Husky para v10
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: Husky 9.0.11 mostraba warnings DEPRECATED sobre líneas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"` que serán removidas en v10.
+- Decision: Eliminar esas líneas de `.husky/pre-commit`, `.husky/pre-push`, `.husky/commit-msg` ya que son opcionales en v9.
+- Consecuencias:
+  - (+) Sin warnings en cada operación git
+  - (+) Preparados para Husky v10
+  - (+) Hooks funcionan idénticamente
+  - Sin impacto negativo
+
+### ADR-070: Hotfix para SelectItem empty value
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: Error crítico en producción (`/admin/plantillas/crear`): Radix UI Select no permite `<SelectItem value="">`.
+- Decision: Usar sentinel values válidos (`"all"`, `"any"`) en lugar de strings vacíos, mapeando a `undefined` en handlers.
+- Consecuencias:
+  - (+) Fix inmediato para error bloqueante en producción
+  - (+) Patrón reutilizable para otros selects opcionales
+  - Requiere validación de todos los Select components del proyecto
+
+---
+
+## Progreso General del Proyecto
+
+### Estado Actual (2026-01-31)
+- **Fases completadas:** 5/5 (100%)
+  - Fase 1: Dashboards ✅ 100%
+  - Fase 2: Empleados ✅ 100%
+  - Fase 3: Onboarding ✅ 100%
+  - Fase 4: Proyectos ✅ 100%
+  - Fase 5: Timetracking ✅ 100%
+- **Tests:** 124/124 pasando (20 backend + 104 frontend)
+- **Cobertura:** Core 100%, Important 80%+
+- **Seguridad:** OWASP 96.5%, sin vulnerabilidades
+- **API:** OpenAPI v1.0.0 con 149 endpoints documentados
+- **Releases:**
+  - v1.0.0: Primera release con fases 1-5 completas
+  - v1.1.0: Seed data scripts y fix formateo decimal
+  - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
+  - v1.2.1: Hotfix SelectItem empty value
+
+### Próximos pasos
+- Monitoreo de performance en producción
+- Optimización de queries N+1 si se detectan
+- Implementación de cache Redis (opcional)
+- Métricas de uso real con analytics

@@ -4,6 +4,8 @@ import { tareas } from '../../db/schema/tareas.js';
 import { proyectos } from '../../db/schema/proyectos.js';
 import { users } from '../../db/schema/users.js';
 import { timetracking } from '../../db/schema/timetracking.js';
+import { plantillasOnboarding, tareasPlantilla } from '../../db/schema/plantillas.js';
+import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.js';
 import { TareasRepository } from '../tareas-repository.js';
 import type { NuevaTarea } from '../../db/schema/tareas.js';
 import { eq } from 'drizzle-orm';
@@ -24,6 +26,10 @@ describe('TareasRepository', () => {
     // Limpiar tablas en orden inverso a las FKs
     await db.delete(tareas);
     await db.delete(timetracking);
+    await db.delete(tareasOnboarding);
+    await db.delete(procesosOnboarding);
+    await db.delete(tareasPlantilla);
+    await db.delete(plantillasOnboarding);
     await db.delete(proyectos);
     await db.delete(users);
 
@@ -78,6 +84,10 @@ describe('TareasRepository', () => {
     // Cleanup final
     await db.delete(tareas);
     await db.delete(timetracking);
+    await db.delete(tareasOnboarding);
+    await db.delete(procesosOnboarding);
+    await db.delete(tareasPlantilla);
+    await db.delete(plantillasOnboarding);
     await db.delete(proyectos);
     await db.delete(users);
   });

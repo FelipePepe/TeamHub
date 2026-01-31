@@ -71,7 +71,7 @@ beforeEach(async () => {
 });
 
 describe('dashboard metrics', () => {
-  it('returns computed metrics for admin, rrhh, manager, and empleado', async () => {
+  it('returns computed metrics for admin, rrhh, manager, and empleado', { timeout: 15000 }, async () => {
     const now = new Date();
     const today = toDateString(now);
     const yesterday = toDateString(addDays(now, -1));

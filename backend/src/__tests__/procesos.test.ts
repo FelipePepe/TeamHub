@@ -109,37 +109,41 @@ describe('procesos routes', () => {
     expect(detail.tareas).toHaveLength(2);
   });
 
-  it('allows completing a tarea in proceso', async () => {
-    const { token } = await loginAsAdmin();
-    const empleadoId = await createEmployee(token);
-    const plantillaId = await createPlantillaWithTasks(token);
+  it(
+    'allows completing a tarea in proceso',
+    async () => {
+      const { token } = await loginAsAdmin();
+      const empleadoId = await createEmployee(token);
+      const plantillaId = await createPlantillaWithTasks(token);
 
-    const createResponse = await app.request('/api/procesos', {
-      method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/procesos'),
-      body: JSON.stringify({
-        empleadoId,
-        plantillaId,
-        fechaInicio: '2024-02-01',
-      }),
-    });
-    const proceso = await createResponse.json();
+      const createResponse = await app.request('/api/procesos', {
+        method: 'POST',
+        headers: authHeaders(token, 'POST', '/api/procesos'),
+        body: JSON.stringify({
+          empleadoId,
+          plantillaId,
+          fechaInicio: '2024-02-01',
+        }),
+      });
+      const proceso = await createResponse.json();
 
-    const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
-      headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
-    });
-    const detail = await detailResponse.json();
-    const tareaId = detail.tareas[0].id as string;
+      const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
+        headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
+      });
+      const detail = await detailResponse.json();
+      const tareaId = detail.tareas[0].id as string;
 
-    const { token: empleadoToken } = await loginAsEmployee();
-    const completePath = `/api/procesos/${proceso.id}/tareas/${tareaId}/completar`;
-    const completeResponse = await app.request(completePath, {
-      method: 'PATCH',
-      headers: authHeaders(empleadoToken, 'PATCH', completePath),
-      body: JSON.stringify({ notas: 'Completada' }),
-    });
-    expect(completeResponse.status).toBe(200);
-    const completed = await completeResponse.json();
-    expect(completed.estado).toBe('COMPLETADA');
-  });
+      const { token: empleadoToken } = await loginAsEmployee();
+      const completePath = `/api/procesos/${proceso.id}/tareas/${tareaId}/completar`;
+      const completeResponse = await app.request(completePath, {
+        method: 'PATCH',
+        headers: authHeaders(empleadoToken, 'PATCH', completePath),
+        body: JSON.stringify({ notas: 'Completada' }),
+      });
+      expect(completeResponse.status).toBe(200);
+      const completed = await completeResponse.json();
+      expect(completed.estado).toBe('COMPLETADA');
+    },
+    15000
+  );
 });

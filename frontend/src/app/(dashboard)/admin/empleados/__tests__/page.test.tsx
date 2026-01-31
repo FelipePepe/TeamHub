@@ -47,7 +47,7 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermissions: () => mockUsePermissions(),
 }));
 
-const mockSearchParams = { get: vi.fn((_key: string) => null) };
+const mockSearchParams = { get: vi.fn(() => null) };
 vi.mock('next/navigation', () => ({
   useRouter: () => mockUseRouter(),
   useSearchParams: () => mockSearchParams,

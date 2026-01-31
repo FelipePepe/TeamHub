@@ -724,6 +724,10 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Añadir tests para componentes empleados (PR #56). (2026-01-29)
 - [x] Corregir mocks faltantes en tests de empleados (PR #57). (2026-01-29)
 - [x] Añadir dependencias date-fns y @radix-ui/react-select (commit directo). (2026-01-29)
+- [x] Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
+- [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
+- [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
+- [x] Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -758,6 +762,9 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
 - [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
 - [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)
+- [x] Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
+- [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
+- [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
 - [x] Implementar autenticacion HMAC para API (ADR-059). (2026-01-29)
 - [x] Implementar diseño responsive y accesibilidad (ADR-060). (2026-01-29)
 - [x] Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)

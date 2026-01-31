@@ -90,7 +90,7 @@ export default function DepartamentosPage() {
     try {
       await deleteDepartamento.mutateAsync(departamento.id);
       toast.success('Departamento eliminado correctamente');
-    } catch (error) {
+    } catch {
       toast.error('Error al eliminar departamento');
     }
   };

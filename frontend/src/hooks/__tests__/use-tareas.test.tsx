@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -58,6 +58,7 @@ function createWrapper() {
  * Tests de hooks de React Query con MSW mocks
  */
 describe('use-tareas', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
   const mockTarea: Tarea = {
     id: 'tarea-1',
     proyectoId: 'proyecto-1',
@@ -82,6 +83,12 @@ describe('use-tareas', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
+    consoleErrorSpy = null;
   });
 
   describe('useTareasByProyecto', () => {
@@ -158,25 +165,36 @@ describe('use-tareas', () => {
       expect(apiMocks.get).not.toHaveBeenCalled();
     });
 
-    it.skip('debe usar staleTime de 2 minutos', async () => {
-      // SKIP: refetch() fuerza el fetch independientemente del staleTime
-      // Este test no es crítico ya que staleTime está configurado en el hook
+    it('debe usar staleTime de 2 minutos', async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+          },
+        },
+      });
+
       apiMocks.get.mockResolvedValue(mockTareasResponse);
 
       const { result } = renderHook(
         () => useTareasByProyecto('proyecto-1'),
         {
-          wrapper: createWrapper(),
+          wrapper: ({ children }) => (
+            <QueryClientProvider client={queryClient}>
+              {children}
+            </QueryClientProvider>
+          ),
         }
       );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      // La query no debe refetchear inmediatamente
-      apiMocks.get.mockClear();
-      result.current.refetch();
+      const query = queryClient.getQueryCache().find({
+        queryKey: ['tareas', 'list', 'proyecto', 'proyecto-1'],
+      });
 
-      expect(apiMocks.get).not.toHaveBeenCalled();
+      expect(query).toBeDefined();
+      expect(query?.options.staleTime).toBe(2 * 60 * 1000);
     });
   });
 

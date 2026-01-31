@@ -350,8 +350,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                       const bar = calculateBarPosition(
                         new Date(tarea.fechaInicio!),
                         new Date(tarea.fechaFin!),
-                        timeScale,
-                        config
+                        timeScale
                       );
 
                       return (

@@ -20,7 +20,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   useProyectos,
-  useMisProyectos,
   useDeleteProyecto,
   type Proyecto,
   type ProyectoFilters,

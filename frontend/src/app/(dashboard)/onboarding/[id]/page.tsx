@@ -113,7 +113,7 @@ export default function ProcesoDetailPage({
     try {
       await cancelarProceso.mutateAsync({
         id: proceso.id,
-        data: motivo ? { motivo } : undefined,
+        data: motivo ? { motivo } : {},
       });
       toast.success('Proceso cancelado correctamente');
       router.push('/onboarding');

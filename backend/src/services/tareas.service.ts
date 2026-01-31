@@ -4,6 +4,12 @@ import { findProyectoById } from './proyectos-repository.js';
 import { findActiveUserById } from './users-repository.js';
 import type { Tarea, NuevaTarea, EstadoTarea } from '../db/schema/tareas.js';
 import type { User } from '../db/schema/users.js';
+import {
+  assertEstadoTransition,
+  assertPrivileged,
+  buildUpdatePayload,
+  type TareaUpdateInput,
+} from './tareas/helpers.js';
 
 /**
  * Servicio de lógica de negocio para tareas
@@ -72,9 +78,7 @@ export class TareasService {
     user: User
   ): Promise<Tarea> {
     // Verificar permisos: ADMIN, RRHH, MANAGER
-    if (!['ADMIN', 'RRHH', 'MANAGER'].includes(user.rol)) {
-      throw new HTTPException(403, { message: 'No autorizado' });
-    }
+    assertPrivileged(user);
 
     // Verificar que el proyecto existe
     const proyecto = await findProyectoById(proyectoId);
@@ -136,25 +140,11 @@ export class TareasService {
    */
   async update(
     id: string,
-    data: {
-      titulo?: string;
-      descripcion?: string | null;
-      estado?: EstadoTarea;
-      prioridad?: typeof import('../db/schema/tareas.js').prioridadTareaEnum.enumValues[number];
-      usuarioAsignadoId?: string | null;
-      fechaInicio?: string | null;
-      fechaFin?: string | null;
-      horasEstimadas?: number | null;
-      horasReales?: number | null;
-      orden?: number;
-      dependeDe?: string | null;
-    },
+    data: TareaUpdateInput,
     user: User
   ): Promise<Tarea> {
     // Verificar permisos: ADMIN, RRHH, MANAGER
-    if (!['ADMIN', 'RRHH', 'MANAGER'].includes(user.rol)) {
-      throw new HTTPException(403, { message: 'No autorizado' });
-    }
+    assertPrivileged(user);
 
     const tarea = await tareasRepository.findById(id);
     if (!tarea) {
@@ -198,18 +188,7 @@ export class TareasService {
       });
     }
 
-    const updates = {
-      ...data,
-      fechaInicio: data.fechaInicio !== undefined 
-        ? (data.fechaInicio ? new Date(data.fechaInicio) : null)
-        : undefined,
-      fechaFin: data.fechaFin !== undefined 
-        ? (data.fechaFin ? new Date(data.fechaFin) : null)
-        : undefined,
-      horasEstimadas: data.horasEstimadas !== undefined ? data.horasEstimadas?.toString() : undefined,
-      horasReales: data.horasReales !== undefined ? data.horasReales?.toString() : undefined,
-      orden: data.orden !== undefined ? data.orden?.toString() : undefined,
-    };
+    const updates = buildUpdatePayload(data);
 
     const updated = await tareasRepository.update(id, updates);
     if (!updated) {
@@ -224,9 +203,7 @@ export class TareasService {
    */
   async delete(id: string, user: User): Promise<void> {
     // Verificar permisos: ADMIN, RRHH, MANAGER
-    if (!['ADMIN', 'RRHH', 'MANAGER'].includes(user.rol)) {
-      throw new HTTPException(403, { message: 'No autorizado' });
-    }
+    assertPrivileged(user);
 
     const tarea = await tareasRepository.findById(id);
     if (!tarea) {
@@ -266,19 +243,7 @@ export class TareasService {
     }
 
     // Validar transiciones de estado
-    const validTransitions: Record<EstadoTarea, EstadoTarea[]> = {
-      TODO: ['IN_PROGRESS', 'BLOCKED'],
-      IN_PROGRESS: ['REVIEW', 'BLOCKED', 'TODO'],
-      REVIEW: ['DONE', 'IN_PROGRESS'],
-      DONE: ['IN_PROGRESS'], // Reabrir tarea
-      BLOCKED: ['TODO', 'IN_PROGRESS'],
-    };
-
-    if (!validTransitions[tarea.estado].includes(estado)) {
-      throw new HTTPException(400, {
-        message: `Transición de estado no válida: ${tarea.estado} -> ${estado}`,
-      });
-    }
+    assertEstadoTransition(tarea.estado, estado);
 
     const updated = await tareasRepository.updateEstado(id, estado);
     if (!updated) {
@@ -293,9 +258,7 @@ export class TareasService {
    */
   async reasignar(id: string, usuarioId: string | null, user: User): Promise<Tarea> {
     // Verificar permisos: ADMIN, RRHH, MANAGER
-    if (!['ADMIN', 'RRHH', 'MANAGER'].includes(user.rol)) {
-      throw new HTTPException(403, { message: 'No autorizado' });
-    }
+    assertPrivileged(user);
 
     const tarea = await tareasRepository.findById(id);
     if (!tarea) {

@@ -78,8 +78,7 @@ export function getHeaderIntervals(
 export function calculateBarPosition(
   itemStart: Date,
   itemEnd: Date,
-  timeScale: d3.ScaleTime<number, number>,
-  config: GanttConfig
+  timeScale: d3.ScaleTime<number, number>
 ): { x: number; width: number; visible: boolean } {
   const scaleStart = timeScale.domain()[0];
   const scaleEnd = timeScale.domain()[1];

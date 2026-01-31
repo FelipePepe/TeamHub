@@ -16,7 +16,7 @@ import {
   useUpdateTimeEntry,
   useCopiarRegistros,
 } from '@/hooks/use-timetracking';
-import { useProyectos, useMisProyectos, type Proyecto, type Asignacion } from '@/hooks/use-proyectos';
+import { useProyectos, useMisProyectos } from '@/hooks/use-proyectos';
 import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
 import { format, startOfWeek, subWeeks } from 'date-fns';
@@ -52,13 +52,13 @@ export default function TimetrackingPage() {
   const copiarRegistros = useCopiarRegistros();
 
   const proyectos = proyectosData?.data ?? [];
-  const misProyectos = misProyectosData?.data ?? [];
+  const misProyectos = useMemo(() => misProyectosData?.data ?? [], [misProyectosData]);
   const registros = misRegistrosData?.data ?? [];
 
   // Timesheet data
   const weekStartStr = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
   const { data: semanaData, isLoading: isLoadingSemana } = useTimeEntriesSemana(weekStartStr);
-  const registrosSemana = semanaData?.data ?? [];
+  const registrosSemana = useMemo(() => semanaData?.data ?? [], [semanaData]);
 
   const handleCellChange = useCallback(
     async (proyectoId: string, fecha: string, horas: number) => {

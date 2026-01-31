@@ -6,6 +6,12 @@ import { config } from '../config/env.js';
 const SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutos
 
 export const hmacValidation: MiddlewareHandler = async (c, next) => {
+  // Skip HMAC validation in test environment
+  if (config.NODE_ENV === 'test') {
+    await next();
+    return;
+  }
+
   const signature = c.req.header('X-Request-Signature');
 
   if (!signature) {

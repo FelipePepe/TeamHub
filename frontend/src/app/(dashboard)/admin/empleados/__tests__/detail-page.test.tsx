@@ -1,12 +1,12 @@
 import React from 'react';
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { User } from '@/types';
 
 // Mock de date-fns ANTES de importar el componente
 vi.mock('date-fns', () => ({
-  format: vi.fn((date: Date | string, formatStr: string) => {
+  format: vi.fn((date: Date | string) => {
     const dateStr = typeof date === 'string' ? date : date.toISOString();
     if (dateStr === '1985-03-15') return '15 de marzo de 1985';
     if (dateStr.includes('2024-01-15')) return '15 de enero de 2024';
@@ -92,6 +92,8 @@ const mockEmpleado: User = {
 };
 
 describe('EmpleadoDetailPage', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
+
   beforeEach(() => {
     empleadosMocks.data = null;
     empleadosMocks.isLoading = false;
@@ -103,6 +105,12 @@ describe('EmpleadoDetailPage', () => {
     toastMocks.success.mockReset();
     toastMocks.error.mockReset();
     mockConfirm.mockReset();
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
+    consoleErrorSpy = null;
   });
 
   it('muestra acceso denegado sin permisos', () => {

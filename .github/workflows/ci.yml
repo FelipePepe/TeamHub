@@ -50,7 +50,14 @@ jobs:
         working-directory: backend
         run: npm run test
         env:
+          NODE_ENV: test
           DATABASE_URL: postgres://test:test@localhost:5432/teamhub_test
+          JWT_ACCESS_SECRET: test-secret-key-min-32-characters-long-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-min-32-characters-long
+          CORS_ORIGINS: http://localhost:5173
+          APP_BASE_URL: http://localhost:3001
+          MFA_ENCRYPTION_KEY: test-mfa-encryption-key-min-32-chars-long
+          API_HMAC_SECRET: test-api-hmac-secret-key-min-32-chars-long
       - name: Backend build
         if: ${{ hashFiles('backend/package.json') != '' }}
         working-directory: backend

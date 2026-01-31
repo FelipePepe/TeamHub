@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { GanttZoomControls } from './gantt-zoom-controls';
 import { GanttTooltip } from './gantt-tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Smartphone } from 'lucide-react';
 import {
   ESTADO_COLORS,
   ESTADO_LABELS,
@@ -252,8 +249,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                     const bar = calculateBarPosition(
                       proyecto.fechaInicio,
                       proyecto.fechaFin,
-                      timeScale,
-                      config
+                      timeScale
                     );
 
                     return (
@@ -342,8 +338,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           const asigBar = calculateBarPosition(
                             asig.fechaInicio,
                             asig.fechaFin,
-                            timeScale,
-                            config
+                            timeScale
                           );
                           if (!asigBar.visible) return null;
 

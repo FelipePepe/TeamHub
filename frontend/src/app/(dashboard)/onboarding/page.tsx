@@ -125,7 +125,7 @@ export default function ProcesosPage() {
     try {
       await cancelarProceso.mutateAsync({
         id,
-        data: motivo ? { motivo } : undefined,
+        data: motivo ? { motivo } : {},
       });
       toast.success(`Proceso de ${nombre} cancelado correctamente`);
     } catch (error) {

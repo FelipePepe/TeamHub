@@ -99,6 +99,7 @@ export const resetDatabase = async () => {
       "audit_log",
       "timetracking",
       "asignaciones",
+      "tareas",
       "proyectos",
       "tareas_onboarding",
       "procesos_onboarding",

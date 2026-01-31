@@ -300,6 +300,7 @@ describe('useProcesos', () => {
 
       await result.current.mutateAsync({
         id: 'proceso-1',
+        data: {},
       });
 
       expect(apiMocks.patch).toHaveBeenCalledWith(
@@ -471,7 +472,7 @@ describe('useProcesos', () => {
         wrapper: createWrapper(),
       });
 
-      await cancelarResult.current.mutateAsync({ id: 'proceso-1' });
+      await cancelarResult.current.mutateAsync({ id: 'proceso-1', data: {} });
       expect(apiMocks.patch).toHaveBeenCalledWith('/procesos/proceso-1/cancelar', {});
     });
   });

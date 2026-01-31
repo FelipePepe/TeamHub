@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { LoginForm } from '@/components/forms/login-form';
 import logoTeamHub from '@/assets/logo-teamhub.png';
 

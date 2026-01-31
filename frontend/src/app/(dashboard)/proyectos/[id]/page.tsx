@@ -32,6 +32,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
   useProyecto,
   useProyectoStats,
   useAsignaciones,
@@ -43,6 +49,9 @@ import {
 } from '@/hooks/use-proyectos';
 import { useEmpleados } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
+import { useTareasByProyecto } from '@/hooks/use-tareas';
+import { TaskList } from '@/components/tareas/task-list';
+import { TaskGanttChart } from '@/components/tareas/task-gantt-chart';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -67,11 +76,13 @@ export default function ProyectoDetailPage({
   const { data: proyecto, isLoading, error } = useProyecto(id);
   const { data: stats } = useProyectoStats(id);
   const { data: asignacionesData } = useAsignaciones(id);
+  const { data: tareasData, isLoading: tareasLoading } = useTareasByProyecto(id);
   const updateEstado = useUpdateProyectoEstado();
   const deleteProyecto = useDeleteProyecto();
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
   const empleados = empleadosData?.data ?? [];
   const asignaciones = asignacionesData?.data ?? [];
+  const tareas = tareasData?.data ?? [];
 
   const handleDelete = async () => {
     if (!proyecto || !confirm(`¿Eliminar el proyecto "${proyecto.nombre}"?`)) return;
@@ -163,7 +174,14 @@ export default function ProyectoDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <Tabs defaultValue="resumen" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="resumen">Resumen</TabsTrigger>
+          <TabsTrigger value="tareas">Tareas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="resumen" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -262,6 +280,13 @@ export default function ProyectoDetailPage({
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="tareas" className="space-y-6">
+          <TaskList proyectoId={id} tareas={tareas} isLoading={tareasLoading} />
+          <TaskGanttChart tareas={tareas} isLoading={tareasLoading} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -272,7 +297,7 @@ function AsignacionActions({ proyectoId, asigId }: { proyectoId: string; asigId:
   const handleDelete = async () => {
     if (!confirm('¿Eliminar esta asignación?')) return;
     try {
-      await deleteAsignacion.mutateAsync(asigId);
+      await deleteAsignacion.mutateAsync({ asigId });
       toast.success('Asignación eliminada');
     } catch {
       toast.error('Error al eliminar');

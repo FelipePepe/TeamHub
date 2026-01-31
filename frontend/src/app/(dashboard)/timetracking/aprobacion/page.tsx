@@ -223,7 +223,6 @@ export default function TimetrackingAprobacionPage() {
 
       {rechazarModal && (
         <RechazarModal
-          id={rechazarModal.id}
           comentario={rechazarModal.comentario}
           onComentarioChange={(c) => setRechazarModal((p) => (p ? { ...p, comentario: c } : null))}
           onConfirm={() => {
@@ -242,14 +241,12 @@ export default function TimetrackingAprobacionPage() {
 }
 
 function RechazarModal({
-  id,
   comentario,
   onComentarioChange,
   onConfirm,
   onCancel,
   isPending,
 }: {
-  id: string;
   comentario: string;
   onComentarioChange: (c: string) => void;
   onConfirm: () => void;

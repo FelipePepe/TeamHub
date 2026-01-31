@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { VersionDisplay } from '@/components/layout/version-display';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DashboardLayoutProps {
@@ -37,12 +38,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden w-full">
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
+      <VersionDisplay />
     </div>
   );
 }

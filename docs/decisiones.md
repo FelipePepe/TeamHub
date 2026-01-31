@@ -217,6 +217,27 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Implementar backup codes (10 codigos de un solo uso) generados al activar MFA, almacenados como hashes en \`mfa_recovery_codes\`, con endpoint de regeneracion en \`/perfil/mfa/backup-codes\`.
 - Consecuencias: Usuarios pueden recuperar acceso; requiere UI para mostrar codigos una sola vez y endpoint de regeneracion.
 
+### ADR-046: Endpoints de Perfil separados de Usuarios
+- Fecha: 2026-01-25
+- Estado: Aceptado
+- Contexto: Los usuarios autenticados necesitan gestionar su propio perfil sin requerir permisos de ADMIN/RRHH.
+- Decision: Crear grupo de endpoints \`/perfil\` (GET/PUT perfil, cambio password, avatar, gestion MFA) separados de \`/usuarios/{id}\` que requiere roles privilegiados.
+- Consecuencias: Mejor separacion de concerns; el usuario gestiona su perfil sin exponer endpoints administrativos.
+
+### ADR-047: Configuracion JWT con tiempos de expiracion
+- Fecha: 2026-01-25
+- Estado: Aceptado
+- Contexto: Se necesita definir la politica de expiracion de tokens JWT para balancear seguridad y UX.
+- Decision: Access token expira en 15 minutos (\`JWT_ACCESS_EXPIRES_IN=15m\`), refresh token en 30 dias (\`JWT_REFRESH_EXPIRES_IN=30d\`), MFA token en 5 minutos. Algoritmo HS256 con secrets minimo 32 caracteres.
+- Consecuencias: Sesiones seguras con refresh automatico; requiere interceptor en frontend para renovar tokens.
+
+### ADR-055: Bootstrap token para primer usuario
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
+- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
+- Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
+
 ### ADR-057: Generacion local de QR codes para MFA
 - Fecha: 2026-01-28
 - Estado: Aceptado
@@ -251,24 +272,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Backend: Middleware `hmac-validation.ts` valida antes del rate limiting
   - Frontend: Interceptor axios genera firma en cada request
 
-### ADR-060: Diseño Responsive y Accesibilidad (A11y)
-- Fecha: 2026-01-29
-- Estado: Aceptado
-- Contexto: El frontend no era responsive al cargar en móvil tras despliegue en Vercel, no cumplía con estándares de accesibilidad.
-- Decision: Implementar diseño responsive mobile-first con Tailwind breakpoints y cumplir con WCAG 2.1 AA.
-- Estándares:
-  - **Responsive**: Mobile-first desde 320px, breakpoints estándar (sm:640px, md:768px, lg:1024px)
-  - **A11y**: Navegación por teclado, ARIA labels, contraste 4.5:1, HTML semántico
-- Consecuencias:
-  - (+) Experiencia consistente en todos los dispositivos
-  - (+) Cumplimiento de estándares de accesibilidad
-  - (-) Requiere refactorizar componentes existentes
-- Implementación:
-  - Sheet UI component para menú móvil (slide-in)
-  - MobileSidebar con hamburger menu
-  - Grids responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
-  - ARIA: `aria-label`, `aria-current`, `aria-hidden`, `role="list"`
-
 ### ADR-061: Troubleshooting de Configuración HMAC
 - Fecha: 2026-01-29
 - Estado: Aceptado
@@ -290,46 +293,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - (+) Facilita auditorías y revisiones históricas
   - (+) Mantiene trazabilidad completa del proyecto
   - Los 3 archivos de agentes deben mantenerse sincronizados
-
-### ADR-063: Uso de D3.js para Visualizaciones de Datos
-- Fecha: 2026-01-29
-- Estado: Aceptado
-- Contexto: Los dashboards actualmente usan gráficos simples con CSS/HTML (divs con Tailwind). D3.js está instalado pero no se usa. Se necesita decidir la tecnología definitiva para visualizaciones.
-- Decision: Utilizar **D3.js v7** para todos los componentes de gráficos y visualizaciones de datos.
-- Alternativas consideradas:
-  1. CSS/HTML simple - Limitado, sin interactividad
-  2. **D3.js** - Elegida: Máxima flexibilidad y control
-  3. Recharts - Más simple pero menos personalizable
-  4. Chart.js - Muy simple pero limitado para casos avanzados
-- Consecuencias:
-  - (+) Gráficos interactivos (tooltips, hover, zoom)
-  - (+) Animaciones fluidas y profesionales
-  - (+) Amplia variedad de tipos de visualizaciones
-  - (+) Escalabilidad para datos complejos
-  - (+) Control total sobre renderizado y comportamiento
-  - (-) Mayor complejidad de código
-  - (-) Incremento en tamaño del bundle (~200KB)
-  - (-) Requiere conocimiento de D3.js
-- Implementación pendiente:
-  - Refactorizar `bar-chart.tsx` con D3.js
-  - Refactorizar `line-chart.tsx` con D3.js
-  - Añadir interactividad (tooltips, hover effects)
-  - Mantener responsive design y accesibilidad
-  - Tests de componentes actualizados
-
-### ADR-046: Endpoints de Perfil separados de Usuarios
-- Fecha: 2026-01-25
-- Estado: Aceptado
-- Contexto: Los usuarios autenticados necesitan gestionar su propio perfil sin requerir permisos de ADMIN/RRHH.
-- Decision: Crear grupo de endpoints \`/perfil\` (GET/PUT perfil, cambio password, avatar, gestion MFA) separados de \`/usuarios/{id}\` que requiere roles privilegiados.
-- Consecuencias: Mejor separacion de concerns; el usuario gestiona su perfil sin exponer endpoints administrativos.
-
-### ADR-047: Configuracion JWT con tiempos de expiracion
-- Fecha: 2026-01-25
-- Estado: Aceptado
-- Contexto: Se necesita definir la politica de expiracion de tokens JWT para balancear seguridad y UX.
-- Decision: Access token expira en 15 minutos (\`JWT_ACCESS_EXPIRES_IN=15m\`), refresh token en 30 dias (\`JWT_REFRESH_EXPIRES_IN=30d\`), MFA token en 5 minutos. Algoritmo HS256 con secrets minimo 32 caracteres.
-- Consecuencias: Sesiones seguras con refresh automatico; requiere interceptor en frontend para renovar tokens.
 
 ---
 
@@ -395,6 +358,136 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Implementar interceptor en Axios que detecta 401, intenta refresh con el refresh token, y reintenta la peticion original. Si falla el refresh, redirige a login.
 - Consecuencias: UX transparente para el usuario; requiere manejo cuidadoso de race conditions en peticiones concurrentes.
 
+### ADR-060: Diseño Responsive y Accesibilidad (A11y)
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: El frontend no era responsive al cargar en móvil tras despliegue en Vercel, no cumplía con estándares de accesibilidad.
+- Decision: Implementar diseño responsive mobile-first con Tailwind breakpoints y cumplir con WCAG 2.1 AA.
+- Estándares:
+  - **Responsive**: Mobile-first desde 320px, breakpoints estándar (sm:640px, md:768px, lg:1024px)
+  - **A11y**: Navegación por teclado, ARIA labels, contraste 4.5:1, HTML semántico
+- Consecuencias:
+  - (+) Experiencia consistente en todos los dispositivos
+  - (+) Cumplimiento de estándares de accesibilidad
+  - (-) Requiere refactorizar componentes existentes
+- Implementación:
+  - Sheet UI component para menú móvil (slide-in)
+  - MobileSidebar con hamburger menu
+  - Grids responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - ARIA: `aria-label`, `aria-current`, `aria-hidden`, `role="list"`
+
+### ADR-063: Uso de D3.js para Visualizaciones de Datos
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Los dashboards actualmente usan gráficos simples con CSS/HTML (divs con Tailwind). D3.js está instalado pero no se usa. Se necesita decidir la tecnología definitiva para visualizaciones.
+- Decision: Utilizar **D3.js v7** para todos los componentes de gráficos y visualizaciones de datos.
+- Alternativas consideradas:
+  1. CSS/HTML simple - Limitado, sin interactividad
+  2. **D3.js** - Elegida: Máxima flexibilidad y control
+  3. Recharts - Más simple pero menos personalizable
+  4. Chart.js - Muy simple pero limitado para casos avanzados
+- Consecuencias:
+  - (+) Gráficos interactivos (tooltips, hover, zoom)
+  - (+) Animaciones fluidas y profesionales
+  - (+) Amplia variedad de tipos de visualizaciones
+  - (+) Escalabilidad para datos complejos
+  - (+) Control total sobre renderizado y comportamiento
+  - (-) Mayor complejidad de código
+  - (-) Incremento en tamaño del bundle (~200KB)
+  - (-) Requiere conocimiento de D3.js
+- Implementación pendiente:
+  - Refactorizar `bar-chart.tsx` con D3.js
+  - Refactorizar `line-chart.tsx` con D3.js
+  - Añadir interactividad (tooltips, hover effects)
+  - Mantener responsive design y accesibilidad
+  - Tests de componentes actualizados
+
+### ADR-065: Implementación de visualizaciones D3.js para timetracking
+- Fecha: 2026-01-30
+- Estado: En progreso (50%)
+- Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
+- Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
+- Implementado:
+  - **Gantt Chart en Timetracking** ✅ (commit 9512ed4)
+    - Visualización de timeline de registros de tiempo por proyecto
+    - Zoom controls (fit, zoom in, zoom out)
+    - Tooltips interactivos con datos detallados
+    - Progress bars por proyecto
+    - Responsive design adaptativo
+    - Integración con hook `useTimetracking`
+    - Utilidades reutilizables en `lib/gantt-utils.ts`
+- Pendiente:
+  - [ ] Migrar `bar-chart.tsx` de dashboards a D3.js
+  - [ ] Migrar `line-chart.tsx` de dashboards a D3.js
+  - [ ] Añadir interactividad (hover effects, click events)
+  - [ ] Mantener accesibilidad (ARIA, keyboard navigation)
+  - [ ] Actualizar tests de componentes
+- Consecuencias:
+  - Visualizaciones más ricas e interactivas para usuarios
+  - Mejor UX en módulo de timetracking
+  - Patrón establecido para futuras visualizaciones
+  - Incremento moderado de bundle size (D3.js es modular)
+  - Requiere conocimiento de D3.js para mantenimiento
+
+### ADR-067: Gantt Chart responsive con ancho dinámico
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: El Gantt Chart tenía ancho fijo de 800px y mostraba mensaje "Vista no disponible en móvil", limitando accesibilidad.
+- Decision: Implementar ancho dinámico con `useEffect` detectando tamaño del contenedor, responsive en todos los dispositivos (mobile/tablet/desktop).
+- Consecuencias:
+  - (+) Accesible desde cualquier dispositivo
+  - (+) Mejor UX con scroll horizontal automático
+  - (+) Cumple estándares de responsive design (ADR-060)
+  - (-) Requiere recálculo en cada resize (optimizado con debounce implícito)
+
+### ADR-068: Optimización espaciado cabeceras Gantt en vista año
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: En vista año, el Gantt mostraba 12 meses juntos causando sobreposición visual de etiquetas.
+- Decision: Filtrar meses alternos (mostrar solo 6: ene, mar, may, jul, sep, nov) y usar formato corto ("ene 26" vs "ene 2026").
+- Consecuencias:
+  - (+) Mejor legibilidad en vista año
+  - (+) Sin cambios en vistas mes y trimestre
+  - (-) Pérdida de granularidad mensual (aceptable para vista anual)
+
+### ADR-070: Hotfix para SelectItem empty value
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: Error crítico en producción (`/admin/plantillas/crear`): Radix UI Select no permite `<SelectItem value="">`.
+- Decision: Usar sentinel values válidos (`"all"`, `"any"`) en lugar de strings vacíos, mapeando a `undefined` en handlers.
+- Consecuencias:
+  - (+) Fix inmediato para error bloqueante en producción
+  - (+) Patrón reutilizable para otros selects opcionales
+  - Requiere validación de todos los Select components del proyecto
+
+### ADR-072: Dark Mode Toggle y Version Display
+
+**Fecha:** 2026-01-31  
+**Estado:** ✅ Implementado  
+**Contexto:** Mejora de UX solicitada para mostrar versión de la app y permitir cambio de tema visual.
+
+**Decisión:**
+- **Dark Mode:**
+  - Implementado con `next-themes` para persistencia automática
+  - ThemeProvider en root layout con soporte System/Light/Dark
+  - ThemeToggle dropdown en navbar con iconos Sun/Moon (lucide-react)
+  - Configuración: `darkMode: ["class"]` en tailwind.config.ts
+- **Version Display:**
+  - Componente fijo bottom-right
+  - Variable de entorno `NEXT_PUBLIC_APP_VERSION=1.3.0`
+  - Estilo discreto: `text-xs text-muted-foreground`
+
+**Consecuencias:**
+- ✅ Mejora accesibilidad y comodidad visual
+- ✅ Preferencia de tema persistente en localStorage
+- ✅ Versión visible para debugging y soporte
+- 📊 +96 líneas (11 archivos modificados, 3 componentes nuevos)
+
+**Implementación:**
+- `ThemeProvider`, `ThemeToggle`, `VersionDisplay`
+- Integración en layout y navbar
+- next-themes dependency añadida
+
 ---
 
 ## 6. Backend
@@ -419,6 +512,55 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Contexto: El backend tenia todas las dependencias con version \`"latest"\`, lo que rompe la reproducibilidad del build y puede causar errores inesperados.
 - Decision: Fijar todas las versiones de dependencias con prefijo \`^\` (ej: \`"hono": "^4.6.16"\`) en lugar de \`"latest"\`.
 - Consecuencias: Builds reproducibles y controlados; requiere actualizacion manual periodica de dependencias.
+
+### ADR-054: Tipos estrictos para validators Zod
+- Fecha: 2026-01-26
+- Estado: Aceptado
+- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
+- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
+- Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
+
+### ADR-071: Sistema de Gestión de Tareas Jerárquico (Jira-like)
+
+**Fecha:** 2026-01-31  
+**Estado:** ✅ Implementado  
+**Contexto:** Necesidad de gestión de tareas a nivel proyecto con visualización Gantt jerárquica similar a Jira, permitiendo drill-down desde proyectos a tareas individuales.
+
+**Decisión:**
+- **Arquitectura:** Full-stack task management con Gantt Charts jerárquicos
+- **Modelo de datos:**
+  - Tabla `tareas` con FKs a proyectos, usuarios, self-referencing para dependencias
+  - Enums: `estado_tarea` (TODO/IN_PROGRESS/REVIEW/DONE/BLOCKED), `prioridad_tarea` (LOW/MEDIUM/HIGH/URGENT)
+  - Campos: título, descripción, fechas, horas estimadas/reales, orden, dependencias
+  - Soft delete con `deleted_at`
+- **Backend:**
+  - Repository pattern con 8 operaciones CRUD
+  - Service layer con validaciones de negocio y permisos por rol
+  - 8 endpoints REST: list by proyecto/usuario, get, create, update, updateEstado, reasignar, delete
+  - Validaciones: fechas coherentes, prevención dependencias circulares, transiciones de estado
+- **Frontend:**
+  - TaskGanttChart con swimlanes por usuario, color-coding por estado
+  - TaskList con filtros (estado, usuario), badges, menú de acciones
+  - TaskFormModal para crear/editar con validación react-hook-form + zod
+  - Tab "Tareas" integrado en página detalle de proyecto
+- **Testing:**
+  - 114 tests (36 repository + 44 service + 34 frontend hooks)
+  - Coverage estratégico: 100% repository (CORE), 80%+ service/hooks (IMPORTANT)
+
+**Consecuencias:**
+- ✅ Gestión de tareas completa a nivel proyecto
+- ✅ Visualización Gantt jerárquica reutilizando infraestructura D3.js existente
+- ✅ Permisos granulares: ADMIN/MANAGER gestionan todas, EMPLEADO solo asignadas
+- ✅ Trazabilidad con dependencias entre tareas
+- ✅ 100% tests pasando para funcionalidad de tareas
+- 📊 +5044 líneas de código (28 archivos nuevos/modificados)
+
+**Implementación:**
+- **Backend:** tareas-repository.ts, tareas.service.ts, tareas.routes.ts, tareas.validators.ts, tareas schema
+- **Frontend:** use-tareas.ts hook, TaskGanttChart, TaskList, TaskFormModal, Tarea types
+- **UI Components:** table, dropdown-menu (shadcn/ui)
+- **Tests:** tareas-repository.test.ts, tareas.service.test.ts, use-tareas.test.tsx
+- **Migración:** SQL directo para crear tabla + enums en BD prod y test
 
 ---
 
@@ -465,6 +607,17 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Contexto: La revision de codigo detecto multiples warnings de ESLint (imports node:*, optional chaining, Set vs Array, etc.).
 - Decision: Corregir todos los warnings identificados en backend y frontend para mantener codigo limpio y consistente con las reglas establecidas.
 - Consecuencias: Codigo mas mantenible; requiere tiempo dedicado a refactoring sin cambios funcionales.
+
+### ADR-066: Scripts de seed data para testing
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: El Gantt Chart y Timesheet requieren datos de prueba realistas con proyectos con fechas, usuarios asignados y registros de tiempo para validar visualizaciones.
+- Decision: Crear scripts SQL reutilizables (`seed-proyectos-gantt.sql`, `seed-complete-data.sql`) con helper bash y documentación completa.
+- Consecuencias:
+  - (+) Testing manual de visualizaciones D3.js más fácil
+  - (+) Onboarding rápido para desarrolladores nuevos
+  - (+) Scripts reutilizables en diferentes entornos
+  - (-) Requiere mantener sincronizados con esquema de BD
 
 ---
 
@@ -518,20 +671,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Contexto: TypeScript con \`moduleResolution: node16/nodenext\` requiere extensiones explicitas en imports relativos para ESM.
 - Decision: Añadir extensiones \`.js\` a todos los imports relativos en el backend para compatibilidad con ESM nativo.
 - Consecuencias: Codigo compatible con Node.js ESM; requiere atencion al añadir nuevos imports.
-
-### ADR-054: Tipos estrictos para validators Zod
-- Fecha: 2026-01-26
-- Estado: Aceptado
-- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
-- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
-- Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
-
-### ADR-055: Bootstrap token para primer usuario
-- Fecha: 2026-01-26
-- Estado: Aceptado
-- Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
-- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
-- Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
 
 ### ADR-056: Sistema colaborativo multi-LLM
 - Fecha: 2026-01-27
@@ -606,32 +745,17 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Fase 4 y 5 completadas al 100% en menos de 24 horas
 - Co-autoría: Claude Opus 4.5 reconocido en commits relevantes
 
-### ADR-065: Implementación de visualizaciones D3.js para timetracking
-- Fecha: 2026-01-30
-- Estado: En progreso (50%)
-- Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
-- Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
-- Implementado:
-  - **Gantt Chart en Timetracking** ✅ (commit 9512ed4)
-    - Visualización de timeline de registros de tiempo por proyecto
-    - Zoom controls (fit, zoom in, zoom out)
-    - Tooltips interactivos con datos detallados
-    - Progress bars por proyecto
-    - Responsive design adaptativo
-    - Integración con hook `useTimetracking`
-    - Utilidades reutilizables en `lib/gantt-utils.ts`
-- Pendiente:
-  - [ ] Migrar `bar-chart.tsx` de dashboards a D3.js
-  - [ ] Migrar `line-chart.tsx` de dashboards a D3.js
-  - [ ] Añadir interactividad (hover effects, click events)
-  - [ ] Mantener accesibilidad (ARIA, keyboard navigation)
-  - [ ] Actualizar tests de componentes
+### ADR-069: Limpieza hooks Husky para v10
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: Husky 9.0.11 mostraba warnings DEPRECATED sobre líneas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"` que serán removidas en v10.
+- Decision: Eliminar esas líneas de `.husky/pre-commit`, `.husky/pre-push`, `.husky/commit-msg` ya que son opcionales en v9.
 - Consecuencias:
-  - Visualizaciones más ricas e interactivas para usuarios
-  - Mejor UX en módulo de timetracking
-  - Patrón establecido para futuras visualizaciones
-  - Incremento moderado de bundle size (D3.js es modular)
-  - Requiere conocimiento de D3.js para mantenimiento
+  - (+) Sin warnings en cada operación git
+  - (+) Preparados para Husky v10
+  - (+) Hooks funcionan idénticamente
+  - Sin impacto negativo
+
 ---
 
 ## Registro de Ejecución
@@ -817,80 +941,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 ---
 
-## ADR-071: Sistema de Gestión de Tareas Jerárquico (Jira-like)
-
-**Fecha:** 2026-01-31  
-**Estado:** ✅ Implementado  
-**Contexto:** Necesidad de gestión de tareas a nivel proyecto con visualización Gantt jerárquica similar a Jira, permitiendo drill-down desde proyectos a tareas individuales.
-
-**Decisión:**
-- **Arquitectura:** Full-stack task management con Gantt Charts jerárquicos
-- **Modelo de datos:**
-  - Tabla `tareas` con FKs a proyectos, usuarios, self-referencing para dependencias
-  - Enums: `estado_tarea` (TODO/IN_PROGRESS/REVIEW/DONE/BLOCKED), `prioridad_tarea` (LOW/MEDIUM/HIGH/URGENT)
-  - Campos: título, descripción, fechas, horas estimadas/reales, orden, dependencias
-  - Soft delete con `deleted_at`
-- **Backend:**
-  - Repository pattern con 8 operaciones CRUD
-  - Service layer con validaciones de negocio y permisos por rol
-  - 8 endpoints REST: list by proyecto/usuario, get, create, update, updateEstado, reasignar, delete
-  - Validaciones: fechas coherentes, prevención dependencias circulares, transiciones de estado
-- **Frontend:**
-  - TaskGanttChart con swimlanes por usuario, color-coding por estado
-  - TaskList con filtros (estado, usuario), badges, menú de acciones
-  - TaskFormModal para crear/editar con validación react-hook-form + zod
-  - Tab "Tareas" integrado en página detalle de proyecto
-- **Testing:**
-  - 114 tests (36 repository + 44 service + 34 frontend hooks)
-  - Coverage estratégico: 100% repository (CORE), 80%+ service/hooks (IMPORTANT)
-
-**Consecuencias:**
-- ✅ Gestión de tareas completa a nivel proyecto
-- ✅ Visualización Gantt jerárquica reutilizando infraestructura D3.js existente
-- ✅ Permisos granulares: ADMIN/MANAGER gestionan todas, EMPLEADO solo asignadas
-- ✅ Trazabilidad con dependencias entre tareas
-- ✅ 100% tests pasando para funcionalidad de tareas
-- 📊 +5044 líneas de código (28 archivos nuevos/modificados)
-
-**Implementación:**
-- **Backend:** tareas-repository.ts, tareas.service.ts, tareas.routes.ts, tareas.validators.ts, tareas schema
-- **Frontend:** use-tareas.ts hook, TaskGanttChart, TaskList, TaskFormModal, Tarea types
-- **UI Components:** table, dropdown-menu (shadcn/ui)
-- **Tests:** tareas-repository.test.ts, tareas.service.test.ts, use-tareas.test.tsx
-- **Migración:** SQL directo para crear tabla + enums en BD prod y test
-
----
-
-## ADR-072: Dark Mode Toggle y Version Display
-
-**Fecha:** 2026-01-31  
-**Estado:** ✅ Implementado  
-**Contexto:** Mejora de UX solicitada para mostrar versión de la app y permitir cambio de tema visual.
-
-**Decisión:**
-- **Dark Mode:**
-  - Implementado con `next-themes` para persistencia automática
-  - ThemeProvider en root layout con soporte System/Light/Dark
-  - ThemeToggle dropdown en navbar con iconos Sun/Moon (lucide-react)
-  - Configuración: `darkMode: ["class"]` en tailwind.config.ts
-- **Version Display:**
-  - Componente fijo bottom-right
-  - Variable de entorno `NEXT_PUBLIC_APP_VERSION=1.3.0`
-  - Estilo discreto: `text-xs text-muted-foreground`
-
-**Consecuencias:**
-- ✅ Mejora accesibilidad y comodidad visual
-- ✅ Preferencia de tema persistente en localStorage
-- ✅ Versión visible para debugging y soporte
-- 📊 +96 líneas (11 archivos modificados, 3 componentes nuevos)
-
-**Implementación:**
-- `ThemeProvider`, `ThemeToggle`, `VersionDisplay`
-- Integración en layout y navbar
-- next-themes dependency añadida
-
----
-
 ## 📋 Tareas Completadas - Release 1.3.0
 
 **Sistema de Tareas (31/01/2026)**
@@ -932,60 +982,72 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Archivos:** `frontend/src/app/(dashboard)/admin/plantillas/crear/page.tsx`
   - **Release:** v1.2.1 (hotfix) desplegado en main
 
-### ADR-066: Scripts de seed data para testing
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: El Gantt Chart y Timesheet requieren datos de prueba realistas con proyectos con fechas, usuarios asignados y registros de tiempo para validar visualizaciones.
-- Decision: Crear scripts SQL reutilizables (`seed-proyectos-gantt.sql`, `seed-complete-data.sql`) con helper bash y documentación completa.
-- Consecuencias:
-  - (+) Testing manual de visualizaciones D3.js más fácil
-  - (+) Onboarding rápido para desarrolladores nuevos
-  - (+) Scripts reutilizables en diferentes entornos
-  - (-) Requiere mantener sincronizados con esquema de BD
+### ADR-075: Configuración de GitHub Branch Protection y Rulesets
+- **Fecha:** 2026-01-31
+- **Estado:** Aceptado
+- **Contexto:** Se necesitaba configurar protecciones para `main` y `develop` que permitieran GitFlow sin requerir aprobaciones manuales de PRs propios
+- **Decisión:**
+  - Configurar GitHub Rulesets para `main` y `develop`:
+    - Requiere PR para mergear (no push directo)
+    - Requiere CI passing antes del merge
+    - Bloquea force pushes y deletions
+    - **NO requiere aprobación manual** (0 approvals) - permite mergear PRs propios
+  - Mantener hooks de Husky activos para prevenir push directo desde línea de comandos
+  - Configurar branch protection adicional via GitHub API
+- **Consecuencias:**
+  - ✅ GitFlow funciona sin fricción para desarrollador único
+  - ✅ Protección contra cambios accidentales directos
+  - ✅ CI obligatorio antes de mergear
+  - ✅ Permite auto-merge de PRs cuando CI pasa
+  - ⚠️ Requiere configuración manual si se añaden colaboradores (incrementar approvals)
+- **Implementación:**
+  - Ruleset ID: 12321540 "Protect main & develop"
+  - Scope: `refs/heads/main`, `refs/heads/develop`
+  - Rules: `deletion`, `non_fast_forward`, `pull_request` (0 approvals)
+  - Branch protection: CI check "ci" requerido, strict mode enabled
 
-### ADR-067: Gantt Chart responsive con ancho dinámico
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: El Gantt Chart tenía ancho fijo de 800px y mostraba mensaje "Vista no disponible en móvil", limitando accesibilidad.
-- Decision: Implementar ancho dinámico con `useEffect` detectando tamaño del contenedor, responsive en todos los dispositivos (mobile/tablet/desktop).
-- Consecuencias:
-  - (+) Accesible desde cualquier dispositivo
-  - (+) Mejor UX con scroll horizontal automático
-  - (+) Cumple estándares de responsive design (ADR-060)
-  - (-) Requiere recálculo en cada resize (optimizado con debounce implícito)
-
-### ADR-068: Optimización espaciado cabeceras Gantt en vista año
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: En vista año, el Gantt mostraba 12 meses juntos causando sobreposición visual de etiquetas.
-- Decision: Filtrar meses alternos (mostrar solo 6: ene, mar, may, jul, sep, nov) y usar formato corto ("ene 26" vs "ene 2026").
-- Consecuencias:
-  - (+) Mejor legibilidad en vista año
-  - (+) Sin cambios en vistas mes y trimestre
-  - (-) Pérdida de granularidad mensual (aceptable para vista anual)
-
-### ADR-069: Limpieza hooks Husky para v10
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: Husky 9.0.11 mostraba warnings DEPRECATED sobre líneas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"` que serán removidas en v10.
-- Decision: Eliminar esas líneas de `.husky/pre-commit`, `.husky/pre-push`, `.husky/commit-msg` ya que son opcionales en v9.
-- Consecuencias:
-  - (+) Sin warnings en cada operación git
-  - (+) Preparados para Husky v10
-  - (+) Hooks funcionan idénticamente
-  - Sin impacto negativo
-
-### ADR-070: Hotfix para SelectItem empty value
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: Error crítico en producción (`/admin/plantillas/crear`): Radix UI Select no permite `<SelectItem value="">`.
-- Decision: Usar sentinel values válidos (`"all"`, `"any"`) en lugar de strings vacíos, mapeando a `undefined` en handlers.
-- Consecuencias:
-  - (+) Fix inmediato para error bloqueante en producción
-  - (+) Patrón reutilizable para otros selects opcionales
-  - Requiere validación de todos los Select components del proyecto
-
----
+### ADR-076: Release 1.3.0 - Sistema de Tareas y Modularización
+- **Fecha:** 2026-01-31
+- **Estado:** Desplegado
+- **Contexto:** Release mayor con sistema de gestión de tareas, refactorización de código y mejoras de UX
+- **Contenido de la Release:**
+  - **Sistema de Tareas:**
+    - Nueva tabla `tareas` con migración 0002
+    - Repository pattern: `TareasRepository` con 36 tests (100% coverage)
+    - Service layer: `TareasService` con lógica de negocio y permisos
+    - API REST: 5 endpoints para CRUD de tareas
+    - Frontend: TaskList, TaskFormModal, TaskGanttChart
+    - Hook `use-tareas` con 717 tests
+  - **Modularización Backend:**
+    - Separación de handlers, schemas, helpers en subcarpetas
+    - Routes modularizadas: auth, dashboard, plantillas, procesos, proyectos, timetracking, usuarios
+    - Mappers organizados por dominio
+    - Mejora de mantenibilidad y escalabilidad
+  - **Mejoras Frontend:**
+    - Dark mode con ThemeProvider y ThemeToggle
+    - Componentes UI nuevos: Table, DropdownMenu
+    - VersionDisplay component en header
+  - **Testing:**
+    - Total: 226 tests (100 backend + 126 frontend)
+    - Nuevos tests: auth-service, mfa-service, tareas-repository, tareas.service
+    - Tests de integración para hooks: use-auth, use-departamentos, use-proyectos, use-tareas, use-timetracking
+    - Performance tests agregados
+- **Decisión Técnica de Tests:**
+  - **Problema:** CI fallaba con "relation tareas does not exist"
+  - **Causa raíz:** Tests de `tareas-repository` no llamaban `migrateTestDatabase()` en `beforeAll`
+  - **Solución:** Agregado `beforeAll` con `applyTestEnv()` y `migrateTestDatabase()`
+  - **Problema adicional:** Tipo de dato `orden` (TEXT) devuelto como number en local vs string en CI
+  - **Solución:** Normalización con `String(result.orden)` para comparación agnóstica de tipo
+- **GitFlow Ejecutado:**
+  - PR #78: release/1.3.0 → main (merged 2026-01-31 16:56:35 UTC)
+  - PR #79: release/1.3.0 → develop (merged 2026-01-31 16:58:33 UTC)
+  - Tag: v1.3.0 creado y pusheado
+- **Consecuencias:**
+  - ✅ Codebase más modular y mantenible
+  - ✅ Sistema de tareas funcional end-to-end
+  - ✅ CI/CD robusto con 226 tests passing
+  - ✅ UX mejorada con dark mode
+  - 📈 +13,903 líneas de código, -4,893 líneas eliminadas (refactorización)
 
 ## Progreso General del Proyecto
 
@@ -996,18 +1058,21 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Fase 3: Onboarding ✅ 100%
   - Fase 4: Proyectos ✅ 100%
   - Fase 5: Timetracking ✅ 100%
-- **Tests:** 124/124 pasando (20 backend + 104 frontend)
+  - **Fase 6: Sistema de Tareas ✅ 100%** (agregada en v1.3.0)
+- **Tests:** 226/226 pasando (100 backend + 126 frontend)
 - **Cobertura:** Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 149 endpoints documentados
+- **API:** OpenAPI v1.0.0 con 154 endpoints documentados (+5 de tareas)
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal
   - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
   - v1.2.1: Hotfix SelectItem empty value
+  - **v1.3.0: Sistema de tareas + modularización backend + dark mode**
 
 ### Próximos pasos
 - Monitoreo de performance en producción
 - Optimización de queries N+1 si se detectan
 - Implementación de cache Redis (opcional)
 - Métricas de uso real con analytics
+- Documentación de arquitectura modular en ADRs

@@ -807,6 +807,103 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Tipos:** types/timetracking.ts con interfaces para componentes
   - **Líneas de código:** +2326 líneas
   - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).
+
+---
+
+## ADR-071: Sistema de Gestión de Tareas Jerárquico (Jira-like)
+
+**Fecha:** 2026-01-31  
+**Estado:** ✅ Implementado  
+**Contexto:** Necesidad de gestión de tareas a nivel proyecto con visualización Gantt jerárquica similar a Jira, permitiendo drill-down desde proyectos a tareas individuales.
+
+**Decisión:**
+- **Arquitectura:** Full-stack task management con Gantt Charts jerárquicos
+- **Modelo de datos:**
+  - Tabla `tareas` con FKs a proyectos, usuarios, self-referencing para dependencias
+  - Enums: `estado_tarea` (TODO/IN_PROGRESS/REVIEW/DONE/BLOCKED), `prioridad_tarea` (LOW/MEDIUM/HIGH/URGENT)
+  - Campos: título, descripción, fechas, horas estimadas/reales, orden, dependencias
+  - Soft delete con `deleted_at`
+- **Backend:**
+  - Repository pattern con 8 operaciones CRUD
+  - Service layer con validaciones de negocio y permisos por rol
+  - 8 endpoints REST: list by proyecto/usuario, get, create, update, updateEstado, reasignar, delete
+  - Validaciones: fechas coherentes, prevención dependencias circulares, transiciones de estado
+- **Frontend:**
+  - TaskGanttChart con swimlanes por usuario, color-coding por estado
+  - TaskList con filtros (estado, usuario), badges, menú de acciones
+  - TaskFormModal para crear/editar con validación react-hook-form + zod
+  - Tab "Tareas" integrado en página detalle de proyecto
+- **Testing:**
+  - 114 tests (36 repository + 44 service + 34 frontend hooks)
+  - Coverage estratégico: 100% repository (CORE), 80%+ service/hooks (IMPORTANT)
+
+**Consecuencias:**
+- ✅ Gestión de tareas completa a nivel proyecto
+- ✅ Visualización Gantt jerárquica reutilizando infraestructura D3.js existente
+- ✅ Permisos granulares: ADMIN/MANAGER gestionan todas, EMPLEADO solo asignadas
+- ✅ Trazabilidad con dependencias entre tareas
+- ✅ 100% tests pasando para funcionalidad de tareas
+- 📊 +5044 líneas de código (28 archivos nuevos/modificados)
+
+**Implementación:**
+- **Backend:** tareas-repository.ts, tareas.service.ts, tareas.routes.ts, tareas.validators.ts, tareas schema
+- **Frontend:** use-tareas.ts hook, TaskGanttChart, TaskList, TaskFormModal, Tarea types
+- **UI Components:** table, dropdown-menu (shadcn/ui)
+- **Tests:** tareas-repository.test.ts, tareas.service.test.ts, use-tareas.test.tsx
+- **Migración:** SQL directo para crear tabla + enums en BD prod y test
+
+---
+
+## ADR-072: Dark Mode Toggle y Version Display
+
+**Fecha:** 2026-01-31  
+**Estado:** ✅ Implementado  
+**Contexto:** Mejora de UX solicitada para mostrar versión de la app y permitir cambio de tema visual.
+
+**Decisión:**
+- **Dark Mode:**
+  - Implementado con `next-themes` para persistencia automática
+  - ThemeProvider en root layout con soporte System/Light/Dark
+  - ThemeToggle dropdown en navbar con iconos Sun/Moon (lucide-react)
+  - Configuración: `darkMode: ["class"]` en tailwind.config.ts
+- **Version Display:**
+  - Componente fijo bottom-right
+  - Variable de entorno `NEXT_PUBLIC_APP_VERSION=1.3.0`
+  - Estilo discreto: `text-xs text-muted-foreground`
+
+**Consecuencias:**
+- ✅ Mejora accesibilidad y comodidad visual
+- ✅ Preferencia de tema persistente en localStorage
+- ✅ Versión visible para debugging y soporte
+- 📊 +96 líneas (11 archivos modificados, 3 componentes nuevos)
+
+**Implementación:**
+- `ThemeProvider`, `ThemeToggle`, `VersionDisplay`
+- Integración en layout y navbar
+- next-themes dependency añadida
+
+---
+
+## 📋 Tareas Completadas - Release 1.3.0
+
+**Sistema de Tareas (31/01/2026)**
+- ✅ Diseño schema tareas con FKs y enums
+- ✅ Migración SQL aplicada a prod y test databases
+- ✅ Repository implementado (8 métodos CRUD)
+- ✅ Service con validaciones y permisos
+- ✅ 8 endpoints REST registrados
+- ✅ Frontend: tipos, hooks, componentes Gantt/List/Form
+- ✅ 114 tests completos (100% passing)
+- ✅ Integración con tabs en proyecto detail page
+- ✅ Dark mode toggle con next-themes
+- ✅ Version display en footer
+- ✅ Fix HMAC validation bypass en tests
+- ✅ Fix dashboard test timeout
+
+**Tests:**
+- Backend: 96/100 tests passing (4 fallos pre-existentes intermitentes)
+- Frontend: 139/139 tests passing  
+- **Sistema tareas: 114/114 tests passing ✅**
 - [x] Crear scripts de seed data para testing de visualizaciones - PR #70 (2026-01-31)
   - **seed-proyectos-gantt.sql:** 6 proyectos, 6 asignaciones, 15 registros timetracking
   - **seed-complete-data.sql:** 4 departamentos, 6 usuarios con roles, 10 proyectos, 37 registros

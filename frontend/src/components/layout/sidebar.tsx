@@ -14,9 +14,9 @@ export function Sidebar() {
   const navItems = getNavigationForRole(user?.rol);
 
   return (
-    <aside className="hidden md:flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
+    <aside className="hidden md:flex h-screen w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-slate-200 px-6">
+      <div className="flex h-16 items-center border-b border-slate-200 px-6 dark:border-slate-800">
         <Link href="/dashboard" className="flex items-center">
           <Image
             src={logoTeamHub}
@@ -43,8 +43,8 @@ export function Sidebar() {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-slate-100 text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50'
                   )}
                   aria-current={isActive ? 'page' : undefined}
                 >
@@ -58,8 +58,8 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-200 p-4">
-        <p className="text-xs text-slate-500">TeamHub v1.0.0</p>
+      <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+        <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v1.0.0</p>
       </div>
     </aside>
   );

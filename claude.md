@@ -26,6 +26,11 @@ Antes de proponer cambios, consulta estos recursos en orden:
 *   **Gestión de Secretos:** Prohibido subir secretos al repo. Usa `.env` (ignorado por Git) y `.env.example` como plantilla.
 *   **Headers de Seguridad:** Implementar CSP estricto, `X-Frame-Options: DENY` y forzar HTTPS.
 *   **Inyección:** Usa siempre **Prepared Statements** o el escapado automático de los frameworks para prevenir inyecciones SQL/XSS.
+*   **MFA (Multi-Factor Authentication):** 
+    *   **REGLA ABSOLUTA:** NUNCA deshabilitar MFA bajo ninguna circunstancia.
+    *   Si un usuario pierde acceso a MFA, usar códigos de recuperación o regenerarlos desde la base de datos.
+    *   MFA es una capa crítica de seguridad que NO se puede comprometer.
+    *   Cualquier solicitud de deshabilitar MFA debe ser rechazada y documentada.
 
 ## 5. GitFlow y Convenciones de Git
 
@@ -59,6 +64,16 @@ Antes de proponer cambios, consulta estos recursos en orden:
 *   **bugfix/xxx:** Correcciones no urgentes. Se crean desde `develop` y se mergean a `develop`.
 *   **release/x.x.x:** Preparación de release. Se crea desde `develop`, se mergea a `main` y `develop`.
 *   **hotfix/xxx:** Correcciones urgentes en producción. Se crea desde `main`, se mergea a `main` y `develop`.
+
+### ⚠️ REGLA CRÍTICA: Release Branches son INMUTABLES después del merge
+**UNA VEZ MERGEADA UNA RELEASE BRANCH A `main` Y `develop`, NUNCA MÁS HACER COMMITS EN ESA RELEASE:**
+- ❌ **PROHIBIDO:** Hacer commits en `release/x.x.x` después de mergear los PRs
+- ❌ **PROHIBIDO:** Pushear cambios adicionales a una release ya mergeada
+- ✅ **CORRECTO:** Si se necesitan cambios después del merge:
+  - Para producción urgente: Crear `hotfix/nombre` desde `main`
+  - Para desarrollo: Crear `bugfix/nombre` o `feature/nombre` desde `develop`
+- **Razón:** Los commits en release después del merge quedan "huérfanos" y no están en `main` ni `develop`
+- **Consecuencia:** Pérdida de trazabilidad y código desincronizado entre ramas
 
 ### Convención de Commits (Conventional Commits)
 Formato: `tipo(scope): descripción`

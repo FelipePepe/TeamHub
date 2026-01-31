@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { GanttZoomControls } from './gantt-zoom-controls';
@@ -37,6 +37,7 @@ interface TooltipState {
 
 export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
   const [zoom, setZoom] = useState<GanttZoomLevel>('quarter');
+  const [chartWidth, setChartWidth] = useState(800);
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     x: 0,
@@ -50,8 +51,21 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
   config.startDate = start;
   config.endDate = end;
 
-  const chartWidth = 800;
   const labelWidth = 180;
+
+  // Responsive width based on container
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        setChartWidth(Math.max(width, 600)); // Mínimo 600px
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   const timeScale = useMemo(
     () => createTimeScale(config.startDate, config.endDate, chartWidth - labelWidth),
@@ -117,41 +131,28 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
   }
 
   return (
-    <>
-      {/* Mobile message */}
-      <div className="flex flex-col items-center justify-center gap-4 py-12 text-center md:hidden">
-        <Smartphone className="h-12 w-12 text-slate-400" />
-        <div>
-          <p className="font-medium text-slate-700">Vista no disponible en móvil</p>
-          <p className="text-sm text-slate-500">
-            El diagrama Gantt requiere una pantalla más grande
-          </p>
-        </div>
-      </div>
-
-      {/* Desktop chart */}
-      <div className="hidden md:block">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Diagrama Gantt</CardTitle>
-            <GanttZoomControls zoom={zoom} onZoomChange={setZoom} />
-          </CardHeader>
-          <CardContent>
-            {proyectos.length === 0 ? (
-              <div className="flex h-40 items-center justify-center text-sm text-slate-500">
-                No hay proyectos con fechas definidas
-              </div>
-            ) : (
-              <div
-                ref={containerRef}
-                className="relative overflow-x-auto"
-                onMouseMove={handleMouseMove}
-              >
-                <svg
-                  width={chartWidth}
-                  height={totalHeight}
-                  className="min-w-full"
-                >
+    <Card>
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardTitle>Diagrama Gantt</CardTitle>
+        <GanttZoomControls zoom={zoom} onZoomChange={setZoom} />
+      </CardHeader>
+      <CardContent>
+        {proyectos.length === 0 ? (
+          <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+            No hay proyectos con fechas definidas
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="relative w-full overflow-x-auto"
+            onMouseMove={handleMouseMove}
+          >
+            <svg
+              width={chartWidth}
+              height={totalHeight}
+              className="min-w-full"
+              style={{ maxWidth: '100%' }}
+            >
                   {/* Background grid */}
                   <g>
                     {headerIntervals.map((interval, i) => {
@@ -406,7 +407,5 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
             )}
           </CardContent>
         </Card>
-      </div>
-    </>
   );
 }

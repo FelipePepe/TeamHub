@@ -61,10 +61,16 @@ export function getHeaderIntervals(
         label: format(date, 'd MMM', { locale: es }),
       }));
     case 'quarter':
-    case 'year':
       return eachMonthOfInterval({ start: startDate, end: endDate }).map((date) => ({
         date,
         label: format(date, 'MMM yyyy', { locale: es }),
+      }));
+    case 'year':
+      // En vista año, solo mostrar cada 2 meses para mejor legibilidad
+      const allMonths = eachMonthOfInterval({ start: startDate, end: endDate });
+      return allMonths.filter((_, index) => index % 2 === 0).map((date) => ({
+        date,
+        label: format(date, 'MMM yy', { locale: es }),
       }));
   }
 }

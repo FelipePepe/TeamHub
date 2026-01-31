@@ -297,7 +297,7 @@ function AsignacionActions({ proyectoId, asigId }: { proyectoId: string; asigId:
   const handleDelete = async () => {
     if (!confirm('¿Eliminar esta asignación?')) return;
     try {
-      await deleteAsignacion.mutateAsync(asigId);
+      await deleteAsignacion.mutateAsync({ asigId });
       toast.success('Asignación eliminada');
     } catch {
       toast.error('Error al eliminar');

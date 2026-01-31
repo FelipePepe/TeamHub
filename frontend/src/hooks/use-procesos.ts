@@ -22,6 +22,7 @@ import {
   updateTarea,
 } from './procesos/api';
 import type {
+  CancelarProcesoData,
   CompletarTareaMutationParams,
   CompletarTareaWithAllFields,
   ProcesoFilters,
@@ -159,7 +160,7 @@ export function useCancelarProceso() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateProcesoData }) =>
+    mutationFn: ({ id, data }: { id: string; data?: CancelarProcesoData }) =>
       cancelarProceso(id, data ?? {}),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -182,9 +183,9 @@ export function usePausarProceso() {
 
   return useMutation({
     mutationFn: pausarProceso,
-    onSuccess: (_, proceso) => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey: procesosKeys.detail(proceso.id),
+        queryKey: procesosKeys.detail(id),
       });
       queryClient.invalidateQueries({ queryKey: procesosKeys.lists() });
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
@@ -203,9 +204,9 @@ export function useReanudarProceso() {
 
   return useMutation({
     mutationFn: reanudarProceso,
-    onSuccess: (_, proceso) => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({
-        queryKey: procesosKeys.detail(proceso.id),
+        queryKey: procesosKeys.detail(id),
       });
       queryClient.invalidateQueries({ queryKey: procesosKeys.lists() });
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
@@ -272,8 +273,8 @@ export function useCompletarTarea() {
       if ('data' in params) {
         return completarTarea(params.procesoId, params.tareaId, params.data ?? {});
       }
-      const { procesoId, tareaId, ...data } = params;
-      return completarTarea(procesoId, tareaId, data);
+      const p = params as CompletarTareaWithAllFields;
+      return completarTarea(p.procesoId, p.tareaId, { notas: p.notas, evidenciaUrl: p.evidenciaUrl });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

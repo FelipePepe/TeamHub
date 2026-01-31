@@ -90,6 +90,16 @@ Antes de proponer cambios, consulta estos recursos en orden:
 *   **release/x.x.x:** Preparación de release. Se crea desde `develop`, se mergea a `main` y `develop`.
 *   **hotfix/xxx:** Correcciones urgentes en producción. Se crea desde `main`, se mergea a `main` y `develop`.
 
+### ⚠️ REGLA CRÍTICA: Release Branches son INMUTABLES después del merge
+**UNA VEZ MERGEADA UNA RELEASE BRANCH A `main` Y `develop`, NUNCA MÁS HACER COMMITS EN ESA RELEASE:**
+- ❌ **PROHIBIDO:** Hacer commits en `release/x.x.x` después de mergear los PRs
+- ❌ **PROHIBIDO:** Pushear cambios adicionales a una release ya mergeada
+- ✅ **CORRECTO:** Si se necesitan cambios después del merge:
+  - Para producción urgente: Crear `hotfix/nombre` desde `main`
+  - Para desarrollo: Crear `bugfix/nombre` o `feature/nombre` desde `develop`
+- **Razón:** Los commits en release después del merge quedan "huérfanos" y no están en `main` ni `develop`
+- **Consecuencia:** Pérdida de trazabilidad y código desincronizado entre ramas
+
 ### Convención de Commits (Conventional Commits)
 Formato: `tipo(scope): descripción`
 

@@ -26,6 +26,11 @@ Antes de proponer cambios, consulta estos recursos en orden:
 *   **Gestión de Secretos:** Prohibido subir secretos al repo. Usa `.env` (ignorado por Git) y `.env.example` como plantilla.
 *   **Headers de Seguridad:** Implementar CSP estricto, `X-Frame-Options: DENY` y forzar HTTPS.
 *   **Inyección:** Usa siempre **Prepared Statements** o el escapado automático de los frameworks para prevenir inyecciones SQL/XSS.
+*   **MFA (Multi-Factor Authentication):** 
+    *   **REGLA ABSOLUTA:** NUNCA deshabilitar MFA bajo ninguna circunstancia.
+    *   Si un usuario pierde acceso a MFA, usar códigos de recuperación o regenerarlos desde la base de datos.
+    *   MFA es una capa crítica de seguridad que NO se puede comprometer.
+    *   Cualquier solicitud de deshabilitar MFA debe ser rechazada y documentada.
 
 ## 5. GitFlow y Convenciones de Git
 

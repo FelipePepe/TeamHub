@@ -70,7 +70,7 @@ describe('TareasService', () => {
       vi.mocked(findProyectoById).mockResolvedValue({
         id: 'proyecto-1',
         nombre: 'Proyecto Test',
-      } as any);
+      } as Proyecto);
       vi.mocked(tareasRepository.findByProyecto).mockResolvedValue([mockTarea]);
 
       const result = await service.listByProyecto('proyecto-1', mockAdminUser);
@@ -156,7 +156,7 @@ describe('TareasService', () => {
 
   describe('create - Permisos', () => {
     beforeEach(() => {
-      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as any);
+      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as Proyecto);
       vi.mocked(findActiveUserById).mockResolvedValue(mockEmpleadoUser);
       vi.mocked(tareasRepository.create).mockResolvedValue(mockTarea);
     });
@@ -203,7 +203,7 @@ describe('TareasService', () => {
 
   describe('create - Validaciones', () => {
     beforeEach(() => {
-      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as any);
+      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as Proyecto);
       vi.mocked(tareasRepository.create).mockResolvedValue(mockTarea);
     });
 

@@ -172,3 +172,55 @@ export interface DepartamentoStatsResponse {
   empleadosPorRol?: Record<string, number>;
   onboardingsActivos?: number;
 }
+
+// Tareas
+export type EstadoTarea = 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'BLOCKED';
+export type PrioridadTarea = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export interface Tarea {
+  id: string;
+  proyectoId: string;
+  titulo: string;
+  descripcion?: string;
+  estado: EstadoTarea;
+  prioridad: PrioridadTarea;
+  usuarioAsignadoId?: string;
+  usuarioAsignado?: {
+    id: string;
+    nombre: string;
+    apellidos: string;
+  };
+  fechaInicio?: string;
+  fechaFin?: string;
+  horasEstimadas?: string;
+  horasReales?: string;
+  orden: number;
+  dependeDe?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTareaRequest {
+  proyectoId: string;
+  titulo: string;
+  descripcion?: string;
+  prioridad?: PrioridadTarea;
+  usuarioAsignadoId?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  horasEstimadas?: number;
+  dependeDe?: string;
+}
+
+export interface UpdateTareaRequest {
+  titulo?: string;
+  descripcion?: string;
+  estado?: EstadoTarea;
+  prioridad?: PrioridadTarea;
+  usuarioAsignadoId?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  horasEstimadas?: number;
+  horasReales?: number;
+  dependeDe?: string;
+}

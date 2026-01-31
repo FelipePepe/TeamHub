@@ -5,6 +5,7 @@ import { departamentosRoutes } from './departamentos.js';
 import { plantillasRoutes } from './plantillas.js';
 import { procesosRoutes } from './procesos.js';
 import { proyectosRoutes } from './proyectos.js';
+import { tareasRoutes } from './tareas.routes.js';
 import { timetrackingRoutes } from './timetracking.js';
 import { dashboardRoutes } from './dashboard.js';
 
@@ -16,5 +17,6 @@ apiRoutes.route('/departamentos', departamentosRoutes);
 apiRoutes.route('/plantillas', plantillasRoutes);
 apiRoutes.route('/procesos', procesosRoutes);
 apiRoutes.route('/proyectos', proyectosRoutes);
+apiRoutes.route('/', tareasRoutes);
 apiRoutes.route('/timetracking', timetrackingRoutes);
 apiRoutes.route('/dashboard', dashboardRoutes);

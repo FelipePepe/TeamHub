@@ -12,6 +12,7 @@ export * from './plantillas.js';
 export * from './procesos.js';
 export * from './proyectos.js';
 export * from './timetracking.js';
+export * from './tareas.js';
 export * from './audit.js';
 
 // Relations (for Drizzle query builder with relational queries)

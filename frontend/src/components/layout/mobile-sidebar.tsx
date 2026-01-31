@@ -27,7 +27,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
-        <SheetHeader className="border-b border-slate-200 px-6 py-4">
+        <SheetHeader className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
           <SheetTitle>
             <Link
               href="/dashboard"
@@ -61,8 +61,8 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-slate-100 text-slate-900'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50'
                     )}
                     aria-current={isActive ? 'page' : undefined}
                   >
@@ -76,8 +76,8 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-4">
-          <p className="text-xs text-slate-500">TeamHub v1.0.0</p>
+        <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+          <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v1.0.0</p>
         </div>
       </SheetContent>
     </Sheet>

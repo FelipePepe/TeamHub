@@ -29,6 +29,46 @@ Antes de proponer cambios, consulta estos recursos en orden:
 
 ## 5. GitFlow y Convenciones de Git
 
+### FLUJO DE TRABAJO OBLIGATORIO (Checklist)
+
+**ANTES de empezar cualquier tarea:**
+1. `git checkout main && git pull origin main`
+2. `git checkout -b <tipo>/<nombre-descriptivo>`
+
+**ANTES de hacer commit (OBLIGATORIO):**
+1. Ejecutar linter: `npm run lint` o equivalente
+2. Ejecutar tests: `npm test` o equivalente
+3. **SI LOS TESTS FALLAN → NO HACER COMMIT NI PUSH**
+
+**Para subir cambios:**
+1. `git add <archivos-específicos>` (NO usar `git add .`)
+2. `git commit -m "tipo(scope): descripción"`
+3. `git push -u origin <rama>`
+4. `gh pr create` para crear Pull Request
+
+**NUNCA:**
+- Push directo a main/develop
+- Commit sin ejecutar tests
+- Push si los tests fallan
+- Merge sin PR aprobado
+
+### ⚠️ REGLA CRÍTICA: NUNCA USAR --no-verify
+**PROHIBIDO ABSOLUTAMENTE:** Usar `git push --no-verify`, `git commit --no-verify` o cualquier comando con `--no-verify`.
+
+**Razón:** Los hooks de Husky (pre-commit, pre-push, commit-msg) son **quality gates obligatorios** que:
+- Validan linting y formateo
+- Ejecutan tests
+- Verifican convenciones de commits
+- Previenen vulnerabilidades de seguridad
+
+**Si un hook falla:**
+1. **Leer el error** y entender qué regla se violó
+2. **Corregir el problema** en el código
+3. **Reintentar el commit/push** sin `--no-verify`
+4. **NUNCA saltarse** los hooks para "ir más rápido"
+
+**Única excepción:** Operaciones administrativas de GitFlow que requieren push directo a `main`/`develop` (ya cubiertas por protecciones de rama en el servidor).
+
 ### Estrategia de Branching (GitFlow)
 *   **main:** Código en producción. Solo recibe merges de `release/` y `hotfix/`.
 *   **develop:** Rama de integración. Las features se mergean aquí.

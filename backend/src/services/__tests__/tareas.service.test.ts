@@ -5,6 +5,7 @@ import { findProyectoById } from '../proyectos-repository.js';
 import { findActiveUserById } from '../users-repository.js';
 import type { User } from '../../db/schema/users.js';
 import type { Tarea } from '../../db/schema/tareas.js';
+import type { Proyecto } from '../../db/schema/proyectos.js';
 import { HTTPException } from 'hono/http-exception';
 
 // Mock de dependencias
@@ -70,7 +71,7 @@ describe('TareasService', () => {
       vi.mocked(findProyectoById).mockResolvedValue({
         id: 'proyecto-1',
         nombre: 'Proyecto Test',
-      } as any);
+      } as unknown as Proyecto);
       vi.mocked(tareasRepository.findByProyecto).mockResolvedValue([mockTarea]);
 
       const result = await service.listByProyecto('proyecto-1', mockAdminUser);
@@ -156,7 +157,7 @@ describe('TareasService', () => {
 
   describe('create - Permisos', () => {
     beforeEach(() => {
-      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as any);
+      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as unknown as Proyecto);
       vi.mocked(findActiveUserById).mockResolvedValue(mockEmpleadoUser);
       vi.mocked(tareasRepository.create).mockResolvedValue(mockTarea);
     });
@@ -203,7 +204,7 @@ describe('TareasService', () => {
 
   describe('create - Validaciones', () => {
     beforeEach(() => {
-      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as any);
+      vi.mocked(findProyectoById).mockResolvedValue({ id: 'proyecto-1' } as unknown as Proyecto);
       vi.mocked(tareasRepository.create).mockResolvedValue(mockTarea);
     });
 

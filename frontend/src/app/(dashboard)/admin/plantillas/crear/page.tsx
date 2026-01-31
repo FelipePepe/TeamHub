@@ -295,16 +295,16 @@ export default function CrearPlantillaPage() {
               <div className="space-y-2">
                 <Label htmlFor="departamentoId">Departamento</Label>
                 <Select
-                  value={form.watch('departamentoId') || ''}
+                  value={form.watch('departamentoId')}
                   onValueChange={(value) =>
-                    form.setValue('departamentoId', value || undefined)
+                    form.setValue('departamentoId', value === 'all' ? undefined : value)
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar departamento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los departamentos</SelectItem>
+                    <SelectItem value="all">Todos los departamentos</SelectItem>
                     {departamentos.map((dept: Departamento) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.nombre}
@@ -318,16 +318,16 @@ export default function CrearPlantillaPage() {
               <div className="space-y-2">
                 <Label htmlFor="rolDestino">Rol Destino</Label>
                 <Select
-                  value={form.watch('rolDestino') || ''}
+                  value={form.watch('rolDestino')}
                   onValueChange={(value) =>
-                    form.setValue('rolDestino', (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN') || undefined)
+                    form.setValue('rolDestino', value === 'any' ? undefined : (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN'))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar rol" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Cualquier rol</SelectItem>
+                    <SelectItem value="any">Cualquier rol</SelectItem>
                     <SelectItem value="EMPLEADO">Empleado</SelectItem>
                     <SelectItem value="MANAGER">Manager</SelectItem>
                     <SelectItem value="RRHH">RRHH</SelectItem>

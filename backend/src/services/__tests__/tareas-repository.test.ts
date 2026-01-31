@@ -657,8 +657,9 @@ describe('TareasRepository', () => {
 
       const result = await repository.create(nuevaTarea);
 
-      // DB puede convertir a number, verificar que se preserva
-      expect(result.orden).toBe(999999999);
+      // orden es TEXT en DB para soportar números grandes
+      // Puede ser devuelto como string o number según el driver
+      expect(String(result.orden)).toBe('999999999');
     });
 
     it('debe manejar horas como string decimal con precisión', async () => {

@@ -46,7 +46,7 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 | 4 | Proyectos y asignaciones | 10h | 100% | ✅ Completada |
 | 5 | Timetracking | 8h | 100% | ✅ Completada |
 | 6 | Dashboards y reportes | 6h | 100% | ✅ Completada |
-| 7 | Testing y calidad | 4h | 70% | 🟡 En progreso |
+| 7 | Testing y calidad | 4h | 75% | 🟡 En progreso |
 | 8 | Documentación, deploy y presentación | 6h | 80% | 🟡 En progreso |
 | **Total** | | **70h** | **~90%** | |
 
@@ -239,7 +239,7 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 
 ---
 
-## 🟡 Fase 7: Testing y Calidad (50%)
+## 🟡 Fase 7: Testing y Calidad (75%)
 
 **Estado:** En progreso
 
@@ -248,7 +248,9 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 - [x] Suite completa de tests frontend ejecutada (42 tests pasando)
 - [ ] Verificar cobertura de código (target: 80% features importantes) 🔴
 - [ ] Añadir tests faltantes en módulos críticos 🔴
-- [ ] Tests E2E básicos (login, navegación, CRUD) 🔴
+- [x] Tests E2E básicos (login, navegación) ✅ (Playwright en `frontend/e2e/`, `npm run e2e`)
+- [x] Tests E2E CRUD (departamentos) ✅ (`e2e/departamentos-crud.spec.ts`; requiere E2E_USER/E2E_PASSWORD)
+- [ ] Tests E2E CRUD (empleados, plantillas, etc.) 🟡
 - [ ] Tests de seguridad (OWASP Top 10)
 
 ### Calidad de Código

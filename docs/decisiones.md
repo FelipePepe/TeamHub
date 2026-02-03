@@ -852,6 +852,8 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
 - [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
 - [x] Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
+- [x] Configurar tests E2E con Playwright (Fase 7): \`frontend/e2e/\`, \`playwright.config.ts\`, specs de login y navegación; \`npm run e2e\`. (2026-01-30)
+- [x] Añadir E2E CRUD departamentos: \`frontend/e2e/departamentos-crud.spec.ts\` (login + listado + crear); requiere \`E2E_USER\` y \`E2E_PASSWORD\`. (2026-01-30)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)

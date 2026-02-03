@@ -9,7 +9,12 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:auth": "node scripts/run-e2e-with-auth.mjs --workers=1",
+    "e2e:check-auth": "node scripts/check-e2e-auth.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -41,6 +46,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
@@ -50,9 +56,11 @@
     "@types/react-dom": "^19.0.2",
     "@vitest/coverage-v8": "^3.0.4",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.4",
     "jsdom": "^26.0.0",
+    "otplib": "^13.2.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",

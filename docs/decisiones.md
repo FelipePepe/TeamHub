@@ -1051,6 +1051,24 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ UX mejorada con dark mode
   - 📈 +13,903 líneas de código, -4,893 líneas eliminadas (refactorización)
 
+### ADR-077: Catalogo de casos de uso E2E para expansion de pruebas
+- **Fecha:** 2026-02-03
+- **Estado:** Aceptado
+- **Contexto:** La suite E2E de Playwright ya cubre login, navegacion y CRUD base de departamentos, pero hacia falta una fuente unica para escalar cobertura por modulo, rol y casos negativos sin duplicar escenarios.
+- **Decision:**
+  - Crear `frontend/e2e/use-cases.catalog.ts` como catalogo tipado de casos de uso E2E.
+  - Crear `frontend/e2e/traceability-matrix.md` para mapear cada caso al spec actual/objetivo y planificar por bloques.
+  - Estandarizar identificadores (`E2E-<MODULO>-<NNN>`), prioridad (`P0/P1/P2`) y tipo (`smoke/regression/negative/security`).
+  - Vincular cada caso a contratos OpenAPI y, cuando aplique, reglas de negocio en `backend/src/shared/constants/business-rules.ts`.
+  - Registrar en `docs/quality/testing.md` este catalogo como base para generar specs E2E mas extensos.
+- **Consecuencias:**
+  - ✅ Priorizacion clara de backlog E2E por riesgo e impacto.
+  - ✅ Menor ambiguedad al generar nuevos tests desde IA o de forma manual.
+  - ✅ Trazabilidad entre UI, API y reglas de negocio en un unico artefacto.
+  - ✅ Bloque A (P0) implementado en `frontend/e2e/block-a-smoke.spec.ts` para login MFA UI, RBAC de navegacion, acceso denegado en departamentos y creacion de proyecto.
+  - ⚠️ `E2E-TTR-001` queda pendiente por inestabilidad del submit del modal de registro de horas en E2E (sin request POST observable en Playwright).
+  - ⚠️ Requiere mantener sincronizado el catalogo cuando cambien rutas o contratos.
+
 ## Progreso General del Proyecto
 
 ### Estado Actual (2026-01-31)

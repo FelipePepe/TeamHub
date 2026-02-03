@@ -28,7 +28,7 @@ function fromBase32(input) {
   return Buffer.from(bytes);
 }
 
-function generateTotpCode(secret, timestampMs = Date.now()) {
+export function generateTotpCode(secret, timestampMs = Date.now()) {
   const counter = Math.floor(timestampMs / (TOTP_STEP_SECONDS * 1000));
   const counterBuffer = Buffer.alloc(8);
   counterBuffer.writeBigUInt64BE(BigInt(counter));
@@ -85,7 +85,7 @@ function signRequest(method, pathForSign) {
   return `t=${timestamp},s=${signature}`;
 }
 
-async function apiRequest(method, path, body, bearer) {
+export async function apiRequest(method, path, body, bearer) {
   const pathForSign = path.startsWith('/api') ? path : `/api${path}`;
   const url = path.startsWith('http') ? path : `${API_BASE.replace(/\/api\/?$/, '')}${pathForSign}`;
   const headers = {

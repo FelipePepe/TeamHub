@@ -3,3 +3,8 @@ node_modules
 out
 dist
 .env.local
+.env.e2e
+# Playwright E2E
+test-results/
+playwright-report/
+playwright/.cache/

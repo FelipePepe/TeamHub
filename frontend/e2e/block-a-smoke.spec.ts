@@ -216,7 +216,7 @@ async function provisionEmployeeSession(adminTokens: AuthTokens): Promise<AuthTo
     adminTokens.accessToken
   );
 
-  const loginBody = await apiRequest<{
+  const loginBody = await apiRequestWithRetry<{
     mfaToken?: string;
     passwordChangeRequired?: boolean;
     mfaSetupRequired?: boolean;
@@ -228,7 +228,7 @@ async function provisionEmployeeSession(adminTokens: AuthTokens): Promise<AuthTo
   }
 
   if (loginBody.passwordChangeRequired) {
-    const changeBody = await apiRequest<{ mfaToken?: string; mfaSetupRequired?: boolean }>(
+    const changeBody = await apiRequestWithRetry<{ mfaToken?: string; mfaSetupRequired?: boolean }>(
       'POST',
       '/auth/change-password',
       { mfaToken, newPassword }
@@ -236,7 +236,7 @@ async function provisionEmployeeSession(adminTokens: AuthTokens): Promise<AuthTo
     mfaToken = changeBody.mfaToken ?? mfaToken;
   }
 
-  const setupBody = await apiRequest<{ secret: string }>(
+  const setupBody = await apiRequestWithRetry<{ secret: string }>(
     'POST',
     '/auth/mfa/setup',
     {},
@@ -244,12 +244,50 @@ async function provisionEmployeeSession(adminTokens: AuthTokens): Promise<AuthTo
   );
   const code = generateTotpCode(setupBody.secret);
 
-  const verifyBody = await apiRequest<AuthTokens>(
+  const verifyBody = await apiRequestWithRetry<AuthTokens>(
     'POST',
     '/auth/mfa/verify',
     { mfaToken, code }
   );
   return verifyBody;
+}
+
+function getApiStatusFromError(error: unknown): number | null {
+  const message = error instanceof Error ? error.message : String(error);
+  const statusMatch = message.match(/:\s(\d{3})\s/);
+  if (!statusMatch) return null;
+  return Number.parseInt(statusMatch[1], 10);
+}
+
+function getRetryAfterSecondsFromError(error: unknown): number {
+  const message = error instanceof Error ? error.message : String(error);
+  const retryAfterMatch = message.match(/"retryAfter":\s*(\d+)/);
+  if (!retryAfterMatch) return 5;
+  return Number.parseInt(retryAfterMatch[1], 10);
+}
+
+async function apiRequestWithRetry<T>(
+  method: string,
+  pathForApi: string,
+  body?: unknown,
+  bearer?: string,
+  maxAttempts = 5
+): Promise<T> {
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await apiRequest<T>(method, pathForApi, body, bearer);
+    } catch (error) {
+      lastError = error as Error;
+      if (getApiStatusFromError(error) !== 429 || attempt === maxAttempts) {
+        break;
+      }
+      const retryAfterSeconds = getRetryAfterSecondsFromError(error);
+      await new Promise((resolve) => setTimeout(resolve, (retryAfterSeconds + 1) * 1000));
+    }
+  }
+
+  throw lastError ?? new Error(`API ${method} ${pathForApi} falló sin detalle`);
 }
 
 async function apiRequest<T>(

@@ -31,7 +31,7 @@ function fromBase32(input: string): Buffer {
   return Buffer.from(bytes);
 }
 
-function generateTotpCode(secret: string, timestampMs = Date.now()): string {
+export function generateTotpCode(secret: string, timestampMs = Date.now()): string {
   const counter = Math.floor(timestampMs / (TOTP_STEP_SECONDS * 1000));
   const counterBuffer = Buffer.alloc(8);
   counterBuffer.writeBigUInt64BE(BigInt(counter));
@@ -88,14 +88,17 @@ function signRequest(method: string, path: string): string {
   return `t=${timestamp},s=${signature}`;
 }
 
-async function apiRequest<T>(
+export async function apiRequest<T>(
   method: string,
   path: string,
   body?: unknown,
   bearer?: string
 ): Promise<T> {
-  const pathForSign = path.startsWith('/api') ? path : `/api${path}`;
-  const url = path.startsWith('http') ? path : `${API_BASE.replace(/\/api\/?$/, '')}${pathForSign}`;
+  const pathWithQuery = path.startsWith('/api') ? path : `/api${path}`;
+  const pathForSign = pathWithQuery.split('?')[0] ?? pathWithQuery;
+  const url = path.startsWith('http')
+    ? path
+    : `${API_BASE.replace(/\/api\/?$/, '')}${pathWithQuery}`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'X-Request-Signature': signRequest(method, pathForSign),

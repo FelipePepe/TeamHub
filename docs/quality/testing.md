@@ -23,13 +23,30 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
 ### E2E
 - Playwright en `frontend/e2e/`. **Ejecutar con** `cd frontend && npm run e2e` **o** `npm run test:e2e` (no usar `npm test e2e`, que invoca Vitest con filtro y no encuentra tests). Requiere frontend en http://localhost:3000 (o PLAYWRIGHT_BASE_URL).
 - **Para que pasen los tests CRUD (departamentos):** ejecuta **`npm run e2e:auth`** desde `frontend/`. Ese script hace login por API (con MFA si aplica), obtiene los tokens y lanza Playwright con `E2E_ACCESS_TOKEN` y `E2E_REFRESH_TOKEN` en el entorno. Requiere: (1) backend en marcha, (2) credenciales en `frontend/.env.e2e` (E2E_USER, E2E_PASSWORD, y E2E_MFA_SECRET si tienes MFA), (3) `NEXT_PUBLIC_API_HMAC_SECRET` en frontend igual que `API_HMAC_SECRET` en backend.
+- **Casos por rol (menu/permisos EMPLEADO):** definir `E2E_EMPLOYEE_USER`, `E2E_EMPLOYEE_PASSWORD` y opcional `E2E_EMPLOYEE_MFA_SECRET` en `.env.e2e` para ejecutar cobertura de RBAC en `frontend/e2e/block-a-smoke.spec.ts`.
 - **MFA:** si tu usuario tiene MFA activo y no tienes `E2E_MFA_SECRET` en `.env.e2e`, al ejecutar los E2E en una **terminal interactiva** se te pedirá el código de 6 dígitos de tu app; introdúcelo y el test seguirá. Si usas el prompt y hay varios workers, ejecuta con un solo worker: `npm run test:e2e -- --workers=1`. En CI o sin TTY, define `E2E_MFA_SECRET` o los tests fallarán al pedir MFA.
 - **Si no tienes E2E_MFA_SECRET** (habitual si ya activaste MFA y no guardaste el código manual): no hace falta. Ejecuta los E2E en una **terminal interactiva** con `npm run test:e2e -- --workers=1`; cuando pida "Código MFA (6 dígitos de tu app):", abre tu app de autenticación (Google Authenticator, etc.), copia el código de 6 dígitos, pégalo en la terminal y pulsa Enter. El test continuará.
 - **Dónde obtener E2E_MFA_SECRET** (opcional): es el código manual en base32 que TeamHub muestra **solo una vez** al configurar MFA. Si no lo guardaste, no se puede recuperar; usa la opción anterior (introducir el código de 6 dígitos cuando lo pida el test).
 - El archivo `.env.e2e` está en `.gitignore`; no se sube al repo.
-- Si el login por API falla (401 o 429), los tests CRUD se omiten con un mensaje indicando que configures seed y HMAC.
 - **Si recibes 401 "No autorizado" en login:** (1) En `frontend/.env` o `.env.e2e`, `NEXT_PUBLIC_API_HMAC_SECRET` debe ser **exactamente igual** que `API_HMAC_SECRET` en `backend/.env`. (2) Comprueba que `E2E_USER` y `E2E_PASSWORD` en `frontend/.env.e2e` existen en la BD y la contraseña es correcta.
 - **Comprobar configuración antes de E2E:** desde `frontend/` ejecuta `npm run e2e:check-auth`. Requiere backend en marcha; comprueba HMAC, credenciales y hace un login de prueba. Si falla, indica qué revisar.
+
+#### Catalogo de casos de uso E2E (base para ampliar la suite)
+- Archivo fuente: `frontend/e2e/use-cases.catalog.ts`.
+- Matriz trazable caso -> spec: `frontend/e2e/traceability-matrix.md`.
+- El catalogo define por caso: `id`, `module`, `priority`, `type`, `roles`, `route`, contratos API y precondiciones.
+- Convencion de IDs: `E2E-<MODULO>-<NNN>` (ej: `E2E-TTR-004`).
+- Priorizacion recomendada para implementacion:
+  - `P0`: smoke critico (auth basico, navegacion, timetracking basico, departamentos base).
+  - `P1`: regresion y seguridad (permisos por rol, limites de negocio, aprobaciones).
+  - `P2`: cobertura extendida (perfil/MFA avanzado y optimizaciones).
+- Campo `existingSpec` marca los casos ya cubiertos por specs actuales para evitar duplicidad.
+- Specs implementadas para Bloque A/B:
+  - `frontend/e2e/block-a-smoke.spec.ts`
+  - `frontend/e2e/auth.flows.spec.ts`
+  - `frontend/e2e/departamentos-crud.spec.ts`
+  - `frontend/e2e/departamentos.management.spec.ts`
+  - `frontend/e2e/usuarios.flows.spec.ts`
 
 ### Contrato API
 - Validacion de `openapi.yaml` con `scripts/validate-openapi.sh`.

@@ -1065,8 +1065,11 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ Priorizacion clara de backlog E2E por riesgo e impacto.
   - ✅ Menor ambiguedad al generar nuevos tests desde IA o de forma manual.
   - ✅ Trazabilidad entre UI, API y reglas de negocio en un unico artefacto.
-  - ✅ Bloque A (P0) implementado en `frontend/e2e/block-a-smoke.spec.ts` para login MFA UI, RBAC de navegacion, acceso denegado en departamentos y creacion de proyecto.
-  - ⚠️ `E2E-TTR-001` queda pendiente por inestabilidad del submit del modal de registro de horas en E2E (sin request POST observable en Playwright).
+  - ✅ Bloque A (P0) implementado en `frontend/e2e/block-a-smoke.spec.ts` para login MFA UI, RBAC de navegacion, acceso denegado en departamentos, creacion de proyecto y registro de horas pendiente.
+  - ✅ Bloque B (P1 auth/departamentos/usuarios) implementado con:
+    - `frontend/e2e/auth.flows.spec.ts` (lockout + desbloqueo ADMIN)
+    - `frontend/e2e/departamentos.management.spec.ts` (editar, duplicado, soft delete/filtros)
+    - `frontend/e2e/usuarios.flows.spec.ts` (alta con departamento y duplicado de email)
   - ⚠️ Requiere mantener sincronizado el catalogo cuando cambien rutas o contratos.
 
 ## Progreso General del Proyecto

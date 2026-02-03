@@ -86,8 +86,11 @@ function signRequest(method, pathForSign) {
 }
 
 export async function apiRequest(method, path, body, bearer) {
-  const pathForSign = path.startsWith('/api') ? path : `/api${path}`;
-  const url = path.startsWith('http') ? path : `${API_BASE.replace(/\/api\/?$/, '')}${pathForSign}`;
+  const pathWithQuery = path.startsWith('/api') ? path : `/api${path}`;
+  const pathForSign = pathWithQuery.split('?')[0] ?? pathWithQuery;
+  const url = path.startsWith('http')
+    ? path
+    : `${API_BASE.replace(/\/api\/?$/, '')}${pathWithQuery}`;
   const headers = {
     'Content-Type': 'application/json',
     'X-Request-Signature': signRequest(method, pathForSign),

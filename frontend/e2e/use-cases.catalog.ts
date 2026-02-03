@@ -79,6 +79,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     businessRules: ['auth.loginMaxAttempts=3', 'auth.loginLockoutMinutes=30'],
     preconditions: ['Usuario existente', 'Password incorrecta repetida'],
     expected: ['Intento adicional sigue rechazado', 'Mensaje no revela estado interno'],
+    existingSpec: 'frontend/e2e/auth.flows.spec.ts',
   },
   {
     id: 'E2E-NAV-001',
@@ -143,6 +144,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/departamentos/{id}'],
     preconditions: ['Departamento creado previamente'],
     expected: ['Cambios persistidos', 'Tarjeta actualizada'],
+    existingSpec: 'frontend/e2e/departamentos.management.spec.ts',
   },
   {
     id: 'E2E-DEP-004',
@@ -155,6 +157,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/departamentos'],
     preconditions: ['Existe departamento con codigo objetivo'],
     expected: ['Error de validacion', 'No crea registro duplicado'],
+    existingSpec: 'frontend/e2e/departamentos.management.spec.ts',
   },
   {
     id: 'E2E-DEP-005',
@@ -167,6 +170,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/departamentos/{id}'],
     preconditions: ['Departamento activo existente'],
     expected: ['Delete lo marca inactivo', 'Filtros reflejan estado'],
+    existingSpec: 'frontend/e2e/departamentos.management.spec.ts',
   },
   {
     id: 'E2E-DEP-006',
@@ -192,6 +196,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/usuarios', '/departamentos'],
     preconditions: ['Sesion RRHH o ADMIN', 'Departamento activo'],
     expected: ['Empleado creado y visible en listado'],
+    existingSpec: 'frontend/e2e/usuarios.flows.spec.ts',
   },
   {
     id: 'E2E-USR-002',
@@ -204,6 +209,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/usuarios'],
     preconditions: ['Existe usuario con email objetivo'],
     expected: ['Error de duplicado', 'No se crea usuario'],
+    existingSpec: 'frontend/e2e/usuarios.flows.spec.ts',
   },
   {
     id: 'E2E-PLA-001',
@@ -313,6 +319,7 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     apiContracts: ['/timetracking'],
     preconditions: ['Proyecto asignado al usuario'],
     expected: ['Registro creado con estado PENDIENTE'],
+    existingSpec: 'frontend/e2e/block-a-smoke.spec.ts',
   },
   {
     id: 'E2E-TTR-002',

@@ -39,6 +39,7 @@ function loadEnvFile(dir: string, name: string) {
 
 test.describe('Bloque A E2E (P0)', () => {
   test.describe.configure({ mode: 'serial' });
+  test.setTimeout(120000);
   let adminTokens: AuthTokens | null = null;
   let adminSetupError: string | null = null;
   let employeeTokens: AuthTokens | null = null;

@@ -3,74 +3,7 @@
  * Usa login por API + sesión inyectada para evitar flakiness por rate-limit en UI auth.
  */
 import { test, expect } from '@playwright/test';
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-
-loadEnvFile(path.resolve(process.cwd(), '..'), '.env');
-loadEnvFile(process.cwd(), '.env');
-loadEnvFile(process.cwd(), '.env.local');
-loadEnvFile(process.cwd(), '.env.e2e');
-
-const E2E_USER = process.env.E2E_USER?.trim() ?? '';
-const E2E_PASSWORD = process.env.E2E_PASSWORD?.trim() ?? '';
-type AuthTokens = { accessToken: string; refreshToken: string };
-
-function loadEnvFile(dir: string, name: string) {
-  const file = path.join(dir, name);
-  if (!existsSync(file)) return;
-  const raw = readFileSync(file, 'utf8');
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const separatorIndex = trimmed.indexOf('=');
-    if (separatorIndex <= 0) continue;
-    const key = trimmed.slice(0, separatorIndex).trim();
-    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, '');
-    if (key && process.env[key] === undefined) {
-      process.env[key] = value;
-    }
-  }
-}
-
-async function applySession(
-  page: import('@playwright/test').Page,
-  tokens: AuthTokens,
-  targetPath: string
-) {
-  await page.goto('/login');
-  await page.evaluate(
-    (sessionTokens: AuthTokens) => {
-      localStorage.setItem('accessToken', sessionTokens.accessToken);
-      localStorage.setItem('refreshToken', sessionTokens.refreshToken);
-    },
-    tokens
-  );
-  await page.goto(targetPath);
-}
-
-async function loginAdminWithRetry(maxAttempts = 3): Promise<AuthTokens> {
-  let lastError: Error | null = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      return await loginViaApiWithHelper(E2E_USER, E2E_PASSWORD);
-    } catch (error) {
-      lastError = error as Error;
-      const message = lastError.message ?? '';
-      if (!message.includes('429') || attempt === maxAttempts) {
-        break;
-      }
-      const retryAfterMatch = message.match(/"retryAfter":\s*(\d+)/);
-      const retryAfterSeconds = retryAfterMatch ? Number.parseInt(retryAfterMatch[1], 10) : 5;
-      await new Promise((resolve) => setTimeout(resolve, (retryAfterSeconds + 1) * 1000));
-    }
-  }
-  throw lastError ?? new Error('No se pudo iniciar sesión admin por API');
-}
-
-async function loginViaApiWithHelper(email: string, password: string): Promise<AuthTokens> {
-  const authHelper = await import('./helpers/auth-api.mjs');
-  return authHelper.loginViaApi(email, password) as Promise<AuthTokens>;
-}
+import { applySession, getAdminTokens, type AuthTokens } from './helpers/e2e-session';
 
 test.describe('CRUD Departamentos', () => {
   test.describe.configure({ mode: 'serial' });
@@ -78,13 +11,8 @@ test.describe('CRUD Departamentos', () => {
   let setupError: string | null = null;
 
   test.beforeAll(async () => {
-    if (!E2E_USER || !E2E_PASSWORD) {
-      setupError = 'Faltan E2E_USER/E2E_PASSWORD en frontend/.env.e2e';
-      return;
-    }
-
     try {
-      adminTokens = await loginAdminWithRetry();
+      adminTokens = await getAdminTokens();
     } catch (error) {
       setupError = `No se pudo iniciar sesión admin: ${(error as Error).message}`;
     }

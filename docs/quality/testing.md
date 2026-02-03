@@ -28,7 +28,6 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
 - **Si no tienes E2E_MFA_SECRET** (habitual si ya activaste MFA y no guardaste el código manual): no hace falta. Ejecuta los E2E en una **terminal interactiva** con `npm run test:e2e -- --workers=1`; cuando pida "Código MFA (6 dígitos de tu app):", abre tu app de autenticación (Google Authenticator, etc.), copia el código de 6 dígitos, pégalo en la terminal y pulsa Enter. El test continuará.
 - **Dónde obtener E2E_MFA_SECRET** (opcional): es el código manual en base32 que TeamHub muestra **solo una vez** al configurar MFA. Si no lo guardaste, no se puede recuperar; usa la opción anterior (introducir el código de 6 dígitos cuando lo pida el test).
 - El archivo `.env.e2e` está en `.gitignore`; no se sube al repo.
-- Si el login por API falla (401 o 429), los tests CRUD se omiten con un mensaje indicando que configures seed y HMAC.
 - **Si recibes 401 "No autorizado" en login:** (1) En `frontend/.env` o `.env.e2e`, `NEXT_PUBLIC_API_HMAC_SECRET` debe ser **exactamente igual** que `API_HMAC_SECRET` en `backend/.env`. (2) Comprueba que `E2E_USER` y `E2E_PASSWORD` en `frontend/.env.e2e` existen en la BD y la contraseña es correcta.
 - **Comprobar configuración antes de E2E:** desde `frontend/` ejecuta `npm run e2e:check-auth`. Requiere backend en marcha; comprueba HMAC, credenciales y hace un login de prueba. Si falla, indica qué revisar.
 
@@ -42,6 +41,12 @@ Documento base para la estrategia de pruebas y controles de calidad de TeamHub.
   - `P1`: regresion y seguridad (permisos por rol, limites de negocio, aprobaciones).
   - `P2`: cobertura extendida (perfil/MFA avanzado y optimizaciones).
 - Campo `existingSpec` marca los casos ya cubiertos por specs actuales para evitar duplicidad.
+- Specs implementadas para Bloque A/B:
+  - `frontend/e2e/block-a-smoke.spec.ts`
+  - `frontend/e2e/auth.flows.spec.ts`
+  - `frontend/e2e/departamentos-crud.spec.ts`
+  - `frontend/e2e/departamentos.management.spec.ts`
+  - `frontend/e2e/usuarios.flows.spec.ts`
 
 ### Contrato API
 - Validacion de `openapi.yaml` con `scripts/validate-openapi.sh`.

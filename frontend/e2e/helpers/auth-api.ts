@@ -94,8 +94,11 @@ export async function apiRequest<T>(
   body?: unknown,
   bearer?: string
 ): Promise<T> {
-  const pathForSign = path.startsWith('/api') ? path : `/api${path}`;
-  const url = path.startsWith('http') ? path : `${API_BASE.replace(/\/api\/?$/, '')}${pathForSign}`;
+  const pathWithQuery = path.startsWith('/api') ? path : `/api${path}`;
+  const pathForSign = pathWithQuery.split('?')[0] ?? pathWithQuery;
+  const url = path.startsWith('http')
+    ? path
+    : `${API_BASE.replace(/\/api\/?$/, '')}${pathWithQuery}`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'X-Request-Signature': signRequest(method, pathForSign),

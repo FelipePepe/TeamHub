@@ -3,13 +3,13 @@
 Relacion caso de uso (`use-cases.catalog.ts`) con archivo spec Playwright objetivo para implementacion por bloques.
 
 - Total casos: 30
-- Implementados: 9
-- Pendientes: 21
+- Implementados: 16
+- Pendientes: 14
 
 ## Bloques recomendados
 
-- **Bloque A (P0 pendiente):** cerrar smoke critico y permisos base.
-- **Bloque B (P1 auth/departamentos/usuarios):** seguridad y validaciones de gestion admin/RRHH.
+- **Bloque A (P0):** implementado.
+- **Bloque B (P1 auth/departamentos/usuarios):** implementado.
 - **Bloque C (P1 dominio):** plantillas, procesos, proyectos y timetracking avanzado.
 - **Bloque D (hardening):** sesion/refresh cross-cutting y perfil MFA.
 
@@ -26,11 +26,11 @@ Relacion caso de uso (`use-cases.catalog.ts`) con archivo spec Playwright objeti
 | E2E-NAV-001 | P0 | navigation | smoke | Implementado | - | frontend/e2e/navigation.spec.ts | frontend/e2e/navigation.spec.ts |
 | E2E-NAV-002 | P0 | navigation | security | Implementado | - | frontend/e2e/block-a-smoke.spec.ts | frontend/e2e/block-a-smoke.spec.ts |
 | E2E-PRJ-001 | P0 | proyectos | regression | Implementado | - | frontend/e2e/block-a-smoke.spec.ts | frontend/e2e/block-a-smoke.spec.ts |
-| E2E-TTR-001 | P0 | timetracking | smoke | Pendiente | A | - | frontend/e2e/timetracking.flows.spec.ts |
-| E2E-AUTH-004 | P1 | auth | security | Pendiente | B | - | frontend/e2e/auth.flows.spec.ts |
-| E2E-DEP-003 | P1 | departamentos | regression | Pendiente | B | - | frontend/e2e/departamentos.management.spec.ts |
-| E2E-DEP-004 | P1 | departamentos | negative | Pendiente | B | - | frontend/e2e/departamentos.management.spec.ts |
-| E2E-DEP-005 | P1 | departamentos | regression | Pendiente | B | - | frontend/e2e/departamentos.management.spec.ts |
+| E2E-TTR-001 | P0 | timetracking | smoke | Implementado | - | frontend/e2e/block-a-smoke.spec.ts | frontend/e2e/timetracking.flows.spec.ts |
+| E2E-AUTH-004 | P1 | auth | security | Implementado | - | frontend/e2e/auth.flows.spec.ts | frontend/e2e/auth.flows.spec.ts |
+| E2E-DEP-003 | P1 | departamentos | regression | Implementado | - | frontend/e2e/departamentos.management.spec.ts | frontend/e2e/departamentos.management.spec.ts |
+| E2E-DEP-004 | P1 | departamentos | negative | Implementado | - | frontend/e2e/departamentos.management.spec.ts | frontend/e2e/departamentos.management.spec.ts |
+| E2E-DEP-005 | P1 | departamentos | regression | Implementado | - | frontend/e2e/departamentos.management.spec.ts | frontend/e2e/departamentos.management.spec.ts |
 | E2E-PLA-001 | P1 | plantillas | regression | Pendiente | C | - | frontend/e2e/plantillas.flows.spec.ts |
 | E2E-PLA-002 | P1 | plantillas | regression | Pendiente | C | - | frontend/e2e/plantillas.flows.spec.ts |
 | E2E-PRJ-002 | P1 | proyectos | regression | Pendiente | C | - | frontend/e2e/proyectos.flows.spec.ts |
@@ -43,8 +43,8 @@ Relacion caso de uso (`use-cases.catalog.ts`) con archivo spec Playwright objeti
 | E2E-TTR-002 | P1 | timetracking | negative | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |
 | E2E-TTR-003 | P1 | timetracking | negative | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |
 | E2E-TTR-004 | P1 | timetracking | regression | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |
-| E2E-USR-001 | P1 | usuarios | regression | Pendiente | B | - | frontend/e2e/usuarios.flows.spec.ts |
-| E2E-USR-002 | P1 | usuarios | negative | Pendiente | B | - | frontend/e2e/usuarios.flows.spec.ts |
+| E2E-USR-001 | P1 | usuarios | regression | Implementado | - | frontend/e2e/usuarios.flows.spec.ts | frontend/e2e/usuarios.flows.spec.ts |
+| E2E-USR-002 | P1 | usuarios | negative | Implementado | - | frontend/e2e/usuarios.flows.spec.ts | frontend/e2e/usuarios.flows.spec.ts |
 | E2E-PERF-001 | P2 | perfil | regression | Pendiente | D | - | frontend/e2e/perfil.flows.spec.ts |
 | E2E-PERF-002 | P2 | perfil | security | Pendiente | D | - | frontend/e2e/perfil.flows.spec.ts |
 

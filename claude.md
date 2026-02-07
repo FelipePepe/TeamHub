@@ -34,6 +34,30 @@ Antes de proponer cambios, consulta estos recursos en orden:
 
 ## 5. GitFlow y Convenciones de Git
 
+### ⚠️ REGLA CRÍTICA: NUNCA USAR --no-verify
+**PROHIBIDO ABSOLUTAMENTE:** Usar `git push --no-verify`, `git commit --no-verify` o cualquier comando con `--no-verify`.
+
+**Razón:** Los hooks de Husky (pre-commit, pre-push, commit-msg) son **quality gates obligatorios** que:
+- Validan linting y formateo
+- Ejecutan tests
+- Verifican convenciones de commits
+- Previenen vulnerabilidades de seguridad
+- Aseguran calidad del código antes de subir
+
+**Si un hook falla:**
+1. **Leer el error completo** y entender qué regla se violó
+2. **Corregir el problema** en el código (fix linting, arreglar tests, etc.)
+3. **Reintentar el commit/push** sin `--no-verify`
+4. **NUNCA saltarse** los hooks para "ir más rápido"
+
+**Consecuencias de usar --no-verify:**
+- Código sin testear puede llegar a producción
+- Vulnerabilidades de seguridad sin detectar
+- Pérdida de trazabilidad de calidad
+- Violación de políticas de desarrollo
+
+**Única excepción válida:** NINGUNA. Si los hooks fallan, el código NO está listo.
+
 ### FLUJO DE TRABAJO OBLIGATORIO (Checklist)
 
 **ANTES de empezar cualquier tarea:**
@@ -47,8 +71,8 @@ Antes de proponer cambios, consulta estos recursos en orden:
 
 **Para subir cambios:**
 1. `git add <archivos-específicos>` (NO usar `git add .`)
-2. `git commit -m "tipo(scope): descripción"`
-3. `git push -u origin <rama>`
+2. `git commit -m "tipo(scope): descripción"` (sin --no-verify)
+3. `git push -u origin <rama>` (sin --no-verify)
 4. `gh pr create` para crear Pull Request
 
 **NUNCA:**
@@ -56,6 +80,7 @@ Antes de proponer cambios, consulta estos recursos en orden:
 - Commit sin ejecutar tests
 - Push si los tests fallan
 - Merge sin PR aprobado
+- **Usar --no-verify en git commit o git push**
 
 ### Estrategia de Branching (GitFlow)
 *   **main:** Código en producción. Solo recibe merges de `release/` y `hotfix/`.

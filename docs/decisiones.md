@@ -1120,6 +1120,81 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ Responsive: ancho dinámico vía `containerRef.clientWidth`.
   - ✅ Accesibilidad: `role="img"`, `aria-label`, `tabindex` en elementos interactivos.
 
+### ADR-081: Release 1.4.0 - E2E Testing y Resolución de Conflictos GitFlow
+- **Fecha:** 2026-02-07
+- **Estado:** En Progreso
+- **Contexto:** 
+  - PR #89 (develop → main) tenía conflictos de merge
+  - Se había hecho hotfix en main que modificó archivos de usuarios
+  - develop tenía features nuevas (managerId filter, E2E testing, D3 charts)
+  - Era necesario seguir GitFlow correctamente
+- **Decisión:**
+  - Crear rama `release/1.4.0` desde `develop` (siguiendo GitFlow estricto)
+  - Mergear `main` en `release/1.4.0` para detectar conflictos temprano
+  - Resolver conflictos manteniendo features de develop (managerId)
+  - Crear PRs: `release/1.4.0 → main` (PR #92) y `release/1.4.0 → develop` (PR #93)
+  - Cerrar PR #89 una vez mergeados los PRs de release
+- **Conflictos Resueltos (7 archivos):**
+  - `backend/src/routes/usuarios/handlers.ts`: Mantener managerId filter en buildUserFilters
+  - `backend/src/routes/usuarios/helpers.ts`: Mantener validación managerId en helpers
+  - `backend/src/routes/usuarios/schemas.ts`: Mantener managerId en listQuerySchema
+  - `backend/src/services/mappers/users.ts`: Mantener managerId en UserResponseInput y toUserResponse
+  - `frontend/src/hooks/empleados/api.ts`: Mantener params.managerId en fetchEmpleados
+  - `frontend/src/hooks/use-empleados.ts`: Usar backend filter en lugar de filtrado cliente
+  - `docs/decisiones.md`: Mantener versión de develop (más actualizada)
+- **GitFlow Aplicado:**
+  1. `git checkout develop && git pull origin develop`
+  2. `git checkout -b release/1.4.0 develop`
+  3. `git merge --no-ff --no-commit main`
+  4. Resolución manual de conflictos priorizando features de develop
+  5. `git commit -m "chore: merge main into release/1.4.0"`
+  6. Validación: `npm run lint && npm run type-check` (backend + frontend)
+  7. `git push -u origin release/1.4.0`
+  8. Crear PR #92: `release/1.4.0 → main` (Release 1.4.0)
+  9. Crear PR #93: `release/1.4.0 → develop` (Merge back)
+- **Contenido de Release 1.4.0:**
+  - **E2E Testing con Playwright:**
+    - Suite completa de tests end-to-end con autenticación MFA
+    - Tests de flujos críticos: login, proyectos, onboarding
+    - Reintentos automáticos ante rate limits
+    - Cobertura Bloque B ampliada
+  - **Filtro managerId completo:**
+    - Backend: Query parameter en GET /usuarios
+    - Frontend: Hook useEmpleadosByManager usa backend filter
+    - Eliminado filtrado ineficiente en cliente
+  - **D3.js Charts:**
+    - BarChart y LineChart con D3.js v7
+    - Animaciones y tooltips interactivos
+    - 10 tests de charts
+  - **Seguridad JWT:**
+    - Whitelist explícita de algoritmos (HS256)
+    - Prevención de ataques "none" algorithm
+  - **Assets optimizados:**
+    - Logos con fondos transparentes
+    - Mejora de carga y accesibilidad
+- **Tests Actualizados:**
+  - Backend: 226 tests passing ✅
+  - Frontend: 241 tests passing ✅ (incremento por charts + E2E)
+  - **Total: 467 tests passing**
+- **Consecuencias:**
+  - ✅ GitFlow correctamente aplicado con rama release intermedia
+  - ✅ Conflictos resueltos sin pérdida de features
+  - ✅ PR #89 se vuelve obsoleto (será cerrado tras merge de #92 y #93)
+  - ✅ Estrategia futura: develop → release/x.x.x → main + develop
+  - ✅ Suite E2E robusta para CI/CD
+  - ✅ Filtrado de empleados optimizado (servidor vs cliente)
+- **PRs Relacionados:**
+  - PR #82: feat(assets) convert logo backgrounds to transparent
+  - PR #83: feat(testing) add playwright e2e with MFA auth flow
+  - PR #84: test(e2e) ampliar cobertura Bloque B y eliminar skips
+  - PR #85: feat(jwt) add explicit algorithm whitelist for JWT verification
+  - PR #86: test(e2e) reintentar login empleado ante rate limit
+  - PR #87: feat managerId filter, responsable selector, D3 charts, demo E2E
+  - PR #88: docs(readme) update project status, test counts and E2E section
+  - PR #91: docs(readme) fix test statistics with real numbers (457 tests total)
+  - PR #92: Release 1.4.0 → main
+  - PR #93: Release 1.4.0 → develop
+
 ## Progreso General del Proyecto
 
 ### Estado Actual (2026-02-07)
@@ -1130,19 +1205,35 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Fase 4: Proyectos ✅ 100%
   - Fase 5: Timetracking ✅ 100%
   - Fase 6: Sistema de Tareas ✅ 100% (v1.3.0)
-- **Tests:** 226+ pasando (100 backend + 126+ frontend + 10 charts)
-- **Cobertura:** Core 100%, Important 80%+
+- **Tests:** **457 tests passing** ✅
+  - Backend: 226 tests (13 test files)
+  - Frontend: 231 tests (17 test files) + 10 charts
+  - Cobertura: Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
 - **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
+- **E2E:** Playwright con suite completa de tests MFA
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal
   - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
   - v1.2.1: Hotfix SelectItem empty value
   - v1.3.0: Sistema de tareas + modularización backend + dark mode
+  - **v1.4.0 (En progreso)**: E2E testing + managerId filter + D3 charts completo
+
+### GitFlow Aplicado (v1.4.0)
+1. **Rama release creada:** `release/1.4.0` desde `develop`
+2. **Conflictos detectados:** 7 archivos al mergear `main`
+3. **Estrategia de resolución:** Mantener features de `develop` (managerId)
+4. **Validación:** 467 tests passing, linting OK, type-check OK
+5. **PRs creados:**
+   - PR #92: `release/1.4.0 → main` (Release nueva versión)
+   - PR #93: `release/1.4.0 → develop` (Merge back según GitFlow)
+6. **Próximo paso:** Mergear ambos PRs y cerrar PR #89 obsoleto
 
 ### Próximos pasos
+- Mergear PRs #92 y #93 de release/1.4.0
+- Crear tag v1.4.0 en main tras merge
+- Continuar con tests E2E adicionales
 - Preparar presentación TFM
-- Tests E2E adicionales
 - Monitoreo de performance en producción
 - Documentación de arquitectura modular en ADRs

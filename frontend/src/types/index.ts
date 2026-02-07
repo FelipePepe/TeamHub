@@ -94,6 +94,7 @@ export interface EmpleadoFilters {
   search?: string;
   rol?: UserRole;
   departamentoId?: string;
+  managerId?: string;
   activo?: boolean;
   page?: number;
   limit?: number;

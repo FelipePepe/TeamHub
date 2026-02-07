@@ -26,7 +26,7 @@ describe('navigation', () => {
     it('returns all items for ADMIN', () => {
       const items = getNavigationForRole('ADMIN');
       expect(items.length).toBeGreaterThan(0);
-      expect(items.some((item) => item.href === '/admin/configuracion')).toBe(true);
+      expect(items.some((item) => item.href === '/admin/plantillas')).toBe(true);
     });
 
     it('returns limited items for EMPLEADO', () => {

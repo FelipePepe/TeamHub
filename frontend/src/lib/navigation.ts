@@ -6,7 +6,6 @@ import {
   Clock,
   Building2,
   FileText,
-  Settings,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -61,12 +60,6 @@ export const navigationItems: NavItem[] = [
     href: '/admin/plantillas',
     icon: FileText,
     roles: ['ADMIN', 'RRHH'],
-  },
-  {
-    title: 'Configuracion',
-    href: '/admin/configuracion',
-    icon: Settings,
-    roles: ['ADMIN'],
   },
 ];
 

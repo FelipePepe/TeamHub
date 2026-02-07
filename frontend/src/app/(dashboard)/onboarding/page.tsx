@@ -57,7 +57,7 @@ export default function ProcesosPage() {
 
   // Verificar permisos - cualquier usuario puede ver su onboarding
   // Solo ADMIN/RRHH pueden ver todos
-  const canView = canViewAllOnboardings || true; // Todos pueden ver al menos el suyo
+  const canView = canViewAllOnboardings || true; // Todos pueden ver al menos sus propios procesos
   
   if (!canView) {
     return (
@@ -305,7 +305,7 @@ export default function ProcesosPage() {
                 !filters.empleadoId &&
                 !filters.departamentoId && (
                   <Button
-                    onClick={() => router.push('/onboarding/iniciar')}
+                    onClick={() => setShowIniciarModal(true)}
                     className="mt-4"
                   >
                     <Plus className="mr-2 h-4 w-4" />

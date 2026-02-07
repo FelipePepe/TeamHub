@@ -34,6 +34,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       search: query.search,
       rol: query.rol,
       departamentoId: query.departamentoId,
+      managerId: query.managerId,
       activo: query.activo,
     });
     const whereClause = filters.length ? and(...filters) : undefined;

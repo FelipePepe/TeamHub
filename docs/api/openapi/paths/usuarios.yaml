@@ -20,6 +20,11 @@
           type: string
           format: uuid
       - in: query
+        name: managerId
+        schema:
+          type: string
+          format: uuid
+      - in: query
         name: activo
         schema:
           type: boolean

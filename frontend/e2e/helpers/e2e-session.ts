@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { createHmac } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -153,4 +154,125 @@ export async function applySession(
     tokens
   );
   await page.goto(targetPath);
+}
+
+// ============ TOTP helpers (duplicados de auth-api.mjs para uso directo en TS) ============
+
+const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function fromBase32(input: string): Buffer {
+  const normalized = input.replace(/=+$/g, '').toUpperCase();
+  let bits = '';
+  for (const char of normalized) {
+    const index = BASE32.indexOf(char);
+    if (index === -1) throw new Error('Invalid base32 character');
+    bits += index.toString(2).padStart(5, '0');
+  }
+  const bytes: number[] = [];
+  for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
+    bytes.push(Number.parseInt(bits.slice(offset, offset + 8), 2));
+  }
+  return Buffer.from(bytes);
+}
+
+function generateTotpCode(secret: string, timestampMs = Date.now()): string {
+  const counter = Math.floor(timestampMs / 30000);
+  const counterBuffer = Buffer.alloc(8);
+  counterBuffer.writeBigUInt64BE(BigInt(counter));
+  const key = fromBase32(secret);
+  const hmac = createHmac('sha1', key).update(counterBuffer).digest();
+  const offset = hmac[hmac.length - 1]! & 0x0f;
+  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1000000;
+  return code.toString().padStart(6, '0');
+}
+
+// ============ Employee provisioning ============
+
+async function apiRequestWithRetry<T>(
+  method: string,
+  pathForApi: string,
+  body?: unknown,
+  bearer?: string,
+  maxAttempts = 5
+): Promise<T> {
+  const helper = await getAuthApiHelper();
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await helper.apiRequest<T>(method, pathForApi, body, bearer);
+    } catch (error) {
+      lastError = error as Error;
+      if (getStatusCodeFromError(error) !== 429 || attempt === maxAttempts) {
+        break;
+      }
+      const retryAfterSeconds = getRetryAfterSecondsFromError(error);
+      await sleep((retryAfterSeconds + 1) * 1000);
+    }
+  }
+  throw lastError ?? new Error(`API ${method} ${pathForApi} falló sin detalle`);
+}
+
+/**
+ * Crea un usuario EMPLEADO por API, hace login, change-password, MFA setup/verify
+ * y devuelve AuthTokens listos para usar con applySession().
+ */
+export async function provisionEmployeeSession(adminAccessToken: string): Promise<AuthTokens> {
+  const suffix = Date.now();
+  const email = `e2e.employee.${suffix}@example.com`;
+  const initialPassword = `InitPass!${suffix}Aa`;
+  const newPassword = `NewPass!${suffix}Bb`;
+
+  // 1. Crear usuario empleado
+  await apiRequestWithRetry(
+    'POST',
+    '/usuarios',
+    {
+      email,
+      password: initialPassword,
+      nombre: 'E2E',
+      apellidos: 'Empleado',
+      rol: 'EMPLEADO',
+    },
+    adminAccessToken
+  );
+
+  // 2. Login con credenciales iniciales
+  const loginBody = await apiRequestWithRetry<{
+    mfaToken?: string;
+    passwordChangeRequired?: boolean;
+    mfaSetupRequired?: boolean;
+    mfaRequired?: boolean;
+  }>('POST', '/auth/login', { email, password: initialPassword });
+
+  let mfaToken = loginBody.mfaToken;
+  if (!mfaToken) {
+    throw new Error('Login empleado sin mfaToken');
+  }
+
+  // 3. Cambio de contraseña obligatorio
+  if (loginBody.passwordChangeRequired) {
+    const changeBody = await apiRequestWithRetry<{ mfaToken?: string; mfaSetupRequired?: boolean }>(
+      'POST',
+      '/auth/change-password',
+      { mfaToken, newPassword }
+    );
+    mfaToken = changeBody.mfaToken ?? mfaToken;
+  }
+
+  // 4. MFA setup
+  const setupBody = await apiRequestWithRetry<{ secret: string }>(
+    'POST',
+    '/auth/mfa/setup',
+    {},
+    mfaToken
+  );
+  const code = generateTotpCode(setupBody.secret);
+
+  // 5. MFA verify → tokens finales
+  const verifyBody = await apiRequestWithRetry<AuthTokens>(
+    'POST',
+    '/auth/mfa/verify',
+    { mfaToken, code }
+  );
+  return verifyBody;
 }

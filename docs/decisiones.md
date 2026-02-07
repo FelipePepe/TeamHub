@@ -2,6 +2,8 @@
 
 Este archivo registra decisiones clave del proyecto con formato ADR, organizadas por categoría para facilitar la navegación.
 
+> **Nota sobre PRs documentados:** Este documento enfoca en **features funcionales significativas y decisiones arquitecturales** (PRs #30+). Los PRs #1-29 corresponden a setup inicial, fixes técnicos y configuración CI/CD, documentados implícitamente en los ADRs de infraestructura.
+
 ---
 
 ## Índice por Categoría
@@ -1184,6 +1186,8 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ Suite E2E robusta para CI/CD
   - ✅ Filtrado de empleados optimizado (servidor vs cliente)
 - **PRs Relacionados:**
+  - PR #80: hotfix dark mode UI fixes and documentation updates
+  - PR #81: chore merge dark mode hotfix from main to develop
   - PR #82: feat(assets) convert logo backgrounds to transparent
   - PR #83: feat(testing) add playwright e2e with MFA auth flow
   - PR #84: test(e2e) ampliar cobertura Bloque B y eliminar skips
@@ -1191,6 +1195,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - PR #86: test(e2e) reintentar login empleado ante rate limit
   - PR #87: feat managerId filter, responsable selector, D3 charts, demo E2E
   - PR #88: docs(readme) update project status, test counts and E2E section
+  - PR #90: docs(agents) sync AGENTS.md and claude.md with copilot-instructions.md
   - PR #91: docs(readme) fix test statistics with real numbers (457 tests total)
   - PR #92: Release 1.4.0 → main
   - PR #93: Release 1.4.0 → develop

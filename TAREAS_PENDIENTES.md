@@ -45,7 +45,7 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 | 3 | Onboarding (plantillas y procesos) | 12h | 100% | ✅ Completada |
 | 4 | Proyectos y asignaciones | 10h | 100% | ✅ Completada |
 | 5 | Timetracking | 8h | 100% | ✅ Completada |
-| 6 | Dashboards y reportes | 6h | 100% | ✅ Completada |
+| 6 | Dashboards y reportes (D3.js) | 6h | 100% | ✅ Completada |
 | 7 | Testing y calidad | 4h | 75% | 🟡 En progreso |
 | 8 | Documentación, deploy y presentación | 6h | 80% | 🟡 En progreso |
 | **Total** | | **70h** | **~90%** | |
@@ -222,13 +222,13 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 - [x] Dashboard de Manager (equipo, proyectos)
 - [x] Dashboard de Empleado (personal)
 - [x] Gráficos con CSS/HTML simple ✅ (implementación inicial)
-- [ ] **Migrar gráficos a D3.js** 🟡 (ADR-063, decisión arquitectural tomada)
-  - [ ] Refactorizar `bar-chart.tsx` con D3.js (interactividad, tooltips)
-  - [ ] Refactorizar `line-chart.tsx` con D3.js (interactividad, animaciones)
-  - [ ] Añadir tooltips y hover effects
-  - [ ] Mantener responsive design (ADR-060)
-  - [ ] Mantener accesibilidad (ARIA, teclado)
-  - [ ] Actualizar tests de componentes
+- [x] **Migrar gráficos a D3.js** ✅ (ADR-063/ADR-065)
+  - [x] Refactorizar `bar-chart.tsx` con D3.js (interactividad, tooltips, animaciones)
+  - [x] Refactorizar `line-chart.tsx` con D3.js (interactividad, animaciones, curvas monotone)
+  - [x] Añadir tooltips y hover effects
+  - [x] Mantener responsive design (ADR-060) — ancho dinámico via containerRef
+  - [x] Mantener accesibilidad (ARIA labels, navegación por teclado con tabindex)
+  - [x] Añadir tests de componentes (`charts.test.tsx`)
 - [x] Diseño responsive mobile-first (ADR-060, PR #19)
 - [x] Navegación móvil con hamburger menu (Sheet + MobileSidebar)
 - [ ] Completar responsive en dashboards manager/empleado 🟡
@@ -354,7 +354,7 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 ## 🎯 Próximos Pasos Recomendados (Prioridad)
 
 ### 🔴 Alta Prioridad (Pulir y Completar MVP)
-1. **Fase 6: Migrar dashboards a D3.js** - bar-chart y line-chart (ADR-065)
+1. ~~**Fase 6: Migrar dashboards a D3.js**~~ ✅ Completado (bar-chart, line-chart con D3.js, tooltips, ARIA)
 2. **Fase 7: Tests E2E básicos** - Flujos principales (login, CRUD, navegación)
 3. **Fase 7: Aumentar cobertura de tests** - Target 80% en features importantes
 4. **Fase 8: Actualizar documentación final** - Diagramas de arquitectura, manual de usuario
@@ -372,9 +372,9 @@ Documento unificado de seguimiento del proyecto organizado por fases funcionales
 
 ---
 
-**Última actualización:** 2026-01-30  
-**Progreso total estimado:** ~90%  
-**Tiempo estimado restante:** ~6-8 horas
+**Última actualización:** 2026-02-07
+**Progreso total estimado:** ~95%
+**Tiempo estimado restante:** ~4-5 horas
 
-**Logro principal:** ✅ **Frontend completo (Fases 1-6) con Claude Opus 4.5**  
-**Próxima prioridad:** Migrar visualizaciones a D3.js, tests E2E, y preparar presentación TFM
+**Logro principal:** ✅ **Frontend completo (Fases 1-6) con D3.js en dashboards, filtro managerId en API, selector de responsable, demo E2E completa**
+**Próxima prioridad:** Tests E2E, presentación TFM

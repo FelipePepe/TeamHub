@@ -404,7 +404,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 ### ADR-065: Implementación de visualizaciones D3.js para timetracking
 - Fecha: 2026-01-30
-- Estado: En progreso (50%)
+- Estado: Completado (100%)
 - Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
 - Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
 - Implementado:
@@ -416,12 +416,12 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     - Responsive design adaptativo
     - Integración con hook `useTimetracking`
     - Utilidades reutilizables en `lib/gantt-utils.ts`
-- Pendiente:
-  - [ ] Migrar `bar-chart.tsx` de dashboards a D3.js
-  - [ ] Migrar `line-chart.tsx` de dashboards a D3.js
-  - [ ] Añadir interactividad (hover effects, click events)
-  - [ ] Mantener accesibilidad (ARIA, keyboard navigation)
-  - [ ] Actualizar tests de componentes
+- Completado:
+  - [x] Migrar `bar-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Migrar `line-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Añadir interactividad (hover effects, tooltips) ✅ (2026-02-07)
+  - [x] Mantener accesibilidad (ARIA, keyboard navigation) ✅ (2026-02-07)
+  - [x] Añadir tests de componentes (`charts.test.tsx`) ✅ (2026-02-07)
 - Consecuencias:
   - Visualizaciones más ricas e interactivas para usuarios
   - Mejor UX en módulo de timetracking
@@ -940,6 +940,11 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Tipos:** types/timetracking.ts con interfaces para componentes
   - **Líneas de código:** +2326 líneas
   - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).
+- [x] Corregir scripts `npm run explore` para apuntar al testDir de Explorer Bot. (2026-02-07)
+- [x] Ajustar ExplorerBot para enviar formularios dentro del modal y evitar overlays interceptando clicks. (2026-02-07)
+- [x] Forzar click en “Iniciar Proceso” del demo realista para evitar overlay de Dialog en Playwright. (2026-02-07)
+- [x] Hacer `waitForLoad` de demos resiliente (fallback a `domcontentloaded`) para evitar bloqueos por `networkidle`. (2026-02-07)
+- [x] Añadir verificación UI de asignación empleado→proyecto con datos creados por API. (2026-02-07)
 
 ---
 
@@ -1072,30 +1077,72 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     - `frontend/e2e/usuarios.flows.spec.ts` (alta con departamento y duplicado de email)
   - ⚠️ Requiere mantener sincronizado el catalogo cuando cambien rutas o contratos.
 
+### ADR-078: Comentarios JSDoc obligatorios en metodos
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** Se necesita mejorar la legibilidad y mantenibilidad del codigo, estandarizando documentacion inline al estilo Javadoc para facilitar onboarding y revision tecnica.
+- **Decision:**
+  - Exigir comentarios JSDoc/TSDoc en todas las funciones y metodos (publicos y privados).
+  - Estandarizar el formato con `/** ... */` y etiquetas `@param`, `@returns`, `@throws` y `@example` cuando aporte valor.
+  - Alinear AGENTS.md, claude.md y .github/copilot-instructions.md con esta regla.
+- **Consecuencias:**
+  - ✅ Mayor claridad y trazabilidad del contrato de cada metodo.
+  - ✅ Mejor onboarding para nuevos colaboradores.
+  - ⚠️ Incremento de tiempo de desarrollo y riesgo de comentarios desactualizados si no se mantienen.
+  - ⚠️ Requiere disciplina para evitar comentarios triviales o redundantes.
+
+### ADR-079: Filtro managerId en /usuarios y respuesta enriquecida
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** El hook `useEmpleadosByManager` filtraba en cliente (traía todos los usuarios y filtraba en JS) porque el backend no exponía `managerId` como query param ni lo devolvía en `UserResponse`.
+- **Decision:**
+  - Añadir `managerId` como query parameter en `GET /usuarios` (OpenAPI + backend schema/handler/helpers).
+  - Incluir `managerId` y `departamentoId` en `UserResponse` (mapper `toUserResponse`).
+  - Actualizar `useEmpleadosByManager` para delegar filtrado al backend.
+  - Reemplazar input UUID de "Responsable" en `departamento-form.tsx` por selector Radix con usuarios MANAGER/ADMIN/RRHH.
+- **Consecuencias:**
+  - ✅ Filtrado eficiente en servidor en lugar de en cliente.
+  - ✅ UX mejorada: selector desplegable en lugar de UUID manual.
+  - ✅ `UserResponse` alineado con campos reales del modelo de datos.
+
+### ADR-080: Migración completa de dashboards a D3.js
+- **Fecha:** 2026-02-07
+- **Estado:** Completado
+- **Contexto:** ADR-063 decidió usar D3.js para visualizaciones. ADR-065 implementó Gantt Chart. Faltaba migrar `bar-chart.tsx` y `line-chart.tsx`.
+- **Decision:** Migrar ambos componentes de CSS/HTML puro a D3.js v7 manteniendo misma interfaz de props.
+- **Implementación:**
+  - `bar-chart.tsx`: D3 con `scaleBand`/`scaleLinear`, barras animadas (transition 600ms), grid lines, tooltips HTML, ARIA labels, teclado.
+  - `line-chart.tsx`: D3 con `scalePoint`/`scaleLinear`, `curveMonotoneX`, gradient fill, line dash animation, tooltips, ARIA, teclado.
+  - Tests: `charts.test.tsx` con 10 tests de render (5 por componente).
+- **Consecuencias:**
+  - ✅ ADR-065 completado al 100% (Gantt + bar-chart + line-chart).
+  - ✅ Interactividad: tooltips hover/focus, animaciones de entrada.
+  - ✅ Responsive: ancho dinámico vía `containerRef.clientWidth`.
+  - ✅ Accesibilidad: `role="img"`, `aria-label`, `tabindex` en elementos interactivos.
+
 ## Progreso General del Proyecto
 
-### Estado Actual (2026-01-31)
-- **Fases completadas:** 5/5 (100%)
-  - Fase 1: Dashboards ✅ 100%
+### Estado Actual (2026-02-07)
+- **Fases completadas:** 6/6 (100%)
+  - Fase 1: Dashboards ✅ 100% (D3.js completo)
   - Fase 2: Empleados ✅ 100%
   - Fase 3: Onboarding ✅ 100%
   - Fase 4: Proyectos ✅ 100%
   - Fase 5: Timetracking ✅ 100%
-  - **Fase 6: Sistema de Tareas ✅ 100%** (agregada en v1.3.0)
-- **Tests:** 226/226 pasando (100 backend + 126 frontend)
+  - Fase 6: Sistema de Tareas ✅ 100% (v1.3.0)
+- **Tests:** 226+ pasando (100 backend + 126+ frontend + 10 charts)
 - **Cobertura:** Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 154 endpoints documentados (+5 de tareas)
+- **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal
   - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
   - v1.2.1: Hotfix SelectItem empty value
-  - **v1.3.0: Sistema de tareas + modularización backend + dark mode**
+  - v1.3.0: Sistema de tareas + modularización backend + dark mode
 
 ### Próximos pasos
+- Preparar presentación TFM
+- Tests E2E adicionales
 - Monitoreo de performance en producción
-- Optimización de queries N+1 si se detectan
-- Implementación de cache Redis (opcional)
-- Métricas de uso real con analytics
 - Documentación de arquitectura modular en ADRs

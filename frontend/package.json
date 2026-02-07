@@ -14,7 +14,12 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:auth": "node scripts/run-e2e-with-auth.mjs --workers=1",
-    "e2e:check-auth": "node scripts/check-e2e-auth.mjs"
+    "e2e:check-auth": "node scripts/check-e2e-auth.mjs",
+    "demo": "playwright test --config=playwright.demo.config.ts --headed",
+    "demo:record": "playwright test --config=playwright.demo.config.ts",
+    "explore": "playwright test e2e/explorer-bot --headed",
+    "explore:headless": "playwright test e2e/explorer-bot",
+    "explore:chaos": "playwright test e2e/explorer-bot -g \"Chaos\" --headed"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

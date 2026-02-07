@@ -1,0 +1,11 @@
+escena_id,nombre,ruta,actor,duracion_seg,impacto,descripcion,pasos
+1,Autenticación MFA,/login,ADMIN,45,4,"Login completo con verificación MFA TOTP","Navegar login|Ingresar credenciales|Verificar MFA|Confirmar dashboard"
+2,Dashboard Admin,/dashboard,ADMIN,30,4,"Panel principal con KPIs y gráficos D3.js","Ver KPIs|Scroll a gráficos|Hover pie chart|Hover bar chart|Ver actividad"
+3,Gestión Empleados,/admin/empleados,ADMIN,50,3,"CRUD de usuarios con roles y departamentos","Ver listado|Crear usuario|Completar form|Ver password temporal|Ver detalle"
+4,Editor Plantillas,/admin/plantillas/crear,RRHH,90,5,"Crear plantilla onboarding con drag & drop","Crear plantilla|Agregar tareas|Establecer dependencias|Drag & drop|Guardar"
+5,Iniciar Onboarding,/onboarding,RRHH,40,4,"Iniciar proceso para empleado nuevo","Click iniciar|Seleccionar plantilla|Seleccionar empleado|Confirmar|Ver proceso"
+6,Completar Tareas,/mis-tareas,RESPONSABLE,50,3,"Completar tareas y ver progreso","Ver tareas|Click tarea|Marcar completada|Adjuntar evidencia|Ver progreso"
+7,Gestión Proyectos,/proyectos,MANAGER,50,3,"Crear proyecto y asignar equipo","Ver listado|Crear proyecto|Ir a detalle|Asignar empleado|Ver equipo"
+8,Weekly Timesheet,/timetracking,EMPLEADO,60,5,"Registrar horas en grid semanal editable","Ver grid|Ingresar horas|Navegar semanas|Copiar semana|Ver totales"
+9,Gantt Chart,/timetracking,EMPLEADO,40,5,"Visualización temporal de proyectos D3.js","Tab Gantt|Ver timeline|Hover tooltips|Zoom controls|Scroll temporal"
+10,Aprobación Horas,/timetracking/aprobacion,MANAGER,40,3,"Aprobar/rechazar registros del equipo","Ver pendientes|Revisar registro|Aprobar individual|Selección múltiple|Aprobar masivo"

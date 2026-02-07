@@ -27,6 +27,9 @@ export async function fetchEmpleados(
   if (filters?.departamentoId) {
     params.departamentoId = filters.departamentoId;
   }
+  if (filters?.managerId) {
+    params.managerId = filters.managerId;
+  }
   if (filters?.activo !== undefined) {
     params.activo = String(filters.activo);
   }

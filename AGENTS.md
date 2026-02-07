@@ -130,6 +130,7 @@ Ejemplo: `feat(auth): add MFA backup codes support`
 
 ## 7. Documentación (Docs as Code)
 *   **Inline:** Usa **JSDoc/TSDoc** para explicar el "por qué" y proporcionar ejemplos técnicos.
+*   **Comentarios obligatorios en métodos:** Toda función/método debe llevar comentario JSDoc/TSDoc que explique propósito y contrato (qué hace, parámetros, retorno, efectos laterales y errores si aplica). Mantén el formato tipo Javadoc (`/** ... */` con `@param`, `@returns`, `@throws`, `@example` cuando aporte).
 *   **Sincronización:** Cada Pull Request que modifique lógica debe actualizar su respectiva documentación (ADR, Storybook o JSDoc) en el mismo commit.
 *   **decisiones.md (CRÍTICO):** 
     *   **SIEMPRE** actualizar `docs/decisiones.md` al completar trabajo significativo (features, bugs, refactors, decisiones arquitecturales).

@@ -7,6 +7,8 @@ type UserResponseInput = {
   nombre: string;
   apellidos?: string | null;
   rol: string;
+  departamentoId?: string | null;
+  managerId?: string | null;
   activo?: boolean;
   deletedAt?: Date | string | null;
 };
@@ -30,6 +32,8 @@ export const toUserResponse = (user: UserResponseInput | User) => ({
   nombre: user.nombre,
   apellidos: user.apellidos ?? undefined,
   rol: user.rol,
+  departamentoId: user.departamentoId ?? undefined,
+  managerId: user.managerId ?? undefined,
   activo: resolveActiveState(user),
 });
 

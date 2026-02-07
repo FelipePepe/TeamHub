@@ -17,8 +17,8 @@ import { useAuth } from '@/hooks/use-auth';
 type LoginStep = 'login' | 'change-password' | 'mfa-setup' | 'mfa-verify';
 
 const loginSchema = z.object({
-  email: z.string().email('Email invalido'),
-  password: z.string().min(1, 'La contrasena es requerida'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(1, 'La contraseña es requerida'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -26,21 +26,21 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const changePasswordSchema = z.object({
   newPassword: z
     .string()
-    .min(12, 'Minimo 12 caracteres')
-    .regex(/[a-z]/, 'Debe incluir minusculas')
-    .regex(/[A-Z]/, 'Debe incluir mayusculas')
-    .regex(/[0-9]/, 'Debe incluir numeros')
-    .regex(/[^A-Za-z0-9]/, 'Debe incluir caracter especial'),
+    .min(12, 'Mínimo 12 caracteres')
+    .regex(/[a-z]/, 'Debe incluir minúsculas')
+    .regex(/[A-Z]/, 'Debe incluir mayúsculas')
+    .regex(/[0-9]/, 'Debe incluir números')
+    .regex(/[^A-Za-z0-9]/, 'Debe incluir carácter especial'),
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Las contrasenas no coinciden',
+  message: 'Las contraseñas no coinciden',
   path: ['confirmPassword'],
 });
 
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 const mfaSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, 'Codigo MFA invalido'),
+  code: z.string().regex(/^\d{6}$/, 'Código MFA inválido'),
 });
 
 type MfaFormData = z.infer<typeof mfaSchema>;
@@ -89,7 +89,7 @@ export function LoginForm() {
       const response = await login(data.email, data.password);
 
       if (!response.mfaToken) {
-        throw new Error('Token de autenticacion faltante');
+        throw new Error('Token de autenticación faltante');
       }
 
       setPendingEmail(data.email);
@@ -113,11 +113,11 @@ export function LoginForm() {
       }
 
       if (response.user) {
-        toast.success('Sesion iniciada correctamente');
+        toast.success('Sesión iniciada correctamente');
         router.push('/dashboard');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al iniciar sesion';
+      const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -150,7 +150,7 @@ export function LoginForm() {
     try {
       const response = await changePassword(mfaToken, data.newPassword);
       setMfaToken(response.mfaToken);
-      toast.success('Contrasena actualizada');
+      toast.success('Contraseña actualizada');
 
       if (response.mfaSetupRequired) {
         await initMfaSetup(response.mfaToken);
@@ -163,7 +163,7 @@ export function LoginForm() {
         return;
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al cambiar contrasena';
+      const message = error instanceof Error ? error.message : 'Error al cambiar contraseña';
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -175,10 +175,10 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await verifyMfa(mfaToken, data.code);
-      toast.success('Sesion iniciada correctamente');
+      toast.success('Sesión iniciada correctamente');
       router.push('/dashboard');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Codigo invalido';
+      const message = error instanceof Error ? error.message : 'Código inválido';
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -197,15 +197,15 @@ export function LoginForm() {
       <form onSubmit={handleSubmit(onChangePasswordSubmit)} className="space-y-4">
         <div className="flex items-center gap-2 text-amber-600 mb-4">
           <KeyRound className="h-5 w-5" />
-          <span className="font-medium">Cambio de contrasena requerido</span>
+          <span className="font-medium">Cambio de contraseña requerido</span>
         </div>
 
         <p className="text-sm text-slate-600 mb-4">
-          Tu contrasena es temporal. Debes establecer una nueva contrasena para continuar.
+          Tu contraseña es temporal. Debes establecer una nueva contraseña para continuar.
         </p>
 
         <div className="space-y-2">
-          <Label htmlFor="new-password">Nueva contrasena</Label>
+          <Label htmlFor="new-password">Nueva contraseña</Label>
           <div className="relative">
             <Input
               id="new-password"
@@ -230,7 +230,7 @@ export function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirm-password">Confirmar contrasena</Label>
+          <Label htmlFor="confirm-password">Confirmar contraseña</Label>
           <Input
             id="confirm-password"
             type="password"
@@ -245,11 +245,11 @@ export function LoginForm() {
         </div>
 
         <div className="text-xs text-slate-500 space-y-1">
-          <p>La contrasena debe tener:</p>
+          <p>La contraseña debe tener:</p>
           <ul className="list-disc list-inside">
-            <li>Minimo 12 caracteres</li>
-            <li>Mayusculas y minusculas</li>
-            <li>Al menos un numero</li>
+            <li>Mínimo 12 caracteres</li>
+            <li>Mayúsculas y minúsculas</li>
+            <li>Al menos un número</li>
             <li>Al menos un caracter especial</li>
           </ul>
         </div>
@@ -257,7 +257,7 @@ export function LoginForm() {
         <div className="flex flex-col gap-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Cambiar contrasena
+            Cambiar contraseña
           </Button>
           <Button type="button" variant="ghost" className="w-full" disabled={isLoading} onClick={resetAll}>
             Cancelar
@@ -279,13 +279,13 @@ export function LoginForm() {
       <form onSubmit={handleSubmit(onMfaSubmit)} className="space-y-4">
         <div className="flex items-center gap-2 text-blue-600 mb-4">
           <ShieldCheck className="h-5 w-5" />
-          <span className="font-medium">Configurar autenticacion MFA</span>
+          <span className="font-medium">Configurar autenticación MFA</span>
         </div>
 
         {qrCodeDataUrl ? (
           <>
             <p className="text-sm text-slate-600 mb-4">
-              Escanea el codigo QR con Google Authenticator u otra app compatible.
+              Escanea el código QR con Google Authenticator u otra app compatible.
             </p>
             <div className="flex justify-center mb-4">
               <Image
@@ -300,21 +300,21 @@ export function LoginForm() {
           </>
         ) : (
           <p className="text-sm text-slate-600 mb-4">
-            Ingresa el codigo en Google Authenticator u otra app compatible.
+            Ingresa el código en Google Authenticator u otra app compatible.
           </p>
         )}
 
         {mfaSecret && (
           <div className="bg-slate-100 p-3 rounded text-center mb-4">
             <p className="text-xs text-slate-500 mb-1">
-              {qrCodeDataUrl ? 'O ingresa este codigo manualmente:' : 'Codigo para agregar manualmente:'}
+              {qrCodeDataUrl ? 'O ingresa este código manualmente:' : 'Código para agregar manualmente:'}
             </p>
             <code className="text-sm font-mono select-all">{mfaSecret}</code>
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="mfa-code">Codigo de verificacion</Label>
+          <Label htmlFor="mfa-code">Código de verificación</Label>
           <Input
             id="mfa-code"
             type="text"
@@ -330,7 +330,7 @@ export function LoginForm() {
         </div>
 
         <p className="text-xs text-slate-500">
-          Ingresa el codigo de 6 digitos generado por la app para verificar la configuracion.
+          Ingresa el código de 6 dígitos generado por la app para verificar la configuración.
         </p>
 
         <div className="flex flex-col gap-2">
@@ -357,7 +357,7 @@ export function LoginForm() {
     return (
       <form onSubmit={handleSubmit(onMfaSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="mfa-code">Codigo MFA</Label>
+          <Label htmlFor="mfa-code">Código MFA</Label>
           <Input
             id="mfa-code"
             type="text"
@@ -373,13 +373,13 @@ export function LoginForm() {
         </div>
 
         <p className="text-xs text-slate-500">
-          Ingresa el codigo de autenticacion generado para {pendingEmail ?? 'tu cuenta'}.
+          Ingresa el código de autenticación generado para {pendingEmail ?? 'tu cuenta'}.
         </p>
 
         <div className="flex flex-col gap-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Verificar codigo
+            Verificar código
           </Button>
           <Button type="button" variant="ghost" className="w-full" disabled={isLoading} onClick={resetAll}>
             Volver
@@ -414,7 +414,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Contrasena</Label>
+        <Label htmlFor="password">Contraseña</Label>
         <div className="relative">
           <Input
             id="password"
@@ -440,7 +440,7 @@ export function LoginForm() {
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Iniciar sesion
+        Iniciar sesión
       </Button>
     </form>
   );

@@ -15,6 +15,6 @@ test.describe('Navegación', () => {
     await page.goto('/login');
 
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('button', { name: /iniciar sesion/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /iniciar sesión/i })).toBeVisible({ timeout: 10000 });
   });
 });

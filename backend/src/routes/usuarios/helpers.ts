@@ -33,6 +33,9 @@ export const buildUserFilters = (query: z.infer<typeof listQuerySchema>) => {
   if (query.departamentoId) {
     filters.push(eq(users.departamentoId, query.departamentoId));
   }
+  if (query.managerId) {
+    filters.push(eq(users.managerId, query.managerId));
+  }
   if (query.activo !== undefined) {
     filters.push(query.activo ? isNull(users.deletedAt) : isNotNull(users.deletedAt));
   }

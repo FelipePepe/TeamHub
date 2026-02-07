@@ -58,14 +58,14 @@ describe('LoginForm MFA flow', () => {
     render(<LoginForm />);
 
     await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/contrasena/i), 'Password123!');
-    await user.click(screen.getByRole('button', { name: /iniciar sesion/i }));
+    await user.type(screen.getByLabelText(/contraseña/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /iniciar sesión/i }));
 
     expect(authMocks.login).toHaveBeenCalledWith('user@example.com', 'Password123!');
 
-    const codeInput = await screen.findByLabelText(/codigo mfa/i);
+    const codeInput = await screen.findByLabelText(/código mfa/i);
     await user.type(codeInput, '123456');
-    await user.click(screen.getByRole('button', { name: /verificar codigo/i }));
+    await user.click(screen.getByRole('button', { name: /verificar código/i }));
 
     expect(authMocks.verifyMfa).toHaveBeenCalledWith('mfa-token', '123456');
     expect(routerMocks.push).toHaveBeenCalledWith('/dashboard');

@@ -2,6 +2,8 @@
 
 Este archivo registra decisiones clave del proyecto con formato ADR, organizadas por categoría para facilitar la navegación.
 
+> **Nota sobre PRs documentados:** Este documento enfoca en **features funcionales significativas y decisiones arquitecturales** (PRs #30+). Los PRs #1-29 corresponden a setup inicial, fixes técnicos y configuración CI/CD, documentados implícitamente en los ADRs de infraestructura.
+
 ---
 
 ## Índice por Categoría
@@ -404,7 +406,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 ### ADR-065: Implementación de visualizaciones D3.js para timetracking
 - Fecha: 2026-01-30
-- Estado: En progreso (50%)
+- Estado: Completado (100%)
 - Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
 - Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
 - Implementado:
@@ -416,12 +418,12 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     - Responsive design adaptativo
     - Integración con hook `useTimetracking`
     - Utilidades reutilizables en `lib/gantt-utils.ts`
-- Pendiente:
-  - [ ] Migrar `bar-chart.tsx` de dashboards a D3.js
-  - [ ] Migrar `line-chart.tsx` de dashboards a D3.js
-  - [ ] Añadir interactividad (hover effects, click events)
-  - [ ] Mantener accesibilidad (ARIA, keyboard navigation)
-  - [ ] Actualizar tests de componentes
+- Completado:
+  - [x] Migrar `bar-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Migrar `line-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Añadir interactividad (hover effects, tooltips) ✅ (2026-02-07)
+  - [x] Mantener accesibilidad (ARIA, keyboard navigation) ✅ (2026-02-07)
+  - [x] Añadir tests de componentes (`charts.test.tsx`) ✅ (2026-02-07)
 - Consecuencias:
   - Visualizaciones más ricas e interactivas para usuarios
   - Mejor UX en módulo de timetracking
@@ -852,6 +854,8 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
 - [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
 - [x] Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
+- [x] Configurar tests E2E con Playwright (Fase 7): \`frontend/e2e/\`, \`playwright.config.ts\`, specs de login y navegación; \`npm run e2e\`. (2026-01-30)
+- [x] Añadir E2E CRUD departamentos: \`frontend/e2e/departamentos-crud.spec.ts\` (login + listado + crear); requiere \`E2E_USER\` y \`E2E_PASSWORD\`. (2026-01-30)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -938,6 +942,11 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Tipos:** types/timetracking.ts con interfaces para componentes
   - **Líneas de código:** +2326 líneas
   - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).
+- [x] Corregir scripts `npm run explore` para apuntar al testDir de Explorer Bot. (2026-02-07)
+- [x] Ajustar ExplorerBot para enviar formularios dentro del modal y evitar overlays interceptando clicks. (2026-02-07)
+- [x] Forzar click en “Iniciar Proceso” del demo realista para evitar overlay de Dialog en Playwright. (2026-02-07)
+- [x] Hacer `waitForLoad` de demos resiliente (fallback a `domcontentloaded`) para evitar bloqueos por `networkidle`. (2026-02-07)
+- [x] Añadir verificación UI de asignación empleado→proyecto con datos creados por API. (2026-02-07)
 
 ---
 
@@ -1049,30 +1058,187 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ UX mejorada con dark mode
   - 📈 +13,903 líneas de código, -4,893 líneas eliminadas (refactorización)
 
+### ADR-077: Catalogo de casos de uso E2E para expansion de pruebas
+- **Fecha:** 2026-02-03
+- **Estado:** Aceptado
+- **Contexto:** La suite E2E de Playwright ya cubre login, navegacion y CRUD base de departamentos, pero hacia falta una fuente unica para escalar cobertura por modulo, rol y casos negativos sin duplicar escenarios.
+- **Decision:**
+  - Crear `frontend/e2e/use-cases.catalog.ts` como catalogo tipado de casos de uso E2E.
+  - Crear `frontend/e2e/traceability-matrix.md` para mapear cada caso al spec actual/objetivo y planificar por bloques.
+  - Estandarizar identificadores (`E2E-<MODULO>-<NNN>`), prioridad (`P0/P1/P2`) y tipo (`smoke/regression/negative/security`).
+  - Vincular cada caso a contratos OpenAPI y, cuando aplique, reglas de negocio en `backend/src/shared/constants/business-rules.ts`.
+  - Registrar en `docs/quality/testing.md` este catalogo como base para generar specs E2E mas extensos.
+- **Consecuencias:**
+  - ✅ Priorizacion clara de backlog E2E por riesgo e impacto.
+  - ✅ Menor ambiguedad al generar nuevos tests desde IA o de forma manual.
+  - ✅ Trazabilidad entre UI, API y reglas de negocio en un unico artefacto.
+  - ✅ Bloque A (P0) implementado en `frontend/e2e/block-a-smoke.spec.ts` para login MFA UI, RBAC de navegacion, acceso denegado en departamentos, creacion de proyecto y registro de horas pendiente.
+  - ✅ Bloque B (P1 auth/departamentos/usuarios) implementado con:
+    - `frontend/e2e/auth.flows.spec.ts` (lockout + desbloqueo ADMIN)
+    - `frontend/e2e/departamentos.management.spec.ts` (editar, duplicado, soft delete/filtros)
+    - `frontend/e2e/usuarios.flows.spec.ts` (alta con departamento y duplicado de email)
+  - ⚠️ Requiere mantener sincronizado el catalogo cuando cambien rutas o contratos.
+
+### ADR-078: Comentarios JSDoc obligatorios en metodos
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** Se necesita mejorar la legibilidad y mantenibilidad del codigo, estandarizando documentacion inline al estilo Javadoc para facilitar onboarding y revision tecnica.
+- **Decision:**
+  - Exigir comentarios JSDoc/TSDoc en todas las funciones y metodos (publicos y privados).
+  - Estandarizar el formato con `/** ... */` y etiquetas `@param`, `@returns`, `@throws` y `@example` cuando aporte valor.
+  - Alinear AGENTS.md, claude.md y .github/copilot-instructions.md con esta regla.
+- **Consecuencias:**
+  - ✅ Mayor claridad y trazabilidad del contrato de cada metodo.
+  - ✅ Mejor onboarding para nuevos colaboradores.
+  - ⚠️ Incremento de tiempo de desarrollo y riesgo de comentarios desactualizados si no se mantienen.
+  - ⚠️ Requiere disciplina para evitar comentarios triviales o redundantes.
+
+### ADR-079: Filtro managerId en /usuarios y respuesta enriquecida
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** El hook `useEmpleadosByManager` filtraba en cliente (traía todos los usuarios y filtraba en JS) porque el backend no exponía `managerId` como query param ni lo devolvía en `UserResponse`.
+- **Decision:**
+  - Añadir `managerId` como query parameter en `GET /usuarios` (OpenAPI + backend schema/handler/helpers).
+  - Incluir `managerId` y `departamentoId` en `UserResponse` (mapper `toUserResponse`).
+  - Actualizar `useEmpleadosByManager` para delegar filtrado al backend.
+  - Reemplazar input UUID de "Responsable" en `departamento-form.tsx` por selector Radix con usuarios MANAGER/ADMIN/RRHH.
+- **Consecuencias:**
+  - ✅ Filtrado eficiente en servidor en lugar de en cliente.
+  - ✅ UX mejorada: selector desplegable en lugar de UUID manual.
+  - ✅ `UserResponse` alineado con campos reales del modelo de datos.
+
+### ADR-080: Migración completa de dashboards a D3.js
+- **Fecha:** 2026-02-07
+- **Estado:** Completado
+- **Contexto:** ADR-063 decidió usar D3.js para visualizaciones. ADR-065 implementó Gantt Chart. Faltaba migrar `bar-chart.tsx` y `line-chart.tsx`.
+- **Decision:** Migrar ambos componentes de CSS/HTML puro a D3.js v7 manteniendo misma interfaz de props.
+- **Implementación:**
+  - `bar-chart.tsx`: D3 con `scaleBand`/`scaleLinear`, barras animadas (transition 600ms), grid lines, tooltips HTML, ARIA labels, teclado.
+  - `line-chart.tsx`: D3 con `scalePoint`/`scaleLinear`, `curveMonotoneX`, gradient fill, line dash animation, tooltips, ARIA, teclado.
+  - Tests: `charts.test.tsx` con 10 tests de render (5 por componente).
+- **Consecuencias:**
+  - ✅ ADR-065 completado al 100% (Gantt + bar-chart + line-chart).
+  - ✅ Interactividad: tooltips hover/focus, animaciones de entrada.
+  - ✅ Responsive: ancho dinámico vía `containerRef.clientWidth`.
+  - ✅ Accesibilidad: `role="img"`, `aria-label`, `tabindex` en elementos interactivos.
+
+### ADR-081: Release 1.4.0 - E2E Testing y Resolución de Conflictos GitFlow
+- **Fecha:** 2026-02-07
+- **Estado:** En Progreso
+- **Contexto:** 
+  - PR #89 (develop → main) tenía conflictos de merge
+  - Se había hecho hotfix en main que modificó archivos de usuarios
+  - develop tenía features nuevas (managerId filter, E2E testing, D3 charts)
+  - Era necesario seguir GitFlow correctamente
+- **Decisión:**
+  - Crear rama `release/1.4.0` desde `develop` (siguiendo GitFlow estricto)
+  - Mergear `main` en `release/1.4.0` para detectar conflictos temprano
+  - Resolver conflictos manteniendo features de develop (managerId)
+  - Crear PRs: `release/1.4.0 → main` (PR #92) y `release/1.4.0 → develop` (PR #93)
+  - Cerrar PR #89 una vez mergeados los PRs de release
+- **Conflictos Resueltos (7 archivos):**
+  - `backend/src/routes/usuarios/handlers.ts`: Mantener managerId filter en buildUserFilters
+  - `backend/src/routes/usuarios/helpers.ts`: Mantener validación managerId en helpers
+  - `backend/src/routes/usuarios/schemas.ts`: Mantener managerId en listQuerySchema
+  - `backend/src/services/mappers/users.ts`: Mantener managerId en UserResponseInput y toUserResponse
+  - `frontend/src/hooks/empleados/api.ts`: Mantener params.managerId en fetchEmpleados
+  - `frontend/src/hooks/use-empleados.ts`: Usar backend filter en lugar de filtrado cliente
+  - `docs/decisiones.md`: Mantener versión de develop (más actualizada)
+- **GitFlow Aplicado:**
+  1. `git checkout develop && git pull origin develop`
+  2. `git checkout -b release/1.4.0 develop`
+  3. `git merge --no-ff --no-commit main`
+  4. Resolución manual de conflictos priorizando features de develop
+  5. `git commit -m "chore: merge main into release/1.4.0"`
+  6. Validación: `npm run lint && npm run type-check` (backend + frontend)
+  7. `git push -u origin release/1.4.0`
+  8. Crear PR #92: `release/1.4.0 → main` (Release 1.4.0)
+  9. Crear PR #93: `release/1.4.0 → develop` (Merge back)
+- **Contenido de Release 1.4.0:**
+  - **E2E Testing con Playwright:**
+    - Suite completa de tests end-to-end con autenticación MFA
+    - Tests de flujos críticos: login, proyectos, onboarding
+    - Reintentos automáticos ante rate limits
+    - Cobertura Bloque B ampliada
+  - **Filtro managerId completo:**
+    - Backend: Query parameter en GET /usuarios
+    - Frontend: Hook useEmpleadosByManager usa backend filter
+    - Eliminado filtrado ineficiente en cliente
+  - **D3.js Charts:**
+    - BarChart y LineChart con D3.js v7
+    - Animaciones y tooltips interactivos
+    - 10 tests de charts
+  - **Seguridad JWT:**
+    - Whitelist explícita de algoritmos (HS256)
+    - Prevención de ataques "none" algorithm
+  - **Assets optimizados:**
+    - Logos con fondos transparentes
+    - Mejora de carga y accesibilidad
+- **Tests Actualizados:**
+  - Backend: 226 tests passing ✅
+  - Frontend: 241 tests passing ✅ (incremento por charts + E2E)
+  - **Total: 467 tests passing**
+- **Consecuencias:**
+  - ✅ GitFlow correctamente aplicado con rama release intermedia
+  - ✅ Conflictos resueltos sin pérdida de features
+  - ✅ PR #89 se vuelve obsoleto (será cerrado tras merge de #92 y #93)
+  - ✅ Estrategia futura: develop → release/x.x.x → main + develop
+  - ✅ Suite E2E robusta para CI/CD
+  - ✅ Filtrado de empleados optimizado (servidor vs cliente)
+- **PRs Relacionados:**
+  - PR #80: hotfix dark mode UI fixes and documentation updates
+  - PR #81: chore merge dark mode hotfix from main to develop
+  - PR #82: feat(assets) convert logo backgrounds to transparent
+  - PR #83: feat(testing) add playwright e2e with MFA auth flow
+  - PR #84: test(e2e) ampliar cobertura Bloque B y eliminar skips
+  - PR #85: feat(jwt) add explicit algorithm whitelist for JWT verification
+  - PR #86: test(e2e) reintentar login empleado ante rate limit
+  - PR #87: feat managerId filter, responsable selector, D3 charts, demo E2E
+  - PR #88: docs(readme) update project status, test counts and E2E section
+  - PR #90: docs(agents) sync AGENTS.md and claude.md with copilot-instructions.md
+  - PR #91: docs(readme) fix test statistics with real numbers (457 tests total)
+  - PR #92: Release 1.4.0 → main
+  - PR #93: Release 1.4.0 → develop
+
 ## Progreso General del Proyecto
 
-### Estado Actual (2026-01-31)
-- **Fases completadas:** 5/5 (100%)
-  - Fase 1: Dashboards ✅ 100%
+### Estado Actual (2026-02-07)
+- **Fases completadas:** 6/6 (100%)
+  - Fase 1: Dashboards ✅ 100% (D3.js completo)
   - Fase 2: Empleados ✅ 100%
   - Fase 3: Onboarding ✅ 100%
   - Fase 4: Proyectos ✅ 100%
   - Fase 5: Timetracking ✅ 100%
-  - **Fase 6: Sistema de Tareas ✅ 100%** (agregada en v1.3.0)
-- **Tests:** 226/226 pasando (100 backend + 126 frontend)
-- **Cobertura:** Core 100%, Important 80%+
+  - Fase 6: Sistema de Tareas ✅ 100% (v1.3.0)
+- **Tests:** **457 tests passing** ✅
+  - Backend: 226 tests (13 test files)
+  - Frontend: 231 tests (17 test files) + 10 charts
+  - Cobertura: Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 154 endpoints documentados (+5 de tareas)
+- **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
+- **E2E:** Playwright con suite completa de tests MFA
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal
   - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
   - v1.2.1: Hotfix SelectItem empty value
-  - **v1.3.0: Sistema de tareas + modularización backend + dark mode**
+  - v1.3.0: Sistema de tareas + modularización backend + dark mode
+  - **v1.4.0 (En progreso)**: E2E testing + managerId filter + D3 charts completo
+
+### GitFlow Aplicado (v1.4.0)
+1. **Rama release creada:** `release/1.4.0` desde `develop`
+2. **Conflictos detectados:** 7 archivos al mergear `main`
+3. **Estrategia de resolución:** Mantener features de `develop` (managerId)
+4. **Validación:** 467 tests passing, linting OK, type-check OK
+5. **PRs creados:**
+   - PR #92: `release/1.4.0 → main` (Release nueva versión)
+   - PR #93: `release/1.4.0 → develop` (Merge back según GitFlow)
+6. **Próximo paso:** Mergear ambos PRs y cerrar PR #89 obsoleto
 
 ### Próximos pasos
+- Mergear PRs #92 y #93 de release/1.4.0
+- Crear tag v1.4.0 en main tras merge
+- Continuar con tests E2E adicionales
+- Preparar presentación TFM
 - Monitoreo de performance en producción
-- Optimización de queries N+1 si se detectan
-- Implementación de cache Redis (opcional)
-- Métricas de uso real con analytics
 - Documentación de arquitectura modular en ADRs

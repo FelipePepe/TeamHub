@@ -92,7 +92,9 @@ export const revokeAllRefreshTokensForUser = async (userId: string) => {
 };
 
 export const verifyAccessToken = (token: string) => {
-  const payload = jwt.verify(token, config.JWT_ACCESS_SECRET) as {
+  const payload = jwt.verify(token, config.JWT_ACCESS_SECRET, {
+    algorithms: ['HS256'],
+  }) as {
     sub: string;
     role: string;
     type?: string;
@@ -104,7 +106,9 @@ export const verifyAccessToken = (token: string) => {
 };
 
 export const verifyRefreshToken = async (token: string) => {
-  const payload = jwt.verify(token, config.JWT_REFRESH_SECRET) as { sub: string; type?: string };
+  const payload = jwt.verify(token, config.JWT_REFRESH_SECRET, {
+    algorithms: ['HS256'],
+  }) as { sub: string; type?: string };
   if (payload.type !== 'refresh') {
     throw new Error('Invalid refresh token');
   }
@@ -132,7 +136,9 @@ export const createMfaToken = (user: AuthUser): string => {
 };
 
 export const verifyMfaToken = (token: string) => {
-  return jwt.verify(token, config.JWT_ACCESS_SECRET) as { sub: string; type: string };
+  return jwt.verify(token, config.JWT_ACCESS_SECRET, {
+    algorithms: ['HS256'],
+  }) as { sub: string; type: string };
 };
 
 export const createResetToken = async (user: AuthUser) => {

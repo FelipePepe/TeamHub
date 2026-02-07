@@ -15,6 +15,12 @@ UserResponse:
     rol:
       type: string
       enum: [ADMIN, RRHH, MANAGER, EMPLEADO]
+    departamentoId:
+      type: string
+      format: uuid
+    managerId:
+      type: string
+      format: uuid
     activo:
       type: boolean
 

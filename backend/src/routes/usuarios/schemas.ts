@@ -13,6 +13,7 @@ export const listQuerySchema = z.object({
   search: z.string().optional(),
   rol: z.enum(roles).optional(),
   departamentoId: uuidSchema.optional(),
+  managerId: uuidSchema.optional(),
   activo: optionalBooleanFromString,
   page: optionalNumberFromString,
   limit: optionalNumberFromString,

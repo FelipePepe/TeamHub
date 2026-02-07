@@ -4,7 +4,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiError, User } from '@/types';
+import type { ApiError } from '@/types';
 import type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
 import { empleadosKeys } from './empleados/keys';
 import {
@@ -155,19 +155,13 @@ export function useEmpleadosByDepartamento(departamentoId: string, enabled = tru
  * @param managerId - ID del manager
  * @param enabled - Si debe ejecutarse la query (por defecto true)
  * @returns Query result con lista de empleados del manager
- *
- * @note Actualmente filtra en el cliente ya que el backend no expone managerId en la respuesta.
- * TODO: Actualizar backend para incluir managerId en toUserResponse o añadir endpoint específico.
  */
 export function useEmpleadosByManager(managerId: string, enabled = true) {
   return useQuery({
     queryKey: empleadosKeys.byManager(managerId),
     queryFn: async () => {
-      // Obtener todos los empleados activos y filtrar por managerId en cliente
-      // Nota: Esto no es eficiente para grandes volúmenes. Idealmente el backend
-      // debería soportar filtro por managerId o incluir managerId en la respuesta
-      const response = await fetchEmpleados({ activo: true });
-      return response.data.filter((user: User) => user.managerId === managerId);
+      const response = await fetchEmpleados({ managerId, activo: true });
+      return response.data;
     },
     enabled: enabled && !!managerId,
     staleTime: 5 * 60 * 1000,

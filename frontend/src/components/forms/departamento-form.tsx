@@ -21,13 +21,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   useCreateDepartamento,
   useUpdateDepartamento,
   useDepartamento,
 } from '@/hooks/use-departamentos';
-import type { CreateDepartamentoData, UpdateDepartamentoData } from '@/types';
+import { useEmpleados } from '@/hooks/use-empleados';
+import type { CreateDepartamentoData, UpdateDepartamentoData, UserRole } from '@/types';
 
 // Schema de validación Zod
+const RESPONSABLE_ROLES: UserRole[] = ['ADMIN', 'RRHH', 'MANAGER'];
+const NONE_SENTINEL = '__none__';
+
 const departamentoSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre es demasiado largo'),
   codigo: z
@@ -75,6 +86,11 @@ export function DepartamentoForm({
 
   const createDepartamento = useCreateDepartamento();
   const updateDepartamento = useUpdateDepartamento();
+
+  const { data: managersData } = useEmpleados({ activo: true, limit: 200 });
+  const managers = (managersData?.data ?? []).filter((u) =>
+    RESPONSABLE_ROLES.includes(u.rol as UserRole)
+  );
 
   const {
     register,
@@ -253,19 +269,30 @@ export function DepartamentoForm({
             {/* Responsable */}
             <div className="space-y-2">
               <Label htmlFor="responsableId">Responsable</Label>
-              <Input
-                id="responsableId"
-                type="text"
-                placeholder="ID del responsable (UUID)"
+              <Select
+                value={watch('responsableId') || NONE_SENTINEL}
+                onValueChange={(value) =>
+                  setValue('responsableId', value === NONE_SENTINEL ? '' : value, {
+                    shouldValidate: true,
+                  })
+                }
                 disabled={isLoading}
-                {...register('responsableId')}
-              />
+              >
+                <SelectTrigger id="responsableId" aria-label="Seleccionar responsable">
+                  <SelectValue placeholder="Seleccionar responsable" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE_SENTINEL}>Sin responsable</SelectItem>
+                  {managers.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.nombre} {user.apellidos ?? ''} ({user.rol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.responsableId && (
                 <p className="text-sm text-red-500">{errors.responsableId.message}</p>
               )}
-              <p className="text-xs text-slate-500">
-                TODO: Implementar select de usuarios con rol MANAGER o superior
-              </p>
             </div>
 
             {/* Color */}

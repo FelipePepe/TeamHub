@@ -71,8 +71,8 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 | Componente | Estado | Progreso | Tests |
 |------------|--------|----------|-------|
 | **Backend** | ✅ Completo | 100% | 226/226 ✅ |
-| **Frontend** | ✅ Completo | 100% | 231/231 ✅ |
-| **Total Tests** | ✅ Pasando | - | **457/457** ✅ |
+| **Frontend** | ✅ Completo | 100% | 241/241 ✅ |
+| **Total Tests** | ✅ Pasando | - | **467/467** ✅ |
 
 ### 🎯 Features Implementadas
 
@@ -103,6 +103,7 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
   - RRHH: Onboardings, departamentos y alertas
   - Manager: Equipo, proyectos y aprobaciones
   - Empleado: Onboarding personal y accesos rápidos
+  - Gráficos interactivos con D3.js: barras animadas, líneas con gradiente, tooltips (ADR-063/065/080)
   - Diseño responsive mobile-first (ADR-060)
 
 - **Proyectos y Asignaciones** (Fase 4) ✅
@@ -125,14 +126,20 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
   - Tabs navigation (My Records, Weekly Timesheet, Gantt Chart)
   - Visualizaciones avanzadas con D3.js (ADR-065)
 
-#### 🟡 En Progreso (50%)
+- **E2E Demo Automatizada** (Playwright)
+  - Demo completa de 14 pasos con grabación de video (1920x1080)
+  - Login MFA visual, CRUD departamentos/empleados/proyectos
+  - Onboarding, timetracking, perfil y verificación final
+  - Helpers reutilizables: typing natural, mouse movement, TOTP generation
+  - Explorer-bot para detección automática de errores
+  - Monitorización de errores (consola, red, visual)
 
 ### 📡 API REST - 149 Endpoints
 
 | Módulo | Endpoints | Estado |
 |--------|-----------|--------|
 | Auth | 7 | ✅ |
-| Usuarios | 7 | ✅ |
+| Usuarios | 7 (+ filtro managerId) | ✅ |
 | Departamentos | 5 | ✅ |
 | Plantillas Onboarding | 10 | ✅ |
 | Procesos Onboarding | 13 | ✅ |
@@ -167,17 +174,18 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 ### 🧪 Calidad del Código
 
 - ✅ **Zero ESLint warnings** (backend + frontend)
-- ✅ **97 tests passing** (20 backend, 77 frontend)
+- ✅ **467 tests passing** (226 backend, 241 frontend)
+- ✅ **E2E Playwright** — demo automatizada de 14 pasos con video
 - ✅ **100% coverage** en hooks críticos
 - ✅ **Type-safe** end-to-end (TypeScript + Zod)
 - ✅ **Responsive design** (mobile-first, ADR-060)
-- ✅ **Accesibilidad** (ARIA labels, navegación teclado)
+- ✅ **Accesibilidad** (ARIA labels, navegación teclado, contraste 4.5:1)
 
 ### 📝 Documentación Disponible
 
 - 📘 [Documentación Completa](docs/README.md)
 - 🏗️ [Arquitectura (SAD)](docs/architecture/sad.md)
-- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 63 decisiones documentadas
+- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 80 decisiones documentadas
 - 🔧 [Troubleshooting](docs/troubleshooting.md)
 - 📊 [Estado y Progreso](docs/decisiones.md)
 - 🔌 [API Reference](openapi.yaml) + Swagger UI
@@ -186,13 +194,17 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 
 **Prioridad ALTA:**
 1. ✅ ~~Lint & Tests verification~~ (Completado)
-2. 🔄 Security hardening (rate limiting global, headers CSP)
-3. 📝 Actualizar OpenAPI con endpoints de onboarding
+2. ✅ ~~Security hardening~~ (rate limiting, headers CSP, JWT algorithm whitelist)
+3. ✅ ~~Actualizar OpenAPI con endpoints de onboarding~~
 
-**Prioridad MEDIA:**
-4. 🎨 Completar frontend Proyectos (hooks + páginas)
-5. ⏱️ Completar frontend Timetracking (vista semanal + aprobaciones)
-6. 📊 Migrar gráficos a D3.js (tooltips, interactividad)
+**Prioridad MEDIA (Completado):**
+4. ✅ ~~Completar frontend Proyectos (hooks + páginas)~~
+5. ✅ ~~Completar frontend Timetracking (vista semanal + aprobaciones)~~
+6. ✅ ~~Migrar gráficos a D3.js (tooltips, interactividad)~~ (ADR-080)
+
+**Pendiente:**
+7. 📝 Documentación final y presentación TFM
+8. 🚀 Deploy final a producción
 
 ---
 
@@ -305,6 +317,7 @@ Usuario → Frontend (Next.js) → API Client (Axios) → Backend (Hono) → Ser
 | GitHub Actions | CI/CD pipelines |
 | ESLint 9 | Linting de código (flat config) |
 | Vitest 3 | Testing unitario e integración |
+| Playwright | Testing E2E y demo automatizada |
 
 ---
 
@@ -467,10 +480,13 @@ Ver [scripts/llm-collab/README.md](scripts/llm-collab/README.md) para más detal
 | `npm run dev` | Desarrollo con hot-reload |
 | `npm run build` | Compilar para producción |
 | `npm run start` | Ejecutar versión de producción |
-| `npm run test` | Ejecutar tests |
+| `npm run test` | Ejecutar tests unitarios |
 | `npm run test:watch` | Ejecutar tests en modo watch |
 | `npm run lint` | Verificar código |
 | `npm run type-check` | Verificar tipos |
+| `npm run e2e` | Tests E2E con Playwright |
+| `npm run demo` | Demo E2E completa (headed, video) |
+| `npm run demo:record` | Demo E2E sin interfaz (solo grabación) |
 
 ---
 
@@ -495,13 +511,15 @@ Resumen de planificación y fases principales. El detalle completo de tareas viv
 
 **Leyenda:** ⬜ Pendiente | 🟡 En progreso | ✅ Completado
 
-**Progreso actual (Enero 2026):**
+**Progreso actual (Febrero 2026):**
 - ✅ Backend completamente funcional con PostgreSQL + Drizzle ORM
 - ✅ Frontend con todas las funcionalidades implementadas (Auth, Departamentos, Empleados, Onboarding, Proyectos, Timetracking, Dashboards)
 - ✅ Sistema de autenticación JWT + MFA (TOTP) + HMAC API
-- ✅ Testing: 20 tests backend + 104 tests frontend
+- ✅ Testing: 226 tests backend + 241 tests frontend + E2E Playwright
+- ✅ Dashboards con gráficos D3.js interactivos (barras, líneas, Gantt)
 - ✅ OpenAPI spec v1.0.0 + Swagger UI en `/docs`
-- 🟡 Hardening de seguridad y documentación técnica en progreso
+- ✅ Security hardening: rate limiting, JWT algorithm whitelist, CSP headers
+- 🟡 Documentación final y presentación en progreso
 
 ---
 
@@ -635,6 +653,10 @@ teamhub/
 │   │   ├── lib/
 │   │   ├── providers/
 │   │   └── types/
+│   ├── e2e/                        # Tests E2E (Playwright)
+│   │   ├── demo/                   # Demo automatizada
+│   │   ├── explorer-bot/           # Bot explorador
+│   │   └── helpers/                # Auth, session, retry
 │   ├── package.json
 │   └── .env.example
 ├── context/                         # SQL de referencia
@@ -1131,12 +1153,13 @@ Configuración estricta mediante `CORS_ORIGINS` (lista separada por comas).
 
 ### 🧪 Estado de Tests
 
-**Total:** 97/97 tests passing ✅
+**Total:** 467/467 tests passing ✅
 
 | Suite | Tests | Estado | Comando |
 |-------|-------|--------|---------|
-| **Backend** | 20/20 | ✅ | `cd backend && npm test` |
-| **Frontend** | 77/77 | ✅ | `cd frontend && npm test` |
+| **Backend** | 226/226 | ✅ | `cd backend && npm test` |
+| **Frontend** | 241/241 | ✅ | `cd frontend && npm test` |
+| **E2E (Playwright)** | 14 pasos | ✅ | `cd frontend && npm run demo` |
 
 ### Backend Tests (Vitest)
 
@@ -1158,6 +1181,8 @@ npm run test:coverage
 | Módulo | Tests | Descripción |
 |--------|-------|-------------|
 | Auth | 4 tests | Login, MFA, refresh tokens, bootstrap |
+| Auth Service | 28 tests | Hashing, tokens, validación |
+| MFA Service | 29 tests | TOTP, encrypt/decrypt, recovery codes |
 | Usuarios | 3 tests | CRUD, duplicados, permisos |
 | Departamentos | 4 tests | CRUD, soft delete, duplicados |
 | Plantillas | 3 tests | Creación con tareas, duplicación |
@@ -1165,18 +1190,29 @@ npm run test:coverage
 | Proyectos | 2 tests | CRUD, asignaciones |
 | Timetracking | 1 test | Resumen de horas |
 | Dashboard | 1 test | Métricas por rol |
+| Tareas Repository | 36 tests | CRUD tareas, jerarquía, dependencias |
+| Tareas Service | 44 tests | Lógica de negocio de tareas |
+| Validators | 69 tests | Schemas Zod, parsing, validación |
 
 #### Estructura
 ```
-backend/src/__tests__/
-├── auth.test.ts           # Autenticación y MFA
-├── usuarios.test.ts       # Gestión de usuarios
-├── departamentos.test.ts  # Departamentos
-├── plantillas.test.ts     # Templates onboarding
-├── procesos.test.ts       # Procesos onboarding
-├── proyectos.test.ts      # Proyectos y asignaciones
-├── timetracking.test.ts   # Registro de horas
-└── dashboard.test.ts      # Métricas
+backend/src/
+├── __tests__/
+│   ├── auth.test.ts           # Autenticación y MFA
+│   ├── usuarios.test.ts       # Gestión de usuarios
+│   ├── departamentos.test.ts  # Departamentos
+│   ├── plantillas.test.ts     # Templates onboarding
+│   ├── procesos.test.ts       # Procesos onboarding
+│   ├── proyectos.test.ts      # Proyectos y asignaciones
+│   ├── timetracking.test.ts   # Registro de horas
+│   └── dashboard.test.ts      # Métricas
+├── services/__tests__/
+│   ├── auth-service.test.ts   # Servicios de auth
+│   ├── mfa-service.test.ts    # Servicios MFA
+│   ├── tareas-repository.test.ts  # Repositorio tareas
+│   └── tareas.service.test.ts # Servicio tareas
+└── validators/__tests__/
+    └── validators.test.ts     # Schemas y validación
 ```
 
 ### Frontend Tests (Vitest + React Testing Library)
@@ -1198,30 +1234,102 @@ npm run test:ui
 #### Cobertura por Tipo
 | Categoría | Tests | Descripción |
 |-----------|-------|-------------|
-| **Hooks** | 44 tests | TanStack Query hooks (100% coverage) |
-| - use-empleados | 9 tests | CRUD empleados |
+| **Hooks** | 143 tests | TanStack Query hooks (100% coverage) |
+| - use-auth | 17 tests | Autenticación y sesión |
+| - use-empleados | 9 tests | CRUD empleados + byManager/byDepartamento |
+| - use-departamentos | 19 tests | CRUD departamentos |
 | - use-plantillas | 15 tests | CRUD plantillas + tareas |
-| - use-procesos | 20 tests | CRUD procesos + estado transitions |
-| **Pages** | 6 tests | Páginas completas con interacciones |
-| **Forms** | 1 test | LoginForm con MFA flow |
+| - use-procesos | 20 tests | CRUD procesos + transiciones de estado |
+| - use-proyectos | 21 tests | CRUD proyectos + asignaciones |
+| - use-tareas | 35 tests | Gestión de tareas jerárquicas |
+| - use-timetracking | 22 tests | Registros, aprobaciones, resúmenes |
+| **Pages** | 26 tests | Páginas completas con interacciones |
+| **Forms** | 8 tests | LoginForm MFA + EmpleadoForm |
+| **Components** | 10 tests | Gráficos D3 (BarChart, LineChart) |
 | **Lib** | 26 tests | Utilidades (auth, navigation, utils) |
+| **Performance** | 13 tests | Rendimiento y optimización |
 
 #### Estructura
 ```
 frontend/src/
 ├── hooks/__tests__/
+│   ├── use-auth.test.tsx           # 17 tests
 │   ├── use-empleados.test.tsx      # 9 tests
+│   ├── use-departamentos.test.tsx  # 19 tests
 │   ├── use-plantillas.test.tsx     # 15 tests
-│   └── use-procesos.test.tsx       # 20 tests
-├── app/(dashboard)/admin/empleados/__tests__/
-│   └── page.test.tsx               # 6 tests
-├── components/forms/__tests__/
-│   └── login-form.test.tsx         # 1 test (MFA flow)
+│   ├── use-procesos.test.tsx       # 20 tests
+│   ├── use-proyectos.test.tsx      # 21 tests
+│   ├── use-tareas.test.tsx         # 35 tests
+│   └── use-timetracking.test.tsx   # 22 tests
+├── app/(dashboard)/admin/
+│   ├── departamentos/__tests__/    # 10 tests
+│   └── empleados/__tests__/        # 16 tests (page + detail)
+├── components/
+│   ├── dashboard/__tests__/
+│   │   └── charts.test.tsx         # 10 tests (BarChart + LineChart D3)
+│   └── forms/__tests__/
+│       ├── login-form.test.tsx     # 1 test (MFA flow)
+│       └── empleado-form.test.tsx  # 7 tests
+├── __tests__/
+│   └── performance.test.tsx        # 13 tests
 └── lib/__tests__/
     ├── auth.test.ts                # 9 tests
     ├── navigation.test.ts          # 10 tests
     └── utils.test.ts               # 7 tests
 ```
+
+### E2E Tests (Playwright)
+
+#### Ejecutar Demo
+```bash
+cd frontend
+
+# Demo con navegador visible (headed)
+npm run demo
+
+# Demo en modo grabación (headless)
+npm run demo:record
+
+# Tests E2E estándar
+npm run e2e
+```
+
+#### Demo Automatizada (14 pasos)
+| Paso | Descripción |
+|------|-------------|
+| 1 | Login MFA visual (ADMIN) |
+| 2 | Dashboard Admin (KPIs, scroll) |
+| 3 | Crear Departamento |
+| 4 | Crear Empleado |
+| 5 | Crear Plantilla Onboarding |
+| 6 | Iniciar Proceso Onboarding |
+| 7 | Crear Proyecto + Asignar Equipo |
+| 8 | Timetracking (tabs) |
+| 9 | Mis Tareas |
+| 10 | Perfil de Usuario |
+| 11 | Logout |
+| 12 | Login como EMPLEADO (API) |
+| 13 | Empleado registra horas |
+| 14 | Verificación final |
+
+#### Estructura E2E
+```
+frontend/e2e/
+├── demo/
+│   ├── complete-demo.spec.ts       # Demo principal 14 pasos
+│   ├── complete-demo-validated.spec.ts  # Demo con validación de pantallas
+│   ├── demo.helpers.ts             # Helpers: typing natural, mouse, pauses
+│   ├── crud.helpers.ts             # Helpers: CRUD, screenshots, toasts
+│   └── monitoring/
+│       └── error-detection.ts      # Monitor de errores (consola, red, visual)
+├── explorer-bot/                   # Bot explorador automático
+├── helpers/
+│   └── e2e-session.ts              # Auth API, token cache, retry rate limit
+├── login.spec.ts                   # Tests de login
+└── navigation.spec.ts              # Tests de navegación
+```
+
+**Configuración:** `playwright.demo.config.ts` — 1920x1080, video on, slowMo 100ms, 5min timeout.
 
 ### Quality Gates
 

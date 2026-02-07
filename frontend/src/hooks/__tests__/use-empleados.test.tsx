@@ -221,16 +221,15 @@ describe('useEmpleados', () => {
   });
 
   describe('useEmpleadosByManager', () => {
-    it('debe filtrar empleados por manager en cliente', async () => {
-      const usersWithManager = [
+    it('debe obtener empleados por manager desde el backend', async () => {
+      const filteredUsers = [
         { ...mockUser, id: 'user-1', managerId: 'manager-1' },
-        { ...mockUser, id: 'user-2', managerId: 'manager-2' },
         { ...mockUser, id: 'user-3', managerId: 'manager-1' },
       ];
 
       apiMocks.get.mockResolvedValue({
-        data: usersWithManager,
-        meta: { page: 1, limit: 20, total: 3 },
+        data: filteredUsers,
+        meta: { page: 1, limit: 20, total: 2 },
       });
 
       const { result } = renderHook(
@@ -242,7 +241,7 @@ describe('useEmpleados', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      // Debe filtrar solo los empleados con managerId = 'manager-1'
+      // El backend filtra por managerId — el hook recibe solo los resultados filtrados
       expect(result.current.data).toHaveLength(2);
       expect(result.current.data?.every((u) => u.managerId === 'manager-1')).toBe(true);
     });

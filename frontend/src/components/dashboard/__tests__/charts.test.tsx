@@ -25,6 +25,13 @@ beforeEach(() => {
     configurable: true,
     get: () => 400,
   });
+
+  // Mock SVGPathElement.getTotalLength (not available in JSDOM)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!(SVGElement.prototype as any).getTotalLength) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (SVGElement.prototype as any).getTotalLength = () => 100;
+  }
 });
 
 const barData: ChartDataPoint[] = [

@@ -90,8 +90,8 @@ Definir el comportamiento funcional de la API de TeamHub, los recursos principal
 5. `POST /logout` invalida el refresh token.
 
 ### Usuarios (`/api/usuarios`)
-- GET `/`
-- GET `/:id`
+- GET `/` — incluye `departamentoNombre` y `managerNombre` (resueltos via LEFT JOIN)
+- GET `/:id` — incluye `departamentoNombre` y `managerNombre` (resueltos via LEFT JOIN con alias para self-join de managers)
 - POST `/`
 - PUT `/:id`
 - PATCH `/:id/password` (password hasheada de forma irreversible)
@@ -183,10 +183,14 @@ Definir el comportamiento funcional de la API de TeamHub, los recursos principal
 - POST `/copiar`
 
 ### Dashboard (`/api/dashboard`)
-- GET `/admin`
-- GET `/rrhh`
-- GET `/manager`
-- GET `/empleado`
+- GET `/admin` (requiere rol ADMIN)
+- GET `/rrhh` (requiere rol ADMIN o RRHH)
+- GET `/manager` (requiere rol ADMIN, RRHH o MANAGER)
+- GET `/empleado` (requiere autenticación)
+
+#### Enriquecimiento de datos en dashboards
+- Las etiquetas de gráficas se devuelven con labels legibles en español (ej: `Administrador` en vez de `ADMIN`, `Planificación` en vez de `PLANIFICACION`). Los mapas de labels se definen en `backend/src/routes/dashboard/constants.ts`.
+- El dashboard del manager incluye `usuarioNombre` y `proyectoNombre` en la sección `pendientesAprobacion` (resueltos via LEFT JOIN con `users` y `proyectos`).
 
 ## Flujos Clave
 - Registro y login

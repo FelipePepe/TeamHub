@@ -57,6 +57,36 @@
 - Global: 100 requests por minuto por usuario.
 - Auth login: 5 intentos por minuto por IP.
 
+## Patrones de Drizzle ORM
+
+### Self-JOIN con alias
+Para resolver relaciones reflexivas (ej: `users.manager_id` → `users`), se usa `alias()` de `drizzle-orm/pg-core`:
+
+```typescript
+import { alias } from 'drizzle-orm/pg-core';
+
+const managers = alias(users, 'managers');
+const rows = await db
+  .select({
+    user: users,
+    departamentoNombre: departamentos.nombre,
+    managerNombre: managers.nombre,
+    managerApellidos: managers.apellidos,
+  })
+  .from(users)
+  .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+  .leftJoin(managers, eq(users.managerId, managers.id))
+  .where(eq(users.id, id));
+```
+
+Este patrón se aplica en `GET /usuarios/:id` y `GET /usuarios` para devolver `managerNombre` y `departamentoNombre` resueltos.
+
+### Constantes de labels para dashboards
+Los gráficos de dashboard devuelven etiquetas legibles en vez de enums crudos. Los mapas se definen en `backend/src/routes/dashboard/constants.ts`:
+- `ROL_LABELS`: ADMIN → Administrador, RRHH → Recursos Humanos, etc.
+- `PROYECTO_ESTADO_LABELS`: PLANIFICACION → Planificación, ACTIVO → Activo, etc.
+- `TIMETRACKING_ESTADO_LABELS`: PENDIENTE → Pendiente, APROBADO → Aprobado, etc.
+
 ## Pendientes
 - RBAC granular por endpoint (más allá de acciones puntuales como desbloqueo).
 

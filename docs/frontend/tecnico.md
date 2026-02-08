@@ -110,6 +110,16 @@
 - Archivos: kebab-case
 - Hooks: use-*
 
+### Dark mode y colores
+- **Obligatorio**: usar tokens semánticos de shadcn/ui para todos los colores de texto, fondo y borde. Nunca usar colores `text-slate-*`, `bg-slate-*` o `border-slate-*` hardcodeados sin variante `dark:`.
+- **Tokens correctos**:
+  - `text-foreground` (texto principal), `text-muted-foreground` (texto secundario)
+  - `bg-background` (fondo principal), `bg-muted` (fondo secundario), `bg-card` (fondo de tarjetas)
+  - `border-border` (bordes)
+  - `divide-border` (divisores)
+- **Excepción**: colores de estado (rojo, verde, amarillo, azul) pueden ser hardcodeados pero deben incluir variante `dark:` (ej: `bg-amber-50 dark:bg-amber-950/20`).
+- **ADR-093**: auditoría completa de dark mode aplicada en febrero 2026.
+
 ## Estado y Datos
 - Estado servidor: TanStack Query.
 - Estado local: useState/useReducer.
@@ -247,7 +257,7 @@ interface GanttDimensions {
 - Ubicacion: `frontend/src/__tests__/`.
 - E2E: Playwright.
 - Ubicacion: `frontend/e2e/`.
-- **104 tests pasando** (hooks, componentes, páginas).
+- **241 tests pasando** (hooks, componentes, páginas, formularios, performance).
 
 ## Performance y Optimizaciones
 

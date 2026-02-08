@@ -228,17 +228,20 @@ export const registerAuthRoutes = (router: Hono<HonoEnv>) => {
       updatedAt: new Date(),
     });
 
+    // Generar nuevo mfaToken tras cambio de password (el anterior ya no es válido)
+    const newMfaToken = createMfaToken(user);
+
     // Si no tiene MFA configurado, debe configurarlo
     if (!user.mfaEnabled || !user.mfaSecret) {
       return c.json({
         mfaSetupRequired: true,
-        mfaToken: payload.mfaToken,
+        mfaToken: newMfaToken,
       });
     }
 
     return c.json({
       mfaRequired: true,
-      mfaToken: payload.mfaToken,
+      mfaToken: newMfaToken,
     });
   });
 

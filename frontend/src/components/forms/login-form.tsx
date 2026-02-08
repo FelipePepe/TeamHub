@@ -60,16 +60,6 @@ const getLoginErrorMessage = (error: unknown): string => {
     if (status === 429) {
       return 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.';
     }
-    const apiMessage =
-      (error.response?.data as { error?: string; message?: string } | undefined)?.error ??
-      (error.response?.data as { error?: string; message?: string } | undefined)?.message;
-    if (apiMessage) {
-      return apiMessage;
-    }
-  }
-
-  if (error instanceof Error) {
-    return error.message;
   }
 
   return 'Error al iniciar sesión';
@@ -158,6 +148,10 @@ export function LoginForm() {
       const mfaData = await setupMfa(token);
       let qrUrl: string | null = null;
       try {
+        // ⚠️ NOTA DE SEGURIDAD: Import dinámico de qrcode
+        // En Next.js App Router con Edge Runtime, no se puede usar Subresource Integrity (SRI)
+        // para imports dinámicos. El módulo se carga desde node_modules local, no CDN.
+        // Mantener package-lock.json actualizado y ejecutar npm audit regularmente.
         const QRCode = await import('qrcode');
         qrUrl = await QRCode.toDataURL(mfaData.otpauthUrl, { width: 192, margin: 1 });
       } catch (error) {
@@ -204,6 +198,13 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await verifyMfa(mfaToken, data.code);
+      
+      // Limpiar mfaSecret del state inmediatamente después de verificación exitosa
+      // para prevenir extracción via XSS o React DevTools
+      if (mfaSecret) {
+        setMfaSecret(null);
+      }
+      
       toast.success('Sesión iniciada correctamente');
       router.push('/dashboard');
     } catch (error) {

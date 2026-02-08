@@ -92,7 +92,7 @@ export function useCreateTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear registro:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear registro:', error);
     },
   });
 }
@@ -109,7 +109,7 @@ export function useUpdateTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar registro:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar registro:', error);
     },
   });
 }
@@ -124,7 +124,7 @@ export function useDeleteTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar registro:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar registro:', error);
     },
   });
 }
@@ -140,7 +140,7 @@ export function useAprobarTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.pendientes() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al aprobar registro:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al aprobar registro:', error);
     },
   });
 }
@@ -156,7 +156,7 @@ export function useRechazarTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.pendientes() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al rechazar registro:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al rechazar registro:', error);
     },
   });
 }
@@ -171,7 +171,7 @@ export function useAprobarMasivo() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.pendientes() });
     },
     onError: (error: ApiError) => {
-      console.error('Error en aprobación masiva:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error en aprobación masiva:', error);
     },
   });
 }
@@ -212,7 +212,7 @@ export function useCopiarRegistros() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al copiar registros:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al copiar registros:', error);
     },
   });
 }

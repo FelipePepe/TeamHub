@@ -48,7 +48,7 @@ export function useCreatePlantilla() {
       queryClient.invalidateQueries({ queryKey: plantillasKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear plantilla:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear plantilla:', error);
     },
   });
 }
@@ -69,7 +69,7 @@ export function useUpdatePlantilla() {
       queryClient.invalidateQueries({ queryKey: plantillasKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar plantilla:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar plantilla:', error);
     },
   });
 }
@@ -86,7 +86,7 @@ export function useDeletePlantilla() {
       queryClient.invalidateQueries({ queryKey: plantillasKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar plantilla:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar plantilla:', error);
     },
   });
 }
@@ -103,7 +103,7 @@ export function useDuplicatePlantilla() {
       queryClient.invalidateQueries({ queryKey: plantillasKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al duplicar plantilla:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al duplicar plantilla:', error);
     },
   });
 }

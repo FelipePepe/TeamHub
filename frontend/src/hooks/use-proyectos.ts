@@ -90,7 +90,7 @@ export function useCreateProyecto() {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear proyecto:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear proyecto:', error);
     },
   });
 }
@@ -106,7 +106,7 @@ export function useUpdateProyecto() {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar proyecto:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar proyecto:', error);
     },
   });
 }
@@ -120,7 +120,7 @@ export function useDeleteProyecto() {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar proyecto:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar proyecto:', error);
     },
   });
 }
@@ -136,7 +136,7 @@ export function useUpdateProyectoEstado() {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar estado del proyecto:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar estado del proyecto:', error);
     },
   });
 }
@@ -159,7 +159,7 @@ export function useCreateAsignacion(proyectoId: string) {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.asignaciones(proyectoId) });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear asignación:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear asignación:', error);
     },
   });
 }
@@ -174,7 +174,7 @@ export function useUpdateAsignacion(proyectoId: string) {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.asignaciones(proyectoId) });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar asignación:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar asignación:', error);
     },
   });
 }
@@ -188,7 +188,7 @@ export function useDeleteAsignacion(proyectoId: string) {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.asignaciones(proyectoId) });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar asignación:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar asignación:', error);
     },
   });
 }
@@ -203,7 +203,7 @@ export function useFinalizarAsignacion(proyectoId: string) {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.detail(proyectoId) });
     },
     onError: (error: ApiError) => {
-      console.error('Error al finalizar asignación:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al finalizar asignación:', error);
     },
   });
 }

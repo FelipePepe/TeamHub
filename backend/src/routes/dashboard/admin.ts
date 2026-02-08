@@ -182,20 +182,35 @@ export const buildAdminDashboardResponse = async () => {
       })),
     },
     listas: {
-      actividadReciente: actividadRows.map((row: { id: string; operation: string; tableName: string; recordId: string; usuarioId: string | null; usuarioEmail: string | null; changedFields: unknown; oldData: unknown; newData: unknown; createdAt: Date | null }) => ({
-        id: row.id,
-        tipo: `${row.operation}:${row.tableName}`,
-        descripcion: `${row.operation} en ${row.tableName}`,
-        operation: row.operation,
-        tableName: row.tableName,
-        recordId: row.recordId,
-        usuarioId: row.usuarioId ?? undefined,
-        usuarioEmail: row.usuarioEmail ?? undefined,
-        changedFields: row.changedFields ?? undefined,
-        oldData: row.oldData ?? undefined,
-        newData: row.newData ?? undefined,
-        fecha: row.createdAt?.toISOString(),
-      })),
+      actividadReciente: actividadRows.map((row: { id: string; operation: string; tableName: string; recordId: string; usuarioId: string | null; usuarioEmail: string | null; changedFields: unknown; oldData: unknown; newData: unknown; createdAt: Date | null }) => {
+        const sensitiveKeys = ['password_hash', 'mfa_secret', 'mfa_recovery_codes', 'passwordHash', 'mfaSecret', 'mfaRecoveryCodes'];
+        const filterSensitive = (data: unknown): unknown => {
+          if (data && typeof data === 'object' && !Array.isArray(data)) {
+            const filtered: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+              if (!sensitiveKeys.includes(key)) {
+                filtered[key] = value;
+              }
+            }
+            return filtered;
+          }
+          return data;
+        };
+        return {
+          id: row.id,
+          tipo: `${row.operation}:${row.tableName}`,
+          descripcion: `${row.operation} en ${row.tableName}`,
+          operation: row.operation,
+          tableName: row.tableName,
+          recordId: row.recordId,
+          usuarioId: row.usuarioId ?? undefined,
+          usuarioEmail: row.usuarioEmail ?? undefined,
+          changedFields: row.changedFields ?? undefined,
+          oldData: filterSensitive(row.oldData) ?? undefined,
+          newData: filterSensitive(row.newData) ?? undefined,
+          fecha: row.createdAt?.toISOString(),
+        };
+      }),
       alertasCriticas: buildAlertsFromTareas(alertasRows, now),
     },
   };

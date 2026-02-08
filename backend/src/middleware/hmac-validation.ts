@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { config } from '../config/env.js';
@@ -6,8 +6,8 @@ import { config } from '../config/env.js';
 const SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutos
 
 export const hmacValidation: MiddlewareHandler = async (c, next) => {
-  // Skip HMAC validation in test environment
-  if (config.NODE_ENV === 'test') {
+  // Skip HMAC validation only if explicitly disabled via DISABLE_HMAC flag
+  if (config.DISABLE_HMAC) {
     await next();
     return;
   }
@@ -36,16 +36,20 @@ export const hmacValidation: MiddlewareHandler = async (c, next) => {
     throw new HTTPException(401, { message: 'Request signature expired' });
   }
 
-  // Recalcular firma
+  // Recalcular firma incluyendo hash del body
   const method = c.req.method;
   const path = new URL(c.req.url).pathname;
-  const message = `${timestamp}${method}${path}`;
+  const body = await c.req.raw.clone().text();
+  const bodyHash = createHash('sha256').update(body).digest('hex');
+  const message = `${timestamp}${method}${path}${bodyHash}`;
 
   const expectedSig = createHmac('sha256', config.API_HMAC_SECRET)
     .update(message)
     .digest('hex');
 
-  if (receivedSig !== expectedSig) {
+  const receivedBuf = Buffer.from(receivedSig, 'hex');
+  const expectedBuf = Buffer.from(expectedSig, 'hex');
+  if (receivedBuf.length !== expectedBuf.length || !timingSafeEqual(receivedBuf, expectedBuf)) {
     throw new HTTPException(401, { message: 'Invalid request signature' });
   }
 

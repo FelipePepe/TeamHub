@@ -3,6 +3,7 @@
     tags: [Auth]
     summary: Login
     description: Login with email and password. The response may require password change (passwordChangeRequired), MFA setup (mfaSetupRequired), or MFA verification (mfaRequired). Use mfaToken with /auth/change-password, /auth/mfa/setup, and /auth/mfa/verify.
+    security: []  # Public endpoint - no auth required
     requestBody:
       required: true
       content:
@@ -40,6 +41,7 @@
     tags: [Auth]
     summary: Verify MFA
     description: Verify MFA with TOTP code and complete login.
+    security: []  # Public endpoint - uses mfaToken in request body
     requestBody:
       required: true
       content:
@@ -97,6 +99,7 @@
   post:
     tags: [Auth]
     summary: Refresh tokens
+    security: []  # Public endpoint - uses refreshToken in request body
     requestBody:
       required: true
       content:
@@ -175,6 +178,7 @@
     tags: [Auth]
     summary: Forgot password
     description: Send password reset email (generic response).
+    security: []  # Public endpoint - no auth required
     requestBody:
       required: true
       content:
@@ -200,6 +204,7 @@
     tags: [Auth]
     summary: Reset password
     description: "Reset password with token. Password policy: min 12 chars, upper/lower/number/special."
+    security: []  # Public endpoint - uses reset token in request body
     requestBody:
       required: true
       content:
@@ -231,6 +236,7 @@
     tags: [Auth]
     summary: Verify MFA with backup code
     description: Verify MFA using a backup code instead of TOTP. Backup codes are reusable until regenerated.
+    security: []  # Public endpoint - uses mfaToken in request body
     requestBody:
       required: true
       content:
@@ -268,6 +274,7 @@
     tags: [Auth]
     summary: Change temporary password
     description: Change a temporary password using the MFA token issued by /auth/login.
+    security: []  # Public endpoint - uses mfaToken in request body
     requestBody:
       required: true
       content:

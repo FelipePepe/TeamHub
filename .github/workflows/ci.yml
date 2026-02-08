@@ -5,9 +5,15 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     services:
       postgres:
         image: postgres:16-alpine
@@ -23,6 +29,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      # ⚠️ RECOMENDACIÓN: Pinear actions a SHA específico en vez de tag
+      # Ejemplo: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      # Reduce riesgo de supply chain attack si una action es comprometida
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -50,6 +59,8 @@ jobs:
         working-directory: backend
         run: npm run test
         env:
+          # ⚠️ VALORES DE TEST - NO SON SECRETOS REALES
+          # Estos valores solo se usan en CI para tests y son públicos en el repositorio
           NODE_ENV: test
           DATABASE_URL: postgres://test:test@localhost:5432/teamhub_test
           JWT_ACCESS_SECRET: test-secret-key-min-32-characters-long-for-ci
@@ -58,6 +69,7 @@ jobs:
           APP_BASE_URL: http://localhost:3001
           MFA_ENCRYPTION_KEY: test-mfa-encryption-key-min-32-chars-long
           API_HMAC_SECRET: test-api-hmac-secret-key-min-32-chars-long
+          DISABLE_HMAC: true  # Explicitly disable HMAC validation in tests
       - name: Backend build
         if: ${{ hashFiles('backend/package.json') != '' }}
         working-directory: backend

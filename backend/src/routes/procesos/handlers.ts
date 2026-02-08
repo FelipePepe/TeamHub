@@ -2,7 +2,7 @@ import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
-import { authMiddleware } from '../../middleware/auth.js';
+import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { db } from '../../db/index.js';
 import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.js';
@@ -63,7 +63,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ data: procesos.map(toProcesoResponse) });
   });
 
-  router.post('/', async (c) => {
+  router.post('/', requireRoles('ADMIN', 'RRHH'), async (c) => {
     const payload = await parseJson(c, createProcesoSchema);
     const plantilla = await findPlantillaById(payload.plantillaId);
     if (!plantilla) {
@@ -176,7 +176,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
     });
   });
 
-  router.put('/:id', async (c) => {
+  router.put('/:id', requireRoles('ADMIN', 'RRHH'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     const payload = await parseJson(c, updateProcesoSchema);
     const proceso = await findProcesoById(id);
@@ -194,7 +194,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toProcesoResponse(updated));
   });
 
-  router.patch('/:id/cancelar', async (c) => {
+  router.patch('/:id/cancelar', requireRoles('ADMIN', 'RRHH'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     await parseJson(c, cancelProcesoSchema);
     const proceso = await findProcesoById(id);
@@ -211,7 +211,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toProcesoResponse(updated));
   });
 
-  router.patch('/:id/pausar', async (c) => {
+  router.patch('/:id/pausar', requireRoles('ADMIN', 'RRHH'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     const proceso = await findProcesoById(id);
     if (!proceso) {
@@ -227,7 +227,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toProcesoResponse(updated));
   });
 
-  router.patch('/:id/reanudar', async (c) => {
+  router.patch('/:id/reanudar', requireRoles('ADMIN', 'RRHH'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     const proceso = await findProcesoById(id);
     if (!proceso) {

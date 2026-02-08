@@ -88,10 +88,12 @@ describe('usePlantillas', () => {
     descripcion: 'Instalar software necesario',
     orden: 1,
     categoria: 'EQUIPAMIENTO',
-    responsableTipo: 'IT',
-    diasDesdeInicio: 1,
-    obligatoria: true,
-    requiereEvidencia: false,
+    responsable: 'IT',
+    duracionEstimadaDias: 1,
+    esOpcional: false,
+    requiereAprobacion: false,
+    creadoEn: '2024-01-01T00:00:00Z',
+    actualizadoEn: '2024-01-01T00:00:00Z',
   };
 
   const mockTareasResponse: TareasPlantillaListResponse = {
@@ -292,9 +294,9 @@ describe('usePlantillas', () => {
           titulo: 'Nueva Tarea',
           orden: 1,
           categoria: 'EQUIPAMIENTO',
-          responsableTipo: 'IT',
-          obligatoria: true,
-          requiereEvidencia: false,
+          responsable: 'IT',
+          esOpcional: false,
+          requiereAprobacion: false,
         },
       });
 
@@ -304,9 +306,9 @@ describe('usePlantillas', () => {
           titulo: 'Nueva Tarea',
           orden: 1,
           categoria: 'EQUIPAMIENTO',
-          responsableTipo: 'IT',
-          obligatoria: true,
-          requiereEvidencia: false,
+          responsable: 'IT',
+          esOpcional: false,
+          requiereAprobacion: false,
         }
       );
     });
@@ -373,7 +375,7 @@ describe('usePlantillas', () => {
           titulo: 'Tarea con Dependencias',
           orden: 2,
           categoria: 'FORMACION',
-          responsableTipo: 'RRHH',
+          responsable: 'RRHH',
           dependencias: ['tarea-1'],
         },
       });

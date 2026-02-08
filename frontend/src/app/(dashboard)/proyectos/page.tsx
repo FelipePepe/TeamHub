@@ -375,7 +375,6 @@ function ProyectoCard({
   onDelete: () => void;
   getEstadoBadge: (e: ProyectoEstado) => React.ReactNode;
 }) {
-  const { data: stats } = useProyectoStats(proyecto.id, true);
   const horasConsumidas = proyecto.horasConsumidas ?? 0;
   const horasRestantes =
     proyecto.presupuestoHoras != null
@@ -384,8 +383,7 @@ function ProyectoCard({
   const fechaFinLabel = proyecto.fechaFinEstimada
     ? format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })
     : '—';
-  const asignacionesLabel =
-    stats?.asignacionesActivas != null ? stats.asignacionesActivas : '—';
+  const asignacionesLabel = '—';
 
   return (
     <Card className="hover:shadow-md transition-shadow">

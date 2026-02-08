@@ -15,9 +15,11 @@ import { buildAlertsFromTareas, getMonthRange, toNumber } from './utils.js';
  * @param queries - Funciones que devuelven promesas de consulta.
  * @returns Resultados en el mismo orden.
  */
-const runQueries = async <T>(queries: Array<() => Promise<T>>): Promise<T[]> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const runQueries = async (queries: Array<() => Promise<any>>): Promise<any[]> => {
   if (process.env.NODE_ENV === 'test') {
-    const results: T[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const results: any[] = [];
     for (const query of queries) {
       results.push(await query());
     }

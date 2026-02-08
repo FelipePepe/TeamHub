@@ -160,29 +160,29 @@ export const buildAdminDashboardResponse = async () => {
       tareasVencidas,
     },
     charts: {
-      usuariosPorRol: usuariosPorRolRows.map((row) => ({
+      usuariosPorRol: usuariosPorRolRows.map((row: { rol: string; total: number }) => ({
         id: row.rol,
         label: row.rol,
         value: toNumber(row.total, 0),
       })),
-      usuariosPorDepartamento: usuariosPorDepartamentoRows.map((row) => ({
+      usuariosPorDepartamento: usuariosPorDepartamentoRows.map((row: { departamentoId: string | null; departamentoNombre: string | null; total: number }) => ({
         id: row.departamentoId ?? 'sin_departamento',
         label: row.departamentoNombre ?? 'Sin departamento',
         value: toNumber(row.total, 0),
       })),
-      proyectosPorEstado: proyectosPorEstadoRows.map((row) => ({
+      proyectosPorEstado: proyectosPorEstadoRows.map((row: { estado: string; total: number }) => ({
         id: row.estado,
         label: row.estado,
         value: toNumber(row.total, 0),
       })),
-      horasPorEstado: horasPorEstadoRows.map((row) => ({
+      horasPorEstado: horasPorEstadoRows.map((row: { estado: string; total: number }) => ({
         id: row.estado,
         label: row.estado,
         value: toNumber(row.total, 0),
       })),
     },
     listas: {
-      actividadReciente: actividadRows.map((row) => ({
+      actividadReciente: actividadRows.map((row: { id: string; operation: string; tableName: string; recordId: string; usuarioId: string | null; usuarioEmail: string | null; changedFields: unknown; oldData: unknown; newData: unknown; createdAt: Date | null }) => ({
         id: row.id,
         tipo: `${row.operation}:${row.tableName}`,
         descripcion: `${row.operation} en ${row.tableName}`,

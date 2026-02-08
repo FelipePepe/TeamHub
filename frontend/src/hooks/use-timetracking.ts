@@ -140,7 +140,7 @@ export function useAprobarTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.pendientes() });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al aprobar registro:', error);
+      console.error('Error al aprobar registro:', error);
     },
   });
 }
@@ -156,7 +156,7 @@ export function useRechazarTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.pendientes() });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al rechazar registro:', error);
+      console.error('Error al rechazar registro:', error);
     },
   });
 }

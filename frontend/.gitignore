@@ -6,15 +6,7 @@ dist
 # Environment files - TODAS las variantes
 .env
 .env.local
-.env.development
-.env.development.local
-.env.production
-.env.production.local
-.env.test
-.env.test.local
-.env*.local
 .env.e2e
-
 # Playwright E2E
 test-results/
 playwright-report/

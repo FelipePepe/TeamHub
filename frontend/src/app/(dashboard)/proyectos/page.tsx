@@ -31,7 +31,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProyectoForm } from '@/components/forms/proyecto-form';
 import {
   useProyectos,
-  useProyectoStats,
   useDeleteProyecto,
   type Proyecto,
   type ProyectoFilters,

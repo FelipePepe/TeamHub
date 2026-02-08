@@ -199,7 +199,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           <CardTitle>Diagrama Gantt de Tareas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-40 items-center justify-center text-sm text-slate-500">
             No hay tareas con fechas definidas
           </div>
         </CardContent>
@@ -231,7 +231,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                     y1={config.headerHeight}
                     x2={x}
                     y2={totalHeight}
-                    className="stroke-slate-200 dark:stroke-slate-700"
+                    stroke="#e2e8f0"
                     strokeWidth={1}
                   />
                 );
@@ -245,21 +245,21 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                 y={0}
                 width={chartWidth}
                 height={config.headerHeight}
-                className="fill-slate-50 dark:fill-slate-800"
+                fill="#f8fafc"
               />
               <line
                 x1={0}
                 y1={config.headerHeight}
                 x2={chartWidth}
                 y2={config.headerHeight}
-                className="stroke-slate-200 dark:stroke-slate-700"
+                stroke="#e2e8f0"
                 strokeWidth={1}
               />
               <text
                 x={config.padding}
                 y={config.headerHeight / 2}
                 dominantBaseline="middle"
-                className="fill-slate-700 dark:fill-slate-200 text-sm font-medium"
+                className="fill-slate-700 text-sm font-medium"
               >
                 Tarea / Asignado a
               </text>
@@ -271,7 +271,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                     x={x + 4}
                     y={config.headerHeight / 2}
                     dominantBaseline="middle"
-                    className="fill-slate-600 dark:fill-slate-400 text-xs"
+                    className="fill-slate-600 text-xs"
                   >
                     {interval.label}
                   </text>
@@ -322,21 +322,21 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                       y={currentY}
                       width={chartWidth}
                       height={config.rowHeight}
-                      className="fill-slate-100 dark:fill-slate-800/60"
+                      fill="#f1f5f9"
                     />
                     <line
                       x1={0}
                       y1={currentY + config.rowHeight}
                       x2={chartWidth}
                       y2={currentY + config.rowHeight}
-                      className="stroke-slate-300 dark:stroke-slate-600"
+                      stroke="#cbd5e1"
                       strokeWidth={1}
                     />
                     <text
                       x={config.padding}
                       y={currentY + config.rowHeight / 2}
                       dominantBaseline="middle"
-                      className="fill-slate-900 dark:fill-slate-100 text-sm font-semibold"
+                      className="fill-slate-900 text-sm font-semibold"
                     >
                       {lane.name}
                     </text>
@@ -360,14 +360,14 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                             y={rowY}
                             width={chartWidth}
                             height={config.rowHeight}
-                            className={tareaIndex % 2 === 0 ? 'fill-white dark:fill-slate-900' : 'fill-slate-50 dark:fill-slate-900/50'}
+                            fill={tareaIndex % 2 === 0 ? '#ffffff' : '#f8fafc'}
                           />
                           <line
                             x1={0}
                             y1={rowY + config.rowHeight}
                             x2={chartWidth}
                             y2={rowY + config.rowHeight}
-                            className="stroke-slate-200 dark:stroke-slate-700"
+                            stroke="#e2e8f0"
                             strokeWidth={1}
                           />
 
@@ -376,7 +376,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                             x={config.padding}
                             y={rowY + config.rowHeight / 2}
                             dominantBaseline="middle"
-                            className="fill-slate-900 dark:fill-slate-200 text-xs"
+                            className="fill-slate-900 text-xs"
                           >
                             {tarea.titulo.length > 28
                               ? tarea.titulo.slice(0, 28) + '...'
@@ -428,14 +428,14 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           </svg>
 
           {/* Leyenda */}
-          <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+          <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 pt-4">
             {(Object.keys(ESTADO_COLORS) as EstadoTarea[]).map((estado) => (
               <div key={estado} className="flex items-center gap-2">
                 <div
                   className="h-3 w-3 rounded-sm"
                   style={{ backgroundColor: ESTADO_COLORS[estado] }}
                 />
-                <span className="text-xs text-slate-600 dark:text-slate-400">{ESTADO_LABELS[estado]}</span>
+                <span className="text-xs text-slate-600">{ESTADO_LABELS[estado]}</span>
               </div>
             ))}
           </div>
@@ -443,14 +443,14 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           {/* Tooltip */}
           {tooltip.tarea && tooltip.visible && (
             <div
-              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-lg"
+              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
               style={{
                 left: tooltip.x + 10,
                 top: tooltip.y + 10,
               }}
             >
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tooltip.tarea.titulo}</p>
+                <p className="text-sm font-semibold text-slate-900">{tooltip.tarea.titulo}</p>
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
@@ -460,7 +460,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
                     {ESTADO_LABELS[tooltip.tarea.estado]}
                   </Badge>
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-400">
+                <div className="text-xs text-slate-600">
                   <p>
                     <strong>Asignado:</strong>{' '}
                     {tooltip.tarea.usuarioAsignado

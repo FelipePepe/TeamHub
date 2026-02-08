@@ -4,7 +4,7 @@ import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.js';
 import { timetracking } from '../../db/schema/timetracking.js';
 import type { User } from '../../db/schema/users.js';
-import { DAYS_WEEK, MAX_TEAM_ITEMS, TIMETRACKING_ESTADO_LABELS } from './constants.js';
+import { DAYS_WEEK, MAX_TEAM_ITEMS } from './constants.js';
 import { getMonthRange, getRecentDates, toNumber } from './utils.js';
 
 export const buildEmpleadoDashboardResponse = async (user: User) => {
@@ -122,7 +122,7 @@ export const buildEmpleadoDashboardResponse = async (user: User) => {
     charts: {
       horasPorEstado: horasPorEstadoRows.map((row) => ({
         id: row.estado,
-        label: TIMETRACKING_ESTADO_LABELS[row.estado] ?? row.estado,
+        label: row.estado,
         value: toNumber(row.total, 0),
       })),
       horasPorSemana: weekDates.map((fecha) => ({

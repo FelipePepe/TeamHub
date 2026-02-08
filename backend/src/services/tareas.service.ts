@@ -1,5 +1,5 @@
 import { HTTPException } from 'hono/http-exception';
-import { tareasRepository, type TareaConUsuario } from './tareas-repository.js';
+import { tareasRepository } from './tareas-repository.js';
 import { findProyectoById } from './proyectos-repository.js';
 import { findActiveUserById } from './users-repository.js';
 import type { Tarea, NuevaTarea, EstadoTarea } from '../db/schema/tareas.js';
@@ -18,7 +18,7 @@ export class TareasService {
   /**
    * Listar tareas de un proyecto
    */
-  async listByProyecto(proyectoId: string, _user: User): Promise<TareaConUsuario[]> {
+  async listByProyecto(proyectoId: string, _user: User): Promise<Tarea[]> {
     const proyecto = await findProyectoById(proyectoId);
     if (!proyecto) {
       throw new HTTPException(404, { message: 'Proyecto no encontrado' });
@@ -29,7 +29,7 @@ export class TareasService {
   /**
    * Listar tareas asignadas a un usuario
    */
-  async listByUsuario(usuarioId: string, requestingUser: User): Promise<TareaConUsuario[]> {
+  async listByUsuario(usuarioId: string, requestingUser: User): Promise<Tarea[]> {
     // Solo ADMIN, RRHH, MANAGER pueden ver tareas de otros usuarios
     if (
       usuarioId !== requestingUser.id &&

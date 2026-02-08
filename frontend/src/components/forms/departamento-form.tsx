@@ -87,7 +87,7 @@ export function DepartamentoForm({
   const createDepartamento = useCreateDepartamento();
   const updateDepartamento = useUpdateDepartamento();
 
-  const { data: managersData } = useEmpleados({ activo: true, limit: 100 });
+  const { data: managersData } = useEmpleados({ activo: true, limit: 200 });
   const managers = (managersData?.data ?? []).filter((u) =>
     RESPONSABLE_ROLES.includes(u.rol as UserRole)
   );

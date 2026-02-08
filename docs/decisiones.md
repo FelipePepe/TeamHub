@@ -2,6 +2,8 @@
 
 Este archivo registra decisiones clave del proyecto con formato ADR, organizadas por categoría para facilitar la navegación.
 
+> **Nota sobre PRs documentados:** Este documento enfoca en **features funcionales significativas y decisiones arquitecturales** (PRs #30+). Los PRs #1-29 corresponden a setup inicial, fixes técnicos y configuración CI/CD, documentados implícitamente en los ADRs de infraestructura.
+
 ---
 
 ## Índice por Categoría
@@ -245,27 +247,24 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Consecuencias: Usuarios pueden recuperar acceso; requiere UI para mostrar codigos una sola vez y endpoint de regeneracion.
 
 ### ADR-046: Endpoints de Perfil separados de Usuarios
-
 - Fecha: 2026-01-25
 - Estado: Aceptado
 - Contexto: Los usuarios autenticados necesitan gestionar su propio perfil sin requerir permisos de ADMIN/RRHH.
-- Decision: Crear grupo de endpoints /perfil (GET/PUT perfil, cambio password, avatar, gestion MFA) separados de /usuarios/{id} que requiere roles privilegiados.
+- Decision: Crear grupo de endpoints \`/perfil\` (GET/PUT perfil, cambio password, avatar, gestion MFA) separados de \`/usuarios/{id}\` que requiere roles privilegiados.
 - Consecuencias: Mejor separacion de concerns; el usuario gestiona su perfil sin exponer endpoints administrativos.
 
 ### ADR-047: Configuracion JWT con tiempos de expiracion
-
 - Fecha: 2026-01-25
 - Estado: Aceptado
 - Contexto: Se necesita definir la politica de expiracion de tokens JWT para balancear seguridad y UX.
-- Decision: Access token expira en 15 minutos (JWT_ACCESS_EXPIRES_IN=15m), refresh token en 30 dias (JWT_REFRESH_EXPIRES_IN=30d), MFA token en 5 minutos. Algoritmo HS256 con secrets minimo 32 caracteres.
+- Decision: Access token expira en 15 minutos (\`JWT_ACCESS_EXPIRES_IN=15m\`), refresh token en 30 dias (\`JWT_REFRESH_EXPIRES_IN=30d\`), MFA token en 5 minutos. Algoritmo HS256 con secrets minimo 32 caracteres.
 - Consecuencias: Sesiones seguras con refresh automatico; requiere interceptor en frontend para renovar tokens.
 
 ### ADR-055: Bootstrap token para primer usuario
-
 - Fecha: 2026-01-26
 - Estado: Aceptado
 - Contexto: El endpoint de login permite crear el primer usuario (bootstrap), lo cual es un riesgo de seguridad sin autenticacion.
-- Decision: Requerir header X-Bootstrap-Token que coincida con BOOTSTRAP_TOKEN env var para bootstrap del primer admin.
+- Decision: Requerir header \`X-Bootstrap-Token\` que coincida con \`BOOTSTRAP_TOKEN\` env var para bootstrap del primer admin.
 - Consecuencias: Bootstrap seguro; requiere configurar token en produccion y en tests.
 
 ### ADR-057: Generacion local de QR codes para MFA
@@ -306,7 +305,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Frontend: Interceptor axios genera firma en cada request
 
 ### ADR-061: Troubleshooting de Configuración HMAC
-
 - Fecha: 2026-01-29
 - Estado: Aceptado
 - Contexto: Desarrolladores encontraban error "HMAC key data must not be empty" al ejecutar el proyecto localmente porque faltaba `API_HMAC_SECRET` en `.env`.
@@ -317,7 +315,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Los archivos `.env` no se versionan (están en `.gitignore`)
 
 ### ADR-062: Preservación Explícita de Ramas en GitFlow
-
 - Fecha: 2026-01-29
 - Estado: Aceptado
 - Contexto: Ocurrió un incidente donde se usó `--delete-branch` al mergear PR, borrando rama `bugfix/hmac-env-config`. Aunque se recuperó, violó la política del proyecto.
@@ -329,238 +326,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - (+) Mantiene trazabilidad completa del proyecto
   - Los 3 archivos de agentes deben mantenerse sincronizados
 
-### ADR-090: Auditoría de Seguridad y Remediación de Hallazgos
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** Se realizó una auditoría de seguridad completa (backend, frontend, infraestructura) que identificó 56 hallazgos consolidados: 9 CRITICAL, 14 HIGH, 22 MEDIUM, 11 LOW. Se priorizó la remediación de los hallazgos implementables en código.
-- **Decisión:** Implementar correcciones para los hallazgos CRITICAL, HIGH y MEDIUM que se pueden resolver en código. Los cambios arquitecturales (BFF para HMAC, cookies httpOnly para JWT, CSRF) se difieren a PRs separados.
-- **Correcciones implementadas:**
-  - **CRITICAL:** SQL Injection en audit-context (parametrización con `set_config`), timing attack HMAC (uso de `timingSafeEqual`), rutas absolutas hardcodeadas en package.json
-  - **HIGH:** Control de roles en Dashboard/Departamentos/Procesos/Plantillas (`requireRoles`), IDOR en Timetracking (verificación de ownership), MFA salt dinámico (16 bytes aleatorios por cifrado), security headers en Next.js, `crypto.getRandomValues` para passwords temporales
-  - **MEDIUM (1ª ronda):** HMAC incluye hash del body, paginación limitada a 100, CORS sin wildcard, validación URL en `evidenciaUrl`, password temporal sin sufijo predecible, nuevo mfaToken tras cambio de password, filtrado de campos sensibles en audit log, `console.error` suprimido en producción, mensajes genéricos en login, `.gitignore` con `*.pem/*.key`, `drizzle-orm` movido a dependencies, validación formato JWT expiry, placeholder "change-me" rechazado en producción, PII reemplazada en seeds
-  - **MEDIUM (2ª ronda - 8 hallazgos):** Rate limiter con maxEntries, limpiar mfaSecret tras MFA exitoso, documentar passwords de seed, validar formato cifrado mfaSecret, ADR-091 sobre jsonwebtoken, permissions en CI, security:[] en OpenAPI, .gitignore completo
-  - **LOW (8 hallazgos):** DISABLE_HMAC flag explícito, documentar trusted-proxy, PORT sin duplicar, swagger-ui-dist en devDependencies, doc SHA en GitHub Actions, doc limitación use-permissions, nota SRI en qrcode, doc mejora tempPassword
-- **Hallazgos diferidos (requieren cambios arquitecturales):**
-  - HMAC secret en `NEXT_PUBLIC_*` → requiere BFF/API route
-  - JWT en localStorage → migración a httpOnly cookies
-  - CSRF protection → depende de decisión sobre cookies
-  - Next.js middleware para protección de rutas
-- **Acciones manuales documentadas:**
-  - Rotación de credenciales en producción
-  - Purga de PII del historial git con BFG
-- **Consecuencias:**
-  - **TOTAL CORREGIDO:** 3 CRITICAL + 7 HIGH + 22 MEDIUM + 10 LOW = **42 hallazgos**
-  - **DIFERIDOS:** 6 CRITICAL + 7 HIGH + 1 LOW = **14 hallazgos** (requieren cambios arquitecturales o acciones manuales)
-  - Mejora significativa en la postura de seguridad de la aplicación
-  - Tests: 226 passed ✅
-  - Backward compatibility mantenida en MFA (detección de formato legacy)
-
-### ADR-091: Mantenimiento de jsonwebtoken con Monitoreo Activo
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado  
-- **Contexto:** jsonwebtoken@9.0.2 depende de paquetes lodash abandonados. Opciones: migrar a `jose` (sin lodash) o mantener con vigilancia activa.
-- **Decisión:** MANTENER jsonwebtoken con monitoreo de CVEs. Razones: (1) madurez/estabilidad, (2) coste de migración alto, (3) sub-dependencias lodash sin CVEs críticos actuales, (4) plan de contingencia documentado.
-- **Consecuencias:**
-  - **Positivas:** Estabilidad, no introducir riesgo de regresión, recursos priorizados a hallazgos mayores
-  - **Negativas:** Deuda técnica, vigilancia requerida
-  - **Mitigación:** Renovate Bot, Snyk/Dependabot, migración a `jose` si CVE ≥ 8.0
-- **Referencia:** docs/adr/091-jsonwebtoken-dependency-mitigation.md
-
-### ADR-092: Enriquecimiento de respuesta de Tareas con datos del usuario asignado
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** El endpoint `GET /api/proyectos/:id/tareas` solo devolvía `usuarioAsignadoId` (UUID) pero no los datos del usuario asignado (nombre, apellidos). El frontend mostraba "Sin asignar" para todas las tareas porque esperaba `usuarioAsignado: { id, nombre, apellidos }` según el tipo `Tarea`.
-- **Decisión:** Modificar el repositorio de tareas para hacer LEFT JOIN con la tabla `users` en `findByProyecto` y `findByUsuario`, devolviendo `usuarioAsignado` como objeto embebido. Crear tipo `TareaConUsuario` y actualizar mapper, servicio y contrato OpenAPI.
-- **Consecuencias:**
-  - **Positivas:** El frontend muestra correctamente el nombre del usuario asignado; el contrato OpenAPI ahora documenta los 7 endpoints de tareas de proyecto
-  - **Negativas:** Una query adicional (LEFT JOIN) por llamada, impacto mínimo en rendimiento
-  - **Lección:** Los tests existentes no verificaban la presencia de `usuarioAsignado` en la respuesta; añadir tests de integración end-to-end para validar contratos completos
-
-### ADR-093: Auditoría de UI — Eliminación de IDs expuestos y corrección de dark mode
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** Auditoría pantalla por pantalla detectó: (1) IDs crudos (UUID) expuestos al usuario en detalle de empleado y fallbacks de departamento/proyecto; (2) ~100 instancias de colores hardcoded sin dark: variants; (3) gráficas de dashboard con etiquetas de enums crudas (ADMIN, ACTIVO, PENDIENTE).
-- **Decisión:**
-  - Backend: añadir `ROL_LABELS`, `PROYECTO_ESTADO_LABELS`, `TIMETRACKING_ESTADO_LABELS` en constantes dashboard; enriquecer `GET /usuarios/:id` y listado con LEFT JOIN a departamentos + alias managers; añadir LEFT JOIN en `pendientesAprobacion` del manager dashboard
-  - Frontend: reemplazar exposición de IDs por nombres resueltos; migrar ~100 clases de color (`text-slate-*`, `bg-slate-*`, `border-slate-*`) a tokens semánticos (`text-muted-foreground`, `text-foreground`, `bg-muted`, `border-border`)
-- **Consecuencias:**
-  - **Positivas:** Ningún ID visible al usuario en ninguna pantalla; dark mode completamente funcional en todos los dashboards y pantallas
-  - **Negativas:** LEFT JOINs adicionales en endpoints de usuarios (impacto mínimo); se deben mantener los mapas de labels sincronizados con los enums de la DB
-
 ---
-
-## 4. API y Contratos
-
-### ADR-018: Swagger para documentacion de APIs
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: Se requiere una forma estandar de visualizar y validar el contrato de API.
-- Decision: Usar Swagger (Swagger UI) para documentar y revisar la API basada en OpenAPI.
-- Consecuencias: Documentacion navegable; requiere mantener openapi.yaml actualizado.
-
-### ADR-021: Modularizacion de OpenAPI
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: openapi.yaml crecio demasiado y dificulta el mantenimiento.
-- Decision: Modularizar rutas y esquemas en docs/api/openapi/paths/ y docs/api/openapi/components/, dejando openapi.yaml como agregador con ref.
-- Consecuencias: Mantenimiento mas sencillo; se debe cuidar la coherencia de referencias.
-
-### ADR-022: Script de validacion OpenAPI
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: Se requiere una validacion reproducible del contrato OpenAPI.
-- Decision: Crear scripts/validate-openapi.sh con Swagger CLI y timeout opcional.
-- Consecuencias: Validacion consistente desde cualquier ruta; requiere tener npx disponible.
-
-### ADR-040: Alineacion de contrato Timetracking con restricciones DB
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: La base de datos exige descripcion no nula y horas en rango (0-24), mientras que el contrato permitia valores mas laxos.
-- Decision: Hacer descripcion requerida y validar horas en el API y OpenAPI con los limites del esquema.
-- Consecuencias: Clientes deben enviar descripcion y horas validas; se evitan errores al persistir.
-
----
-
-## 5. Frontend
-
-### ADR-013: Uso de D3.js en graficos de dashboards
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: Se requiere una libreria flexible para visualizaciones en dashboards.
-- Decision: Usar D3.js para los graficos de dashboards.
-- Consecuencias: Mayor control visual; requiere desarrollo de componentes custom.
-
-### ADR-033: Actualizacion a Next.js 15 y React 19
-
-- Fecha: 2026-01-23
-- Estado: Aceptado
-- Contexto: Next.js 14 presentaba vulnerabilidades de seguridad y eslint-config-next 16.x era incompatible con Next.js 14.
-- Decision: Actualizar a Next.js 15.1.4 con React 19.0.0 para resolver vulnerabilidades y mantener compatibilidad.
-- Consecuencias: Stack moderno con ultimas features de React 19; requiere verificar compatibilidad de librerias de terceros.
-
-### ADR-049: Arquitectura del Frontend con AuthProvider y dashboards por rol
-
-- Fecha: 2026-01-25
-- Estado: Aceptado
-- Contexto: El frontend necesita gestionar estado de autenticacion global y mostrar dashboards diferenciados por rol.
-- Decision: Implementar AuthProvider con Context API para estado de auth, dashboards especificos por rol (Admin, RRHH, Manager, Empleado) con metricas y graficos D3.
-- Consecuencias: UX adaptada a cada rol; requiere mantener sincronizados los dashboards con los endpoints del backend.
-
-### ADR-050: Axios interceptors con refresh automatico de tokens
-
-- Fecha: 2026-01-25
-- Estado: Aceptado
-- Contexto: Los access tokens expiran cada 15 minutos y el usuario no debe perder su sesion por expiracion.
-- Decision: Implementar interceptor en Axios que detecta 401, intenta refresh con el refresh token, y reintenta la peticion original. Si falla el refresh, redirige a login.
-- Consecuencias: UX transparente para el usuario; requiere manejo cuidadoso de race conditions en peticiones concurrentes.
-
-### ADR-060: Diseño Responsive y Accesibilidad (A11y)
-
-- Fecha: 2026-01-29
-- Estado: Aceptado
-- Contexto: El frontend no era responsive al cargar en móvil tras despliegue en Vercel, no cumplía con estándares de accesibilidad.
-- Decision: Implementar diseño responsive mobile-first con Tailwind breakpoints y cumplir con WCAG 2.1 AA.
-- Estándares:
-  - **Responsive**: Mobile-first desde 320px, breakpoints estándar (sm:640px, md:768px, lg:1024px)
-  - **A11y**: Navegación por teclado, ARIA labels, contraste 4.5:1, HTML semántico
-- Consecuencias:
-  - (+) Experiencia consistente en todos los dispositivos
-  - (+) Cumplimiento de estándares de accesibilidad
-  - (-) Requiere refactorizar componentes existentes
-- Implementación:
-  - Sheet UI component para menú móvil (slide-in)
-  - MobileSidebar con hamburger menu
-  - Grids responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
-  - ARIA: `aria-label`, `aria-current`, `aria-hidden`, `role="list"`
-
-### ADR-063: Uso de D3.js para Visualizaciones de Datos
-
-- Fecha: 2026-01-29
-- Estado: Aceptado
-- Contexto: Los dashboards actualmente usan gráficos simples con CSS/HTML (divs con Tailwind). D3.js está instalado pero no se usa. Se necesita decidir la tecnología definitiva para visualizaciones.
-- Decision: Utilizar **D3.js v7** para todos los componentes de gráficos y visualizaciones de datos.
-- Alternativas consideradas:
-  1. CSS/HTML simple - Limitado, sin interactividad
-  2. **D3.js** - Elegida: Máxima flexibilidad y control
-  3. Recharts - Más simple pero menos personalizable
-  4. Chart.js - Muy simple pero limitado para casos avanzados
-- Consecuencias:
-  - (+) Gráficos interactivos (tooltips, hover, zoom)
-  - (+) Animaciones fluidas y profesionales
-  - (+) Amplia variedad de tipos de visualizaciones
-  - (+) Escalabilidad para datos complejos
-  - (+) Control total sobre renderizado y comportamiento
-  - (-) Mayor complejidad de código
-  - (-) Incremento en tamaño del bundle (~200KB)
-  - (-) Requiere conocimiento de D3.js
-- Implementación pendiente:
-  - Refactorizar `bar-chart.tsx` con D3.js
-  - Refactorizar `line-chart.tsx` con D3.js
-  - Añadir interactividad (tooltips, hover effects)
-  - Mantener responsive design y accesibilidad
-  - Tests de componentes actualizados
-
-### ADR-065: Implementación de visualizaciones D3.js para timetracking
-
-- Fecha: 2026-01-30
-- Estado: Completado (100%)
-- Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
-- Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
-- Implementado:
-  - **Gantt Chart en Timetracking** ✅ (commit 9512ed4)
-    - Visualización de timeline de registros de tiempo por proyecto
-    - Zoom controls (fit, zoom in, zoom out)
-    - Tooltips interactivos con datos detallados
-    - Progress bars por proyecto
-    - Responsive design adaptativo
-    - Integración con hook `useTimetracking`
-    - Utilidades reutilizables en `lib/gantt-utils.ts`
-- Completado:
-  - Migrar `bar-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
-  - Migrar `line-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
-  - Añadir interactividad (hover effects, tooltips) ✅ (2026-02-07)
-  - Mantener accesibilidad (ARIA, keyboard navigation) ✅ (2026-02-07)
-  - Añadir tests de componentes (`charts.test.tsx`) ✅ (2026-02-07)
-- Consecuencias:
-  - Visualizaciones más ricas e interactivas para usuarios
-  - Mejor UX en módulo de timetracking
-  - Patrón establecido para futuras visualizaciones
-  - Incremento moderado de bundle size (D3.js es modular)
-  - Requiere conocimiento de D3.js para mantenimiento
-
-### ADR-067: Gantt Chart responsive con ancho dinámico
-
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: El Gantt Chart tenía ancho fijo de 800px y mostraba mensaje "Vista no disponible en móvil", limitando accesibilidad.
-- Decision: Implementar ancho dinámico con `useEffect` detectando tamaño del contenedor, responsive en todos los dispositivos (mobile/tablet/desktop).
-- Consecuencias:
-  - (+) Accesible desde cualquier dispositivo
-  - (+) Mejor UX con scroll horizontal automático
-  - (+) Cumple estándares de responsive design (ADR-060)
-  - (-) Requiere recálculo en cada resize (optimizado con debounce implícito)
-
-### ADR-068: Optimización espaciado cabeceras Gantt en vista año
-
-- Fecha: 2026-01-31
-- Estado: Aceptado
-- Contexto: En vista año, el Gantt mostraba 12 meses juntos causando sobreposición visual de etiquetas.
-- Decision: Filtrar meses alternos (mostrar solo 6: ene, mar, may, jul, sep, nov) y usar formato corto ("ene 26" vs "ene 2026").
-- Consecuencias:
-  - (+) Mejor legibilidad en vista año
-  - (+) Sin cambios en vistas mes y trimestre
-  - (-) Pérdida de granularidad mensual (aceptable para vista anual)
-
-### ADR-070: Hotfix para SelectItem empty value
 
 - Fecha: 2026-01-31
 - Estado: Aceptado
@@ -602,6 +368,136 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Integración en layout y navbar
 - next-themes dependency añadida
 
+### ADR-060: Diseño Responsive y Accesibilidad (A11y)
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: El frontend no era responsive al cargar en móvil tras despliegue en Vercel, no cumplía con estándares de accesibilidad.
+- Decision: Implementar diseño responsive mobile-first con Tailwind breakpoints y cumplir con WCAG 2.1 AA.
+- Estándares:
+  - **Responsive**: Mobile-first desde 320px, breakpoints estándar (sm:640px, md:768px, lg:1024px)
+  - **A11y**: Navegación por teclado, ARIA labels, contraste 4.5:1, HTML semántico
+- Consecuencias:
+  - (+) Experiencia consistente en todos los dispositivos
+  - (+) Cumplimiento de estándares de accesibilidad
+  - (-) Requiere refactorizar componentes existentes
+- Implementación:
+  - Sheet UI component para menú móvil (slide-in)
+  - MobileSidebar con hamburger menu
+  - Grids responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - ARIA: `aria-label`, `aria-current`, `aria-hidden`, `role="list"`
+
+### ADR-063: Uso de D3.js para Visualizaciones de Datos
+- Fecha: 2026-01-29
+- Estado: Aceptado
+- Contexto: Los dashboards actualmente usan gráficos simples con CSS/HTML (divs con Tailwind). D3.js está instalado pero no se usa. Se necesita decidir la tecnología definitiva para visualizaciones.
+- Decision: Utilizar **D3.js v7** para todos los componentes de gráficos y visualizaciones de datos.
+- Alternativas consideradas:
+  1. CSS/HTML simple - Limitado, sin interactividad
+  2. **D3.js** - Elegida: Máxima flexibilidad y control
+  3. Recharts - Más simple pero menos personalizable
+  4. Chart.js - Muy simple pero limitado para casos avanzados
+- Consecuencias:
+  - (+) Gráficos interactivos (tooltips, hover, zoom)
+  - (+) Animaciones fluidas y profesionales
+  - (+) Amplia variedad de tipos de visualizaciones
+  - (+) Escalabilidad para datos complejos
+  - (+) Control total sobre renderizado y comportamiento
+  - (-) Mayor complejidad de código
+  - (-) Incremento en tamaño del bundle (~200KB)
+  - (-) Requiere conocimiento de D3.js
+- Implementación pendiente:
+  - Refactorizar `bar-chart.tsx` con D3.js
+  - Refactorizar `line-chart.tsx` con D3.js
+  - Añadir interactividad (tooltips, hover effects)
+  - Mantener responsive design y accesibilidad
+  - Tests de componentes actualizados
+
+### ADR-065: Implementación de visualizaciones D3.js para timetracking
+- Fecha: 2026-01-30
+- Estado: Completado (100%)
+- Contexto: ADR-063 decidió usar D3.js para visualizaciones avanzadas. Se implementó Gantt Chart como primera visualización D3.js.
+- Decision: Implementar visualizaciones D3.js comenzando por módulo de timetracking (mayor complejidad), luego migrar dashboards.
+- Implementado:
+  - **Gantt Chart en Timetracking** ✅ (commit 9512ed4)
+    - Visualización de timeline de registros de tiempo por proyecto
+    - Zoom controls (fit, zoom in, zoom out)
+    - Tooltips interactivos con datos detallados
+    - Progress bars por proyecto
+    - Responsive design adaptativo
+    - Integración con hook `useTimetracking`
+    - Utilidades reutilizables en `lib/gantt-utils.ts`
+- Completado:
+  - [x] Migrar `bar-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Migrar `line-chart.tsx` de dashboards a D3.js ✅ (2026-02-07)
+  - [x] Añadir interactividad (hover effects, tooltips) ✅ (2026-02-07)
+  - [x] Mantener accesibilidad (ARIA, keyboard navigation) ✅ (2026-02-07)
+  - [x] Añadir tests de componentes (`charts.test.tsx`) ✅ (2026-02-07)
+- Consecuencias:
+  - Visualizaciones más ricas e interactivas para usuarios
+  - Mejor UX en módulo de timetracking
+  - Patrón establecido para futuras visualizaciones
+  - Incremento moderado de bundle size (D3.js es modular)
+  - Requiere conocimiento de D3.js para mantenimiento
+
+### ADR-067: Gantt Chart responsive con ancho dinámico
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: El Gantt Chart tenía ancho fijo de 800px y mostraba mensaje "Vista no disponible en móvil", limitando accesibilidad.
+- Decision: Implementar ancho dinámico con `useEffect` detectando tamaño del contenedor, responsive en todos los dispositivos (mobile/tablet/desktop).
+- Consecuencias:
+  - (+) Accesible desde cualquier dispositivo
+  - (+) Mejor UX con scroll horizontal automático
+  - (+) Cumple estándares de responsive design (ADR-060)
+  - (-) Requiere recálculo en cada resize (optimizado con debounce implícito)
+
+### ADR-068: Optimización espaciado cabeceras Gantt en vista año
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: En vista año, el Gantt mostraba 12 meses juntos causando sobreposición visual de etiquetas.
+- Decision: Filtrar meses alternos (mostrar solo 6: ene, mar, may, jul, sep, nov) y usar formato corto ("ene 26" vs "ene 2026").
+- Consecuencias:
+  - (+) Mejor legibilidad en vista año
+  - (+) Sin cambios en vistas mes y trimestre
+  - (-) Pérdida de granularidad mensual (aceptable para vista anual)
+
+### ADR-070: Hotfix para SelectItem empty value
+- Fecha: 2026-01-31
+- Estado: Aceptado
+- Contexto: Error crítico en producción (`/admin/plantillas/crear`): Radix UI Select no permite `<SelectItem value="">`.
+- Decision: Usar sentinel values válidos (`"all"`, `"any"`) en lugar de strings vacíos, mapeando a `undefined` en handlers.
+- Consecuencias:
+  - (+) Fix inmediato para error bloqueante en producción
+  - (+) Patrón reutilizable para otros selects opcionales
+  - Requiere validación de todos los Select components del proyecto
+
+### ADR-072: Dark Mode Toggle y Version Display
+
+**Fecha:** 2026-01-31  
+**Estado:** ✅ Implementado  
+**Contexto:** Mejora de UX solicitada para mostrar versión de la app y permitir cambio de tema visual.
+
+**Decisión:**
+- **Dark Mode:**
+  - Implementado con `next-themes` para persistencia automática
+  - ThemeProvider en root layout con soporte System/Light/Dark
+  - ThemeToggle dropdown en navbar con iconos Sun/Moon (lucide-react)
+  - Configuración: `darkMode: ["class"]` en tailwind.config.ts
+- **Version Display:**
+  - Componente fijo bottom-right
+  - Variable de entorno `NEXT_PUBLIC_APP_VERSION=1.3.0`
+  - Estilo discreto: `text-xs text-muted-foreground`
+
+**Consecuencias:**
+- ✅ Mejora accesibilidad y comodidad visual
+- ✅ Preferencia de tema persistente en localStorage
+- ✅ Versión visible para debugging y soporte
+- 📊 +96 líneas (11 archivos modificados, 3 componentes nuevos)
+
+**Implementación:**
+- `ThemeProvider`, `ThemeToggle`, `VersionDisplay`
+- Integración en layout y navbar
+- next-themes dependency añadida
+
 ---
 
 ## 6. Backend
@@ -631,11 +527,10 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Consecuencias: Builds reproducibles y controlados; requiere actualizacion manual periodica de dependencias.
 
 ### ADR-054: Tipos estrictos para validators Zod
-
 - Fecha: 2026-01-26
 - Estado: Aceptado
-- Contexto: Los validators Zod con z.preprocess() devuelven unknown, perdiendo type safety en las rutas.
-- Decision: Refactorizar validators usando z.union().transform() para mantener inferencia de tipos correcta.
+- Contexto: Los validators Zod con \`z.preprocess()\` devuelven \`unknown\`, perdiendo type safety en las rutas.
+- Decision: Refactorizar validators usando \`z.union().transform()\` para mantener inferencia de tipos correcta.
 - Consecuencias: Type safety end-to-end desde query params hasta repositorios; codigo mas seguro.
 
 ### ADR-071: Sistema de Gestión de Tareas Jerárquico (Jira-like)
@@ -645,7 +540,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 **Contexto:** Necesidad de gestión de tareas a nivel proyecto con visualización Gantt jerárquica similar a Jira, permitiendo drill-down desde proyectos a tareas individuales.
 
 **Decisión:**
-
 - **Arquitectura:** Full-stack task management con Gantt Charts jerárquicos
 - **Modelo de datos:**
   - Tabla `tareas` con FKs a proyectos, usuarios, self-referencing para dependencias
@@ -667,7 +561,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Coverage estratégico: 100% repository (CORE), 80%+ service/hooks (IMPORTANT)
 
 **Consecuencias:**
-
 - ✅ Gestión de tareas completa a nivel proyecto
 - ✅ Visualización Gantt jerárquica reutilizando infraestructura D3.js existente
 - ✅ Permisos granulares: ADMIN/MANAGER gestionan todas, EMPLEADO solo asignadas
@@ -676,7 +569,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - 📊 +5044 líneas de código (28 archivos nuevos/modificados)
 
 **Implementación:**
-
 - **Backend:** tareas-repository.ts, tareas.service.ts, tareas.routes.ts, tareas.validators.ts, tareas schema
 - **Frontend:** use-tareas.ts hook, TaskGanttChart, TaskList, TaskFormModal, Tarea types
 - **UI Components:** table, dropdown-menu (shadcn/ui)
@@ -736,7 +628,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Consecuencias: Codigo mas mantenible; requiere tiempo dedicado a refactoring sin cambios funcionales.
 
 ### ADR-066: Scripts de seed data para testing
-
 - Fecha: 2026-01-31
 - Estado: Aceptado
 - Contexto: El Gantt Chart y Timesheet requieren datos de prueba realistas con proyectos con fechas, usuarios asignados y registros de tiempo para validar visualizaciones.
@@ -883,7 +774,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Co-autoría: Claude Opus 4.5 reconocido en commits relevantes
 
 ### ADR-069: Limpieza hooks Husky para v10
-
 - Fecha: 2026-01-31
 - Estado: Aceptado
 - Contexto: Husky 9.0.11 mostraba warnings DEPRECATED sobre líneas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"` que serán removidas en v10.
@@ -990,94 +880,75 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
     - `frontend/src/components/ui/select.tsx` (150 líneas)
   - **Progreso:** Fase 2 completada al 100% (antes estaba en 90%)
   - **ESLint:** 0 errores, 0 warnings
-- Añadir tests para componentes empleados (PR #56). (2026-01-29)
-- Corregir mocks faltantes en tests de empleados (PR #57). (2026-01-29)
-- Añadir dependencias date-fns y @radix-ui/react-select (commit directo). (2026-01-29)
-- Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
-- Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
-- Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
-- Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
-- Configurar tests E2E con Playwright (Fase 7): frontend/e2e/, playwright.config.ts, specs de login y navegación; npm run e2e. (2026-01-30)
-- Añadir E2E CRUD departamentos: frontend/e2e/departamentos-crud.spec.ts (login + listado + crear); requiere E2E_USER y E2E_PASSWORD. (2026-01-30)
-- Añadir E2E de contraste de texto para tema claro/oscuro en dashboard. (2026-02-07)
-- Fijar `turbopack.root` en Next.js para evitar warning de lockfiles múltiples. (2026-02-07)
-- Alinear `PLAYWRIGHT_BASE_URL` y aumentar timeout del webServer a 120s. (2026-02-07)
-- Añadir logging debug con middleware de requests (desactivado en Vercel/Render). (2026-02-07)
-- Ajustar estilos de Card para respetar variables de tema y corregir texto invisible en modo oscuro. (2026-02-07)
-- Ajustar estilos de botones para mejorar contraste en modo oscuro. (2026-02-07)
-- Ajustar estilos de Tabs para mejorar contraste en modo oscuro. (2026-02-07)
-- Ajustar estilos de timesheet semanal para mejorar contraste en modo oscuro. (2026-02-07)
-- Alinear `seed-complete-data.sql` con el esquema real (soft delete, enums, usuarios y hashes). (2026-02-07)
-- Añadir restricciones únicas por tabla (tokens, plantillas, procesos, tareas, timetracking). (2026-02-07)
-- Añadir resumen en tarjetas de proyectos (fin estimado, horas restantes, asignados). (2026-02-07)
-- Mostrar nombres de empleados en asignaciones de proyectos. (2026-02-07)
-- Serializar queries del dashboard admin en tests para evitar timeouts de conexión. (2026-02-07)
-- Mejorar mensajes de error de login (401/429) en frontend. (2026-02-07)
-- Ajustar contraste del bloque de código MFA en modo oscuro. (2026-02-07)
-- Mejorar contraste en opciones del menú lateral para modo oscuro (sidebar y mobile sidebar). (2026-02-07)
-- Unificar creación de proyectos con modal y redirigir /proyectos/crear al panel de alta. (2026-02-07)
-- Ajustar decrypt MFA con `authTagLength` y limpiar warning `--localstorage-file` en tests. (2026-02-07)
+- [x] Añadir tests para componentes empleados (PR #56). (2026-01-29)
+- [x] Corregir mocks faltantes en tests de empleados (PR #57). (2026-01-29)
+- [x] Añadir dependencias date-fns y @radix-ui/react-select (commit directo). (2026-01-29)
+- [x] Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
+- [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
+- [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
+- [x] Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
+- [x] Configurar tests E2E con Playwright (Fase 7): \`frontend/e2e/\`, \`playwright.config.ts\`, specs de login y navegación; \`npm run e2e\`. (2026-01-30)
+- [x] Añadir E2E CRUD departamentos: \`frontend/e2e/departamentos-crud.spec.ts\` (login + listado + crear); requiere \`E2E_USER\` y \`E2E_PASSWORD\`. (2026-01-30)
 
 ### Historial detallado de tareas
-
-- Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
-- Definir alcance y estrategia de persistencia (Drizzle vs store) y actualizar docs/decisiones.md. (2026-01-23)
-- Actualizar DATABASE_URL de tests a teamhub_test en backend/src/test-utils/index.ts. (2026-01-23)
-- Ajustar backend/.env.test.example para teamhub_test y SSL opcional con CA. (2026-01-23)
-- Preparar entorno de BD de pruebas (migraciones, seed, config) o alternativa para tests. (2026-01-23)
-- Crear backend/.env.test con conexion a teamhub_test y CA SSL. (2026-01-23)
-- Reconfigurar backend/.env.test y backend/.env.test.example para PostgreSQL local. (2026-01-23)
-- Verificar conectividad a PostgreSQL local; bloqueado por permisos del entorno sandbox (sockets TCP/Unix). (2026-01-23)
-- Serializar migraciones de tests con advisory lock para evitar conflictos entre workers. (2026-01-23)
-- Forzar ejecucion secuencial de tests para evitar colisiones en BD compartida. (2026-01-23)
-- Configurar Vitest con pool=forks y singleFork para evitar paralelismo entre archivos. (2026-01-23)
-- Migrar Auth a DB (login, MFA, refresh/reset) con validaciones y tests. (2026-01-23)
-- Migrar Usuarios (CRUD, password, unlock) con RBAC y tests. (2026-01-23)
-- Migrar Departamentos con tests. (2026-01-23)
-- Migrar Plantillas con tests. (2026-01-23)
-- Migrar Procesos con tests. (2026-01-23)
-- Exponer Swagger UI en /docs y servir openapi.yaml en /openapi.yaml. (2026-01-23)
-- Validar Swagger UI con resolucion de ref y assets locales. (2026-01-23)
-- Migrar Proyectos/Asignaciones con tests. (2026-01-24)
-- Migrar Timetracking con tests. (2026-01-24)
-- Implementar Dashboards con metricas reales y tests. (2026-01-24)
-- Añadir migracion de password_temporal y sincronizar SQL de contexto/tests. (2026-01-24)
-- Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
-- Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
-- Reorganizar ADRs por categorias tematicas. (2026-01-25)
-- Implementar sistema colaborativo multi-LLM (orquestador, generador, revisor). (2026-01-27)
-- Probar sistema multi-LLM generando hook useDepartamentos. (2026-01-27)
-- Implementar página de listado de departamentos usando sistema multi-LLM. (2026-01-27)
-- Implementar formulario modal de departamentos usando sistema multi-LLM. (2026-01-27)
-- Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
-- Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
-- Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)
-- Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
-- Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
-- Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
-- Implementar autenticacion HMAC para API (ADR-059). (2026-01-29)
-- Implementar diseño responsive y accesibilidad (ADR-060). (2026-01-29)
-- Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)
-- Añadir regla explícita de preservación de ramas (ADR-062). (2026-01-29)
-- Decidir tecnología de visualización de datos: D3.js (ADR-063). (2026-01-29)
-- Auditar backend y clarificar estado real del proyecto (2026-01-29)
-- Implementar hook usePlantillas con TanStack Query para Fase 3: Onboarding (2026-01-29)
-- Implementar hook useProcesos con TanStack Query para Fase 3: Onboarding (2026-01-29)
-- Implementar página de listado de plantillas para Fase 3: Onboarding (2026-01-29)
-- Implementar páginas de procesos (listado + detalle) para Fase 3: Onboarding (2026-01-29)
-- Implementar editor completo de plantillas (crear + editar) para Fase 3: Onboarding (2026-01-29)
-- Implementar modal iniciar proceso de onboarding para Fase 3: Onboarding (2026-01-29)
-- Implementar página Mis Tareas para Fase 3: Onboarding (2026-01-29)
-- Implementar widget Mi Onboarding para dashboard empleado - Fase 3: Onboarding (2026-01-29)
-- Corregir warnings ESLint frontend y verificar tests backend/frontend pasando (2026-01-29)
-- Actualizar README con estado actual del proyecto, features, tests y deployment (2026-01-29)
-- Endurecer seguridad con headers mejorados, rate limiting y ADR-064 (OWASP 96.5%) (2026-01-29)
-- Actualizar OpenAPI a v1.0.0 con 149 endpoints y mejorar docs/api/README.md (2026-01-29)
-- Completar Fase 2: Empleados con formulario crear/editar y vista detalle (PR #54) (2026-01-29)
-- Añadir tests para EmpleadoForm y EmpleadoDetailPage (PR #56) (2026-01-29)
-- Corregir mocks faltantes en tests de empleados (PR #57) (2026-01-29)
-- Añadir dependencias date-fns y @radix-ui/react-select al package.json (2026-01-29)
-- Implementar frontend Fase 4 (Proyectos) y Fase 5 (Timetracking) según OpenAPI - PR #61 (2026-01-30)
+- [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
+- [x] Definir alcance y estrategia de persistencia (Drizzle vs store) y actualizar \`docs/decisiones.md\`. (2026-01-23)
+- [x] Actualizar \`DATABASE_URL\` de tests a \`teamhub_test\` en \`backend/src/test-utils/index.ts\`. (2026-01-23)
+- [x] Ajustar \`backend/.env.test.example\` para \`teamhub_test\` y SSL opcional con CA. (2026-01-23)
+- [x] Preparar entorno de BD de pruebas (migraciones, seed, config) o alternativa para tests. (2026-01-23)
+- [x] Crear \`backend/.env.test\` con conexion a \`teamhub_test\` y CA SSL. (2026-01-23)
+- [x] Reconfigurar \`backend/.env.test\` y \`backend/.env.test.example\` para PostgreSQL local. (2026-01-23)
+- [x] Verificar conectividad a PostgreSQL local; bloqueado por permisos del entorno sandbox (sockets TCP/Unix). (2026-01-23)
+- [x] Serializar migraciones de tests con advisory lock para evitar conflictos entre workers. (2026-01-23)
+- [x] Forzar ejecucion secuencial de tests para evitar colisiones en BD compartida. (2026-01-23)
+- [x] Configurar Vitest con \`pool=forks\` y \`singleFork\` para evitar paralelismo entre archivos. (2026-01-23)
+- [x] Migrar Auth a DB (login, MFA, refresh/reset) con validaciones y tests. (2026-01-23)
+- [x] Migrar Usuarios (CRUD, password, unlock) con RBAC y tests. (2026-01-23)
+- [x] Migrar Departamentos con tests. (2026-01-23)
+- [x] Migrar Plantillas con tests. (2026-01-23)
+- [x] Migrar Procesos con tests. (2026-01-23)
+- [x] Exponer Swagger UI en \`/docs\` y servir \`openapi.yaml\` en \`/openapi.yaml\`. (2026-01-23)
+- [x] Validar Swagger UI con resolucion de \`\$ref\` y assets locales. (2026-01-23)
+- [x] Migrar Proyectos/Asignaciones con tests. (2026-01-24)
+- [x] Migrar Timetracking con tests. (2026-01-24)
+- [x] Implementar Dashboards con metricas reales y tests. (2026-01-24)
+- [x] Añadir migracion de \`password_temporal\` y sincronizar SQL de contexto/tests. (2026-01-24)
+- [x] Ajustar tests de dashboard para cargar env antes de importar DB. (2026-01-24)
+- [x] Documentar ADRs faltantes (MFA backup codes, perfil, JWT, GitFlow, frontend, interceptors). (2026-01-25)
+- [x] Reorganizar ADRs por categorias tematicas. (2026-01-25)
+- [x] Implementar sistema colaborativo multi-LLM (orquestador, generador, revisor). (2026-01-27)
+- [x] Probar sistema multi-LLM generando hook useDepartamentos. (2026-01-27)
+- [x] Implementar página de listado de departamentos usando sistema multi-LLM. (2026-01-27)
+- [x] Implementar formulario modal de departamentos usando sistema multi-LLM. (2026-01-27)
+- [x] Corregir error CORB en generacion de QR codes para MFA (ADR-057). (2026-01-28)
+- [x] Documentar requisito de sincronizacion NTP para TOTP (ADR-058). (2026-01-28)
+- [x] Crear guia de troubleshooting (`docs/troubleshooting.md`). (2026-01-28)
+- [x] Reactivar tests frontend sin skips, estabilizar mutaciones y limpiar warnings ESLint. (2026-01-31)
+- [x] Definir umbrales de cobertura por carpeta en Vitest frontend. (2026-01-31)
+- [x] Ajustar tests de rendimiento para tolerar overhead al generar cobertura. (2026-01-31)
+- [x] Implementar autenticacion HMAC para API (ADR-059). (2026-01-29)
+- [x] Implementar diseño responsive y accesibilidad (ADR-060). (2026-01-29)
+- [x] Documentar troubleshooting de configuración HMAC (ADR-061). (2026-01-29)
+- [x] Añadir regla explícita de preservación de ramas (ADR-062). (2026-01-29)
+- [x] Decidir tecnología de visualización de datos: D3.js (ADR-063). (2026-01-29)
+- [x] Auditar backend y clarificar estado real del proyecto (2026-01-29)
+- [x] Implementar hook usePlantillas con TanStack Query para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar hook useProcesos con TanStack Query para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar página de listado de plantillas para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar páginas de procesos (listado + detalle) para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar editor completo de plantillas (crear + editar) para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar modal iniciar proceso de onboarding para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar página Mis Tareas para Fase 3: Onboarding (2026-01-29)
+- [x] Implementar widget Mi Onboarding para dashboard empleado - Fase 3: Onboarding (2026-01-29)
+- [x] Corregir warnings ESLint frontend y verificar tests backend/frontend pasando (2026-01-29)
+- [x] Actualizar README con estado actual del proyecto, features, tests y deployment (2026-01-29)
+- [x] Endurecer seguridad con headers mejorados, rate limiting y ADR-064 (OWASP 96.5%) (2026-01-29)
+- [x] Actualizar OpenAPI a v1.0.0 con 149 endpoints y mejorar docs/api/README.md (2026-01-29)
+- [x] Completar Fase 2: Empleados con formulario crear/editar y vista detalle (PR #54) (2026-01-29)
+- [x] Añadir tests para EmpleadoForm y EmpleadoDetailPage (PR #56) (2026-01-29)
+- [x] Corregir mocks faltantes en tests de empleados (PR #57) (2026-01-29)
+- [x] Añadir dependencias date-fns y @radix-ui/react-select al package.json (2026-01-29)
+- [x] Implementar frontend Fase 4 (Proyectos) y Fase 5 (Timetracking) según OpenAPI - PR #61 (2026-01-30)
   - **Fuente de verdad:** `docs/api/openapi/paths/proyectos.yaml`, `docs/api/openapi/paths/timetracking.yaml`, schemas en `docs/api/openapi/components/schemas/`.
   - **Hook use-proyectos.ts:** list, get, create, update, delete, estado, stats, asignaciones (CRUD y finalizar). Tipos alineados con ProyectoResponse, AsignacionResponse, CreateProyectoRequest, etc.
   - **Páginas proyectos:** listado (cards/tabla), crear (form CreateProyectoRequest), detalle [id] con estadísticas (ProyectoStatsResponse) y gestión de asignaciones (modal CreateAsignacionRequest).
@@ -1104,23 +975,17 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Tipos:** types/timetracking.ts con interfaces para componentes
   - **Líneas de código:** +2326 líneas
   - **Colaboración:** Co-authored con Claude Opus 4.5 (ADR-064, ADR-065).
-- Corregir scripts `npm run explore` para apuntar al testDir de Explorer Bot. (2026-02-07)
-- Ajustar ExplorerBot para enviar formularios dentro del modal y evitar overlays interceptando clicks. (2026-02-07)
-- Forzar click en “Iniciar Proceso” del demo realista para evitar overlay de Dialog en Playwright. (2026-02-07)
-- Hacer `waitForLoad` de demos resiliente (fallback a `domcontentloaded`) para evitar bloqueos por `networkidle`. (2026-02-07)
-- Añadir verificación UI de asignación empleado→proyecto con datos creados por API. (2026-02-07)
-- Añadir E2E de contraste de texto en tema claro/oscuro para dashboard. (2026-02-07)
-- Fijar `turbopack.root` en Next.js para evitar warning de lockfiles múltiples. (2026-02-07)
-- Alinear `PLAYWRIGHT_BASE_URL` y aumentar timeout del webServer a 120s. (2026-02-07)
-- Añadir logging debug con middleware de requests (desactivado en Vercel/Render). (2026-02-07)
-- Ajustar decrypt MFA con `authTagLength` y limpiar warning `--localstorage-file` en tests. (2026-02-07)
+- [x] Corregir scripts `npm run explore` para apuntar al testDir de Explorer Bot. (2026-02-07)
+- [x] Ajustar ExplorerBot para enviar formularios dentro del modal y evitar overlays interceptando clicks. (2026-02-07)
+- [x] Forzar click en “Iniciar Proceso” del demo realista para evitar overlay de Dialog en Playwright. (2026-02-07)
+- [x] Hacer `waitForLoad` de demos resiliente (fallback a `domcontentloaded`) para evitar bloqueos por `networkidle`. (2026-02-07)
+- [x] Añadir verificación UI de asignación empleado→proyecto con datos creados por API. (2026-02-07)
 
 ---
 
 ## 📋 Tareas Completadas - Release 1.3.0
 
 **Sistema de Tareas (31/01/2026)**
-
 - ✅ Diseño schema tareas con FKs y enums
 - ✅ Migración SQL aplicada a prod y test databases
 - ✅ Repository implementado (8 métodos CRUD)
@@ -1135,25 +1000,24 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - ✅ Fix dashboard test timeout
 
 **Tests:**
-
 - Backend: 96/100 tests passing (4 fallos pre-existentes intermitentes)
 - Frontend: 139/139 tests passing  
 - **Sistema tareas: 114/114 tests passing ✅**
-- Crear scripts de seed data para testing de visualizaciones - PR #70 (2026-01-31)
+- [x] Crear scripts de seed data para testing de visualizaciones - PR #70 (2026-01-31)
   - **seed-proyectos-gantt.sql:** 6 proyectos, 6 asignaciones, 15 registros timetracking
   - **seed-complete-data.sql:** 4 departamentos, 6 usuarios con roles, 10 proyectos, 37 registros
   - **seed-proyectos-gantt.sh:** helper bash con variables de entorno
   - **scripts/README.md:** documentación completa con troubleshooting y cleanup
   - **Fix:** formateo decimal en timetracking (120.77 vs 120.770000001)
   - **Release:** v1.1.0 desplegado en main
-- Implementar Gantt Chart responsive y mejorar espaciado cabeceras - PR #72 (2026-01-31)
+- [x] Implementar Gantt Chart responsive y mejorar espaciado cabeceras - PR #72 (2026-01-31)
   - **Responsive:** Ancho dinámico con useEffect, mínimo 600px, funciona en mobile/tablet/desktop
   - **Fix espaciado:** Vista año muestra meses alternos (ene, mar, may...) con formato corto
   - **Limpieza Husky:** Removidas líneas obsoletas `#!/usr/bin/env sh` y `. "$(dirname "$0")/_/husky.sh"`
   - **Sin warnings DEPRECATED:** Hooks funcionan igual sin mensajes deprecation
   - **Tests:** 124/124 pasando (20 backend + 104 frontend)
   - **Release:** v1.2.0 desplegado en main
-- Hotfix SelectItem empty value error - PR #74 (2026-01-31)
+- [x] Hotfix SelectItem empty value error - PR #74 (2026-01-31)
   - **Problema:** Error producción en `/admin/plantillas/crear`: `A <Select.Item /> must have a value prop that is not an empty string`
   - **Solución:** Reemplazados `value=""` con sentinel values `"all"` y `"any"`
   - **Handlers:** Actualizados para mapear sentinel values a `undefined`
@@ -1161,7 +1025,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Release:** v1.2.1 (hotfix) desplegado en main
 
 ### ADR-075: Configuración de GitHub Branch Protection y Rulesets
-
 - **Fecha:** 2026-01-31
 - **Estado:** Aceptado
 - **Contexto:** Se necesitaba configurar protecciones para `main` y `develop` que permitieran GitFlow sin requerir aprobaciones manuales de PRs propios
@@ -1186,7 +1049,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Branch protection: CI check "ci" requerido, strict mode enabled
 
 ### ADR-076: Release 1.3.0 - Sistema de Tareas y Modularización
-
 - **Fecha:** 2026-01-31
 - **Estado:** Desplegado
 - **Contexto:** Release mayor con sistema de gestión de tareas, refactorización de código y mejoras de UX
@@ -1230,7 +1092,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - 📈 +13,903 líneas de código, -4,893 líneas eliminadas (refactorización)
 
 ### ADR-077: Catalogo de casos de uso E2E para expansion de pruebas
-
 - **Fecha:** 2026-02-03
 - **Estado:** Aceptado
 - **Contexto:** La suite E2E de Playwright ya cubre login, navegacion y CRUD base de departamentos, pero hacia falta una fuente unica para escalar cobertura por modulo, rol y casos negativos sin duplicar escenarios.
@@ -1252,7 +1113,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ⚠️ Requiere mantener sincronizado el catalogo cuando cambien rutas o contratos.
 
 ### ADR-078: Comentarios JSDoc obligatorios en metodos
-
 - **Fecha:** 2026-02-07
 - **Estado:** Aceptado
 - **Contexto:** Se necesita mejorar la legibilidad y mantenibilidad del codigo, estandarizando documentacion inline al estilo Javadoc para facilitar onboarding y revision tecnica.
@@ -1267,7 +1127,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ⚠️ Requiere disciplina para evitar comentarios triviales o redundantes.
 
 ### ADR-079: Filtro managerId en /usuarios y respuesta enriquecida
-
 - **Fecha:** 2026-02-07
 - **Estado:** Aceptado
 - **Contexto:** El hook `useEmpleadosByManager` filtraba en cliente (traía todos los usuarios y filtraba en JS) porque el backend no exponía `managerId` como query param ni lo devolvía en `UserResponse`.
@@ -1282,7 +1141,6 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ `UserResponse` alineado con campos reales del modelo de datos.
 
 ### ADR-080: Migración completa de dashboards a D3.js
-
 - **Fecha:** 2026-02-07
 - **Estado:** Completado
 - **Contexto:** ADR-063 decidió usar D3.js para visualizaciones. ADR-065 implementó Gantt Chart. Faltaba migrar `bar-chart.tsx` y `line-chart.tsx`.
@@ -1297,114 +1155,87 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ Responsive: ancho dinámico vía `containerRef.clientWidth`.
   - ✅ Accesibilidad: `role="img"`, `aria-label`, `tabindex` en elementos interactivos.
 
-### ADR-081: Filtro soft delete por defecto en listados
-
+### ADR-081: Release 1.4.0 - E2E Testing y Resolución de Conflictos GitFlow
 - **Fecha:** 2026-02-07
-- **Estado:** Aceptado
-- **Contexto:** Los registros con `deleted_at` seguian apareciendo en listas y conteos porque varios listados no filtraban por soft delete.
-- **Decision:**
-  - Aplicar `deleted_at IS NULL` por defecto en listados de proyectos, asignaciones, plantillas, departamentos, usuarios y procesos de onboarding.
-  - Mantener el acceso a inactivos via `activo=false` en endpoints que ya exponen ese filtro.
+- **Estado:** En Progreso
+- **Contexto:** 
+  - PR #89 (develop → main) tenía conflictos de merge
+  - Se había hecho hotfix en main que modificó archivos de usuarios
+  - develop tenía features nuevas (managerId filter, E2E testing, D3 charts)
+  - Era necesario seguir GitFlow correctamente
+- **Decisión:**
+  - Crear rama `release/1.4.0` desde `develop` (siguiendo GitFlow estricto)
+  - Mergear `main` en `release/1.4.0` para detectar conflictos temprano
+  - Resolver conflictos manteniendo features de develop (managerId)
+  - Crear PRs: `release/1.4.0 → main` (PR #92) y `release/1.4.0 → develop` (PR #93)
+  - Cerrar PR #89 una vez mergeados los PRs de release
+- **Conflictos Resueltos (7 archivos):**
+  - `backend/src/routes/usuarios/handlers.ts`: Mantener managerId filter en buildUserFilters
+  - `backend/src/routes/usuarios/helpers.ts`: Mantener validación managerId en helpers
+  - `backend/src/routes/usuarios/schemas.ts`: Mantener managerId en listQuerySchema
+  - `backend/src/services/mappers/users.ts`: Mantener managerId en UserResponseInput y toUserResponse
+  - `frontend/src/hooks/empleados/api.ts`: Mantener params.managerId en fetchEmpleados
+  - `frontend/src/hooks/use-empleados.ts`: Usar backend filter en lugar de filtrado cliente
+  - `docs/decisiones.md`: Mantener versión de develop (más actualizada)
+- **GitFlow Aplicado:**
+  1. `git checkout develop && git pull origin develop`
+  2. `git checkout -b release/1.4.0 develop`
+  3. `git merge --no-ff --no-commit main`
+  4. Resolución manual de conflictos priorizando features de develop
+  5. `git commit -m "chore: merge main into release/1.4.0"`
+  6. Validación: `npm run lint && npm run type-check` (backend + frontend)
+  7. `git push -u origin release/1.4.0`
+  8. Crear PR #92: `release/1.4.0 → main` (Release 1.4.0)
+  9. Crear PR #93: `release/1.4.0 → develop` (Merge back)
+- **Contenido de Release 1.4.0:**
+  - **E2E Testing con Playwright:**
+    - Suite completa de tests end-to-end con autenticación MFA
+    - Tests de flujos críticos: login, proyectos, onboarding
+    - Reintentos automáticos ante rate limits
+    - Cobertura Bloque B ampliada
+  - **Filtro managerId completo:**
+    - Backend: Query parameter en GET /usuarios
+    - Frontend: Hook useEmpleadosByManager usa backend filter
+    - Eliminado filtrado ineficiente en cliente
+  - **D3.js Charts:**
+    - BarChart y LineChart con D3.js v7
+    - Animaciones y tooltips interactivos
+    - 10 tests de charts
+  - **Seguridad JWT:**
+    - Whitelist explícita de algoritmos (HS256)
+    - Prevención de ataques "none" algorithm
+  - **Assets optimizados:**
+    - Logos con fondos transparentes
+    - Mejora de carga y accesibilidad
+- **Tests Actualizados:**
+  - Backend: 226 tests passing ✅
+  - Frontend: 241 tests passing ✅ (incremento por charts + E2E)
+  - **Total: 467 tests passing**
 - **Consecuencias:**
-  - ✅ Los listados por defecto muestran solo registros activos.
-  - ✅ Cargas y relaciones no incluyen asignaciones eliminadas.
-  - ⚠️ Para auditar historico se requiere usar filtros explicitos de inactivos.
-
-### ADR-082: Combos consistentes en modo oscuro con Select Radix
-
-- **Fecha:** 2026-02-07
-- **Estado:** Aceptado
-- **Contexto:** Los `<select>` nativos renderizan el desplegable con fondo claro en modo oscuro, haciendo ilegible el texto.
-- **Decision:**
-  - Reemplazar los `<select>` nativos por el componente `Select` (Radix UI) en filtros y formularios clave.
-  - Mantener etiquetas y placeholders equivalentes para conservar la UX.
-- **Consecuencias:**
-  - ✅ Desplegables con fondo oscuro consistente en todas las vistas.
-  - ✅ Estilos unificados con el resto del sistema de UI.
-  - ⚠️ Se pierde el estilo nativo del sistema operativo.
-
-### ADR-083: Contraste de tabla de empleados en modo oscuro
-
-- **Fecha:** 2026-02-07
-- **Estado:** Aceptado
-- **Contexto:** El texto de la tabla de empleados quedaba demasiado oscuro en modo oscuro, dificultando la lectura.
-- **Decision:** Ajustar colores con variantes `dark:` para cabeceras, filas, nombres, email y paginación.
-- **Consecuencias:**
-  - ✅ Texto legible en modo oscuro.
-  - ✅ Consistencia visual con el resto del dashboard.
-
-### ADR-084: Refresh token con firma HMAC en frontend
-
-- **Fecha:** 2026-02-07
-- **Estado:** Aceptado
-- **Contexto:** La renovación de sesión fallaba porque el request de `/auth/refresh` no incluía la firma HMAC requerida por el backend, provocando logout tras pocos minutos.
-- **Decision:** Firmar la llamada de refresh con `X-Request-Signature` usando `generateRequestSignature`.
-- **Consecuencias:**
-  - ✅ Renovación de sesión estable mientras el refresh token sea válido.
-  - ✅ Consistencia con la validación HMAC en `/api/*`.
-
-### ADR-085: Detalle de actividad reciente y visibilidad solo ADMIN
-
-- **Fecha:** 2026-02-07
-- **Estado:** Aceptado
-- **Contexto:** La actividad reciente mostraba textos técnicos (“INSERT en refresh_tokens”) y no permitía ver el detalle de la operación.
-- **Decision:**
-  - Generar descripciones legibles en UI y abrir un panel con “comando ejecutado” y metadatos (tabla, usuario, campos).
-  - Exponer metadatos del audit log en el dashboard admin para construir el detalle.
-  - Mostrar la tarjeta solo a usuarios ADMIN.
-- **Consecuencias:**
-  - ✅ Actividad más comprensible para negocio y soporte.
-  - ✅ Trazabilidad rápida con detalle por operación.
-  - ⚠️ El comando mostrado es representativo (no SQL literal).
-
-### ADR-086: Diferenciación de errores en authMiddleware (401 vs 500)
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** El catch genérico en `authMiddleware` convertía cualquier error (incluidos timeouts de DB) en HTTP 401 "No autorizado". Esto provocaba que el frontend interpretase fallos de infraestructura como sesiones inválidas, desencadenando un ciclo de refresh fallido y logout forzado.
-- **Decision:** Distinguir `HTTPException` (errores de autenticación reales → 401) de errores inesperados (DB caída, timeouts → 500) en el bloque catch del middleware.
-- **Consecuencias:**
-  - ✅ El frontend puede diferenciar entre sesión expirada y error de servidor.
-  - ✅ El interceptor de axios solo intenta refresh en 401 reales, no en 500.
-  - ✅ Mejor diagnóstico: los logs reflejan el error real (500) en lugar de enmascararlo.
-
-### ADR-087: Eliminación de redirect forzado a /login en interceptor axios
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** Cuando el refresh token fallaba, el interceptor de respuesta ejecutaba `window.location.href = '/login'`, un redirect forzado que interrumpía la UX sin mostrar feedback al usuario. El error nunca se propagaba al componente que originó la petición.
-- **Decision:** Eliminar el `window.location.href = '/login'` del catch del interceptor. Se limpian los tokens pero el error se propaga via `Promise.reject` para que el componente lo capture y muestre un toast informativo.
-- **Consecuencias:**
-  - ✅ El usuario ve el mensaje de error en contexto (toast) sin perder su estado de trabajo.
-  - ✅ El `AuthProvider` no se ve afectado inmediatamente (user state se mantiene en React).
-  - ⚠️ Tras limpiar tokens, las siguientes peticiones fallarán hasta que el usuario re-autentique.
-
-### ADR-088: Mapeo de campos frontend-backend en tareas de plantilla
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** El frontend usaba nombres de campo diferentes al contrato OpenAPI para las tareas de plantilla (ej: `responsable` vs `responsableTipo`, `esOpcional` vs `obligatoria`). Esto causaba error Zod 400 al crear/editar tareas porque el backend no recibía los campos requeridos.
-- **Decision:** Añadir funciones de mapeo bidireccional (`toBackendTarea`/`fromBackendTarea`) en la capa API del frontend (`hooks/plantillas/api.ts`) que traducen entre la nomenclatura del frontend y el contrato OpenAPI.
-- **Consecuencias:**
-  - ✅ Los nombres del frontend son semánticamente claros para los componentes React.
-  - ✅ El contrato OpenAPI del backend se respeta sin modificaciones.
-  - ⚠️ El mapeo es un punto de mantenimiento si el contrato cambia.
-
-### ADR-089: LEFT JOIN departamentos en GET /usuarios
-
-- **Fecha:** 2026-02-08
-- **Estado:** Aceptado
-- **Contexto:** El endpoint `GET /usuarios` solo consultaba la tabla `users` sin resolver el nombre del departamento. El frontend mostraba "Sin departamento" en el selector de onboarding aunque los empleados tuviesen departamento asignado.
-- **Decision:** Añadir LEFT JOIN con `departamentos` en la query del listado de usuarios e incluir `departamentoNombre` en la respuesta. Se actualizó el contrato OpenAPI (`UserResponse`) para reflejar el nuevo campo.
-- **Consecuencias:**
-  - ✅ El selector de empleados muestra correctamente el nombre del departamento.
-  - ✅ El contrato OpenAPI está sincronizado con la implementación.
-  - ⚠️ Incremento mínimo en complejidad de la query (LEFT JOIN).
+  - ✅ GitFlow correctamente aplicado con rama release intermedia
+  - ✅ Conflictos resueltos sin pérdida de features
+  - ✅ PR #89 se vuelve obsoleto (será cerrado tras merge de #92 y #93)
+  - ✅ Estrategia futura: develop → release/x.x.x → main + develop
+  - ✅ Suite E2E robusta para CI/CD
+  - ✅ Filtrado de empleados optimizado (servidor vs cliente)
+- **PRs Relacionados:**
+  - PR #80: hotfix dark mode UI fixes and documentation updates
+  - PR #81: chore merge dark mode hotfix from main to develop
+  - PR #82: feat(assets) convert logo backgrounds to transparent
+  - PR #83: feat(testing) add playwright e2e with MFA auth flow
+  - PR #84: test(e2e) ampliar cobertura Bloque B y eliminar skips
+  - PR #85: feat(jwt) add explicit algorithm whitelist for JWT verification
+  - PR #86: test(e2e) reintentar login empleado ante rate limit
+  - PR #87: feat managerId filter, responsable selector, D3 charts, demo E2E
+  - PR #88: docs(readme) update project status, test counts and E2E section
+  - PR #90: docs(agents) sync AGENTS.md and claude.md with copilot-instructions.md
+  - PR #91: docs(readme) fix test statistics with real numbers (457 tests total)
+  - PR #92: Release 1.4.0 → main
+  - PR #93: Release 1.4.0 → develop
 
 ## Progreso General del Proyecto
 
-### Estado Actual (2026-02-08)
-
+### Estado Actual (2026-02-07)
 - **Fases completadas:** 6/6 (100%)
   - Fase 1: Dashboards ✅ 100% (D3.js completo)
   - Fase 2: Empleados ✅ 100%
@@ -1412,22 +1243,35 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Fase 4: Proyectos ✅ 100%
   - Fase 5: Timetracking ✅ 100%
   - Fase 6: Sistema de Tareas ✅ 100% (v1.3.0)
-- **Tests:** 226+ pasando (100 backend + 126+ frontend + 10 charts)
-- **Cobertura:** Core 100%, Important 80%+
+- **Tests:** **457 tests passing** ✅
+  - Backend: 226 tests (13 test files)
+  - Frontend: 231 tests (17 test files) + 10 charts
+  - Cobertura: Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 154+ endpoints; filtro `managerId` añadido; endpoints de tareas de proyecto documentados
+- **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
+- **E2E:** Playwright con suite completa de tests MFA
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal
   - v1.2.0: Gantt responsive, espaciado cabeceras, limpieza Husky
   - v1.2.1: Hotfix SelectItem empty value
   - v1.3.0: Sistema de tareas + modularización backend + dark mode
+  - **v1.4.0 (En progreso)**: E2E testing + managerId filter + D3 charts completo
+
+### GitFlow Aplicado (v1.4.0)
+1. **Rama release creada:** `release/1.4.0` desde `develop`
+2. **Conflictos detectados:** 7 archivos al mergear `main`
+3. **Estrategia de resolución:** Mantener features de `develop` (managerId)
+4. **Validación:** 467 tests passing, linting OK, type-check OK
+5. **PRs creados:**
+   - PR #92: `release/1.4.0 → main` (Release nueva versión)
+   - PR #93: `release/1.4.0 → develop` (Merge back según GitFlow)
+6. **Próximo paso:** Mergear ambos PRs y cerrar PR #89 obsoleto
 
 ### Próximos pasos
-
+- Mergear PRs #92 y #93 de release/1.4.0
+- Crear tag v1.4.0 en main tras merge
+- Continuar con tests E2E adicionales
 - Preparar presentación TFM
-- Tests E2E adicionales
 - Monitoreo de performance en producción
 - Documentación de arquitectura modular en ADRs
-
-090

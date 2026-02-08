@@ -52,13 +52,13 @@ describe('mfa-service', () => {
       expect(encrypted).not.toBe(plainSecret);
     });
 
-    it('debe generar cifrado con formato salt:iv:authTag:data', () => {
+    it('debe generar cifrado con formato iv:authTag:data', () => {
       const plainSecret = 'JBSWY3DPEHPK3PXP';
 
       const encrypted = encryptMfaSecret(plainSecret);
       const parts = encrypted.split(':');
 
-      expect(parts).toHaveLength(4);
+      expect(parts).toHaveLength(3);
       // Cada parte debe ser base64 válido
       parts.forEach((part) => {
         expect(() => Buffer.from(part, 'base64')).not.toThrow();
@@ -101,16 +101,16 @@ describe('mfa-service', () => {
     });
 
     it('debe lanzar error para formato inválido', () => {
-      // Formatos que no tienen 3 ni 4 partes separadas por ':'
+      // Formatos que no tienen exactamente 3 partes separadas por ':'
       const invalidFormats = [
-        'no-colons-here',               // 1 parte
-        'only:two',                      // 2 partes
-        'a:b:c:d:e',                     // 5 partes
-        '',                              // vacío
+        'no-colons-here',        // 1 parte
+        'only:two',              // 2 partes
+        'too:many:parts:here',   // 4 partes
+        '',                      // vacío
       ];
 
       invalidFormats.forEach((invalid) => {
-        expect(() => decryptMfaSecret(invalid)).toThrow();
+        expect(() => decryptMfaSecret(invalid)).toThrow('Invalid encrypted secret format');
       });
     });
 
@@ -119,9 +119,9 @@ describe('mfa-service', () => {
       const encrypted = encryptMfaSecret(originalSecret);
       const parts = encrypted.split(':');
 
-      // Modificar el authTag (parts[2] en formato salt:iv:authTag:data)
-      const tamperedAuthTag = Buffer.from('tamperedtamperedx').toString('base64');
-      const tampered = `${parts[0]}:${parts[1]}:${tamperedAuthTag}:${parts[3]}`;
+      // Modificar el authTag
+      const tamperedAuthTag = Buffer.from('tampered').toString('base64');
+      const tampered = `${parts[0]}:${tamperedAuthTag}:${parts[2]}`;
 
       expect(() => decryptMfaSecret(tampered)).toThrow();
     });

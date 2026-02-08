@@ -6,8 +6,8 @@ import { config } from '../config/env.js';
 const SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutos
 
 export const hmacValidation: MiddlewareHandler = async (c, next) => {
-  // Skip HMAC validation only if explicitly disabled via DISABLE_HMAC flag
-  if (config.DISABLE_HMAC) {
+  // Skip HMAC validation in test environment
+  if (config.NODE_ENV === 'test') {
     await next();
     return;
   }

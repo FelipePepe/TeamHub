@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { and, eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
@@ -84,13 +84,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       .select({ proyecto: proyectos })
       .from(asignaciones)
       .innerJoin(proyectos, eq(asignaciones.proyectoId, proyectos.id))
-      .where(
-        and(
-          eq(asignaciones.usuarioId, user.id),
-          isNull(asignaciones.deletedAt),
-          isNull(proyectos.deletedAt)
-        )
-      );
+      .where(eq(asignaciones.usuarioId, user.id));
 
     return c.json({ data: rows.map((row) => toProyectoResponse(row.proyecto)) });
   });

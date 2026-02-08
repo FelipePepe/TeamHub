@@ -121,7 +121,7 @@ export function useCreateTarea() {
       }
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al crear tarea:', error);
+      console.error('Error al crear tarea:', error);
     },
   });
 }
@@ -145,7 +145,7 @@ export function useUpdateTarea() {
       }
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar tarea:', error);
+      console.error('Error al actualizar tarea:', error);
     },
   });
 }
@@ -169,7 +169,7 @@ export function useUpdateEstadoTarea() {
       }
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al cambiar estado:', error);
+      console.error('Error al cambiar estado:', error);
     },
   });
 }
@@ -193,7 +193,7 @@ export function useReasignarTarea() {
       }
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al reasignar tarea:', error);
+      console.error('Error al reasignar tarea:', error);
     },
   });
 }
@@ -206,7 +206,7 @@ export function useDeleteTarea() {
       queryClient.invalidateQueries({ queryKey: tareasKeys.lists() });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar tarea:', error);
+      console.error('Error al eliminar tarea:', error);
     },
   });
 }

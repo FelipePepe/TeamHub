@@ -12,11 +12,17 @@ import {
 } from 'lucide-react';
 import { KpiCard, BarChart, ActivityList, AlertList } from '@/components/dashboard';
 import { getAdminDashboard } from '@/lib/dashboard';
+import { usePermissions } from '@/hooks/use-permissions';
 import type { AdminDashboardData } from '@/types/dashboard';
 
+/**
+ * Renderiza el dashboard de administración con KPIs, gráficas y listados.
+ * @returns Vista principal del dashboard para administradores.
+ */
 export function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAdmin } = usePermissions();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,12 +108,14 @@ export function AdminDashboard() {
       </div>
 
       {/* Lists */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <ActivityList
-          title="Actividad reciente"
-          items={data?.listas.actividadReciente ?? []}
-          isLoading={isLoading}
-        />
+      <div className={`grid grid-cols-1 gap-4 md:gap-6 ${isAdmin ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
+        {isAdmin && (
+          <ActivityList
+            title="Actividad reciente"
+            items={data?.listas.actividadReciente ?? []}
+            isLoading={isLoading}
+          />
+        )}
         <AlertList
           title="Alertas criticas"
           items={data?.listas.alertasCriticas ?? []}

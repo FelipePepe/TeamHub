@@ -28,7 +28,7 @@ export function Header({ title }: HeaderProps) {
             <Menu className="h-5 w-5" />
           </Button>
           {title && (
-            <h1 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
           )}
         </div>
         <div className="flex items-center gap-2">

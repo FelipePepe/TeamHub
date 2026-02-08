@@ -49,6 +49,34 @@ DashboardActividadItem:
     fecha:
       type: string
       format: date-time
+    operation:
+      type: string
+      description: Operación de auditoría (INSERT, UPDATE, DELETE).
+    tableName:
+      type: string
+      description: Tabla afectada por la operación.
+    recordId:
+      type: string
+      format: uuid
+      description: ID del registro afectado.
+    usuarioId:
+      type: string
+      format: uuid
+      description: ID del usuario que ejecutó la acción.
+    usuarioEmail:
+      type: string
+      description: Email del usuario que ejecutó la acción.
+    changedFields:
+      type: array
+      items:
+        type: string
+      description: Campos modificados en operaciones UPDATE.
+    oldData:
+      type: object
+      description: Snapshot previo a la operación.
+    newData:
+      type: object
+      description: Snapshot posterior a la operación.
 
 DashboardOnboardingItem:
   type: object

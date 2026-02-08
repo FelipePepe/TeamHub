@@ -405,4 +405,17 @@ export const E2E_USE_CASES: E2EUseCase[] = [
     preconditions: ['Access token expirado', 'Refresh token ausente o invalido'],
     expected: ['Se limpian tokens', 'Redireccion a /login'],
   },
+  {
+    id: 'E2E-SEC-003',
+    title: 'Tema claro/oscuro mantiene contraste de texto en dashboard',
+    module: 'cross-cutting',
+    priority: 'P1',
+    type: 'regression',
+    roles: ['ADMIN'],
+    route: '/dashboard',
+    apiContracts: ['/auth/me'],
+    preconditions: ['Sesion ADMIN activa'],
+    expected: ['Contraste minimo 4.5:1 en titulo y subtitulo en light/dark'],
+    existingSpec: 'frontend/e2e/theme-appearance.spec.ts',
+  },
 ];

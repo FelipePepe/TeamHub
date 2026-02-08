@@ -22,6 +22,13 @@
       "when": 1769875059000,
       "tag": "0002_add_tareas_table",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770478886689,
+      "tag": "0003_add_unique_constraints",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,6 +42,8 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+const FILTRO_TODOS_VALUE = '__todos__';
 
 /**
  * Página de Mis Tareas de Onboarding
@@ -194,7 +203,7 @@ export default function MisTareasPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Mis Tareas de Onboarding</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Mis Tareas de Onboarding</h1>
         <p className="text-slate-500">
           Gestiona las tareas asignadas a ti en los procesos de onboarding
         </p>
@@ -272,31 +281,43 @@ export default function MisTareasPage() {
             </div>
 
             {/* Estado */}
-            <select
-              value={estadoFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEstadoFilter(e.target.value as EstadoTarea | '')}
-              className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+            <Select
+              value={estadoFilter || FILTRO_TODOS_VALUE}
+              onValueChange={(value) =>
+                setEstadoFilter(value === FILTRO_TODOS_VALUE ? '' : (value as EstadoTarea))
+              }
             >
-              <option value="">Todos los estados</option>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="EN_PROGRESO">En Progreso</option>
-              <option value="COMPLETADA">Completada</option>
-              <option value="BLOQUEADA">Bloqueada</option>
-              <option value="CANCELADA">Cancelada</option>
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Todos los estados" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={FILTRO_TODOS_VALUE}>Todos los estados</SelectItem>
+                <SelectItem value="PENDIENTE">Pendiente</SelectItem>
+                <SelectItem value="EN_PROGRESO">En Progreso</SelectItem>
+                <SelectItem value="COMPLETADA">Completada</SelectItem>
+                <SelectItem value="BLOQUEADA">Bloqueada</SelectItem>
+                <SelectItem value="CANCELADA">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Prioridad */}
-            <select
-              value={prioridadFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPrioridadFilter(e.target.value as PrioridadTarea | '')}
-              className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+            <Select
+              value={prioridadFilter || FILTRO_TODOS_VALUE}
+              onValueChange={(value) =>
+                setPrioridadFilter(value === FILTRO_TODOS_VALUE ? '' : (value as PrioridadTarea))
+              }
             >
-              <option value="">Todas las prioridades</option>
-              <option value="URGENTE">Urgente</option>
-              <option value="ALTA">Alta</option>
-              <option value="MEDIA">Media</option>
-              <option value="BAJA">Baja</option>
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Todas las prioridades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={FILTRO_TODOS_VALUE}>Todas las prioridades</SelectItem>
+                <SelectItem value="URGENTE">Urgente</SelectItem>
+                <SelectItem value="ALTA">Alta</SelectItem>
+                <SelectItem value="MEDIA">Media</SelectItem>
+                <SelectItem value="BAJA">Baja</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

@@ -81,6 +81,7 @@ export default function ProyectoDetailPage({
   const deleteProyecto = useDeleteProyecto();
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
   const empleados = empleadosData?.data ?? [];
+  const empleadosById = new Map(empleados.map((empleado) => [empleado.id, empleado]));
   const asignaciones = asignacionesData?.data ?? [];
   const tareas = tareasData?.data ?? [];
 
@@ -144,23 +145,28 @@ export default function ProyectoDetailPage({
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">{proyecto.nombre}</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{proyecto.nombre}</h1>
             <p className="text-slate-500">{proyecto.codigo}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {canManageProjects && (
             <>
-              <select
+              <Select
                 value={proyecto.estado}
-                onChange={(e) => handleEstadoChange(e.target.value as ProyectoEstado)}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm"
-                aria-label="Cambiar estado"
+                onValueChange={(value) => handleEstadoChange(value as ProyectoEstado)}
               >
-                {ESTADOS.map((e) => (
-                  <option key={e.value} value={e.value}>{e.label}</option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9" aria-label="Cambiar estado">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ESTADOS.map((e) => (
+                    <SelectItem key={e.value} value={e.value}>
+                      {e.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="sm" onClick={() => router.push(`/proyectos?editar=${proyecto.id}`)}>
                 <Edit2 className="mr-1 h-4 w-4" />
                 Editar
@@ -255,22 +261,28 @@ export default function ProyectoDetailPage({
             <p className="text-sm text-slate-500">No hay asignaciones</p>
           ) : (
             <ul className="divide-y divide-slate-200">
-              {asignaciones.map((a) => (
-                <li key={a.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-slate-400" />
-                    <span className="text-sm font-medium">{a.usuarioId.slice(0, 8)}…</span>
-                    {a.rol && <Badge variant="outline">{a.rol}</Badge>}
-                    <span className="text-xs text-slate-500">
-                      {format(new Date(a.fechaInicio), 'd MMM yyyy', { locale: es })}
-                      {a.fechaFin && ` – ${format(new Date(a.fechaFin), 'd MMM yyyy', { locale: es })}`}
-                    </span>
-                  </div>
-                  {canManageProjects && (
-                    <AsignacionActions proyectoId={id} asigId={a.id} />
-                  )}
-                </li>
-              ))}
+              {asignaciones.map((a) => {
+                const empleado = empleadosById.get(a.usuarioId);
+                const nombreEmpleado = empleado
+                  ? `${empleado.nombre} ${empleado.apellidos ?? ''}`.trim()
+                  : `${a.usuarioId.slice(0, 8)}…`;
+                return (
+                  <li key={a.id} className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-slate-400" />
+                      <span className="text-sm font-medium">{nombreEmpleado}</span>
+                      {a.rol && <Badge variant="outline">{a.rol}</Badge>}
+                      <span className="text-xs text-slate-500">
+                        {format(new Date(a.fechaInicio), 'd MMM yyyy', { locale: es })}
+                        {a.fechaFin && ` – ${format(new Date(a.fechaFin), 'd MMM yyyy', { locale: es })}`}
+                      </span>
+                    </div>
+                    {canManageProjects && (
+                      <AsignacionActions proyectoId={id} asigId={a.id} />
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {canManageProjects && (

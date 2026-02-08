@@ -20,6 +20,11 @@ Antes de proponer cambios, consulta estos recursos en orden:
     *   Eliminar **Dead Code** inmediatamente; Git preserva la historia.
 *   **Patrones Preferidos:** Usa **Strategy** para eliminar `switch` complejos y **Command** para operaciones que requieran historial o "undo".
 *   **Complejidad:** Mantén la **Complejidad Ciclomática < 5**; si supera 10, es obligatorio refactorizar.
+*   **Separación Frontend/Backend:**
+    *   **REGLA:** Toda la lógica de negocio reside en el **backend**. El frontend es una capa de presentación que consume y muestra los datos que el backend le devuelve.
+    *   El frontend **NO** debe transformar, calcular ni derivar datos de negocio; solo formatear para visualización (ej: fechas, monedas).
+    *   Los tipos e interfaces del frontend deben reflejar exactamente el contrato OpenAPI del backend, sin renombrar campos ni invertir semántica.
+    *   Si el frontend necesita un dato adicional, se añade al endpoint del backend y se actualiza el contrato OpenAPI.
 
 ## 4. Seguridad y Configuración (SSDLC)
 *   **Validación Fail-Fast:** Usa **Zod** para validar variables de entorno y entradas de API en tiempo de ejecución. La app no debe arrancar con configuración inválida.

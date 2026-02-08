@@ -22,6 +22,8 @@ const envSchema = z.object({
   MFA_ISSUER: z.string().default('TeamHub'),
   MFA_ENCRYPTION_KEY: z.string().min(32),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  VERCEL: z.string().optional(),
+  RENDER: z.string().optional(),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),

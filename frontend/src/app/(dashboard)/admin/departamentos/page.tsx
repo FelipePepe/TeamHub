@@ -114,7 +114,7 @@ export default function DepartamentosPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Departamentos</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Departamentos</h1>
           <p className="text-slate-500">
             Gestiona los departamentos de la organización
           </p>

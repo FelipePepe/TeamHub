@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
@@ -43,7 +43,7 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
 
     let procesos = [];
     if (query.departamentoId) {
-      const clauses = [eq(users.departamentoId, query.departamentoId)];
+      const clauses = [eq(users.departamentoId, query.departamentoId), isNull(procesosOnboarding.deletedAt)];
       if (filters.estado) {
         clauses.push(eq(procesosOnboarding.estado, filters.estado));
       }
@@ -129,7 +129,8 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
   router.get('/estadisticas', async (c) => {
     const procesos = await db
       .select({ estado: procesosOnboarding.estado })
-      .from(procesosOnboarding);
+      .from(procesosOnboarding)
+      .where(isNull(procesosOnboarding.deletedAt));
     const stats = procesos.reduce(
       (acc, proceso) => {
         acc.total += 1;

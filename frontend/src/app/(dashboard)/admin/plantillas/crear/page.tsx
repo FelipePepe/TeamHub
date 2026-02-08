@@ -42,10 +42,10 @@ const tareaSchema = z.object({
   titulo: z.string().min(3, 'Mínimo 3 caracteres').max(200, 'Máximo 200 caracteres'),
   descripcion: z.string().optional(),
   categoria: z.enum(['DOCUMENTACION', 'EQUIPAMIENTO', 'ACCESOS', 'FORMACION', 'REUNIONES', 'ADMINISTRATIVO']),
-  responsable: z.enum(['RRHH', 'MANAGER', 'IT', 'EMPLEADO', 'CUSTOM']),
-  duracionEstimadaDias: z.coerce.number().int().min(0).max(365).optional(),
-  esOpcional: z.boolean().default(false),
-  requiereAprobacion: z.boolean().default(false),
+  responsableTipo: z.enum(['RRHH', 'MANAGER', 'IT', 'EMPLEADO', 'CUSTOM']),
+  diasDesdeInicio: z.coerce.number().int().min(0).max(365).optional(),
+  obligatoria: z.boolean().default(true),
+  requiereEvidencia: z.boolean().default(false),
   dependencias: z.array(z.string()).default([]),
 });
 
@@ -88,10 +88,10 @@ export default function CrearPlantillaPage() {
       titulo: '',
       descripcion: '',
       categoria: 'DOCUMENTACION',
-      responsable: 'RRHH',
-      duracionEstimadaDias: undefined,
-      esOpcional: false,
-      requiereAprobacion: false,
+      responsableTipo: 'RRHH',
+      diasDesdeInicio: undefined,
+      obligatoria: true,
+      requiereEvidencia: false,
       dependencias: [],
     },
   });
@@ -140,10 +140,10 @@ export default function CrearPlantillaPage() {
       titulo: tarea.titulo,
       descripcion: tarea.descripcion,
       categoria: tarea.categoria,
-      responsable: tarea.responsable,
-      duracionEstimadaDias: tarea.duracionEstimadaDias,
-      esOpcional: tarea.esOpcional,
-      requiereAprobacion: tarea.requiereAprobacion,
+      responsableTipo: tarea.responsableTipo,
+      diasDesdeInicio: tarea.diasDesdeInicio,
+      obligatoria: tarea.obligatoria,
+      requiereEvidencia: tarea.requiereEvidencia,
       dependencias: tarea.dependencias,
     });
     setShowTareaForm(true);
@@ -204,10 +204,10 @@ export default function CrearPlantillaPage() {
           descripcion: tarea.descripcion,
           orden: tarea.orden,
           categoria: tarea.categoria,
-          responsable: tarea.responsable,
-          duracionEstimadaDias: tarea.duracionEstimadaDias,
-          esOpcional: tarea.esOpcional,
-          requiereAprobacion: tarea.requiereAprobacion,
+          responsableTipo: tarea.responsableTipo,
+          diasDesdeInicio: tarea.diasDesdeInicio,
+          obligatoria: tarea.obligatoria,
+          requiereEvidencia: tarea.requiereEvidencia,
           dependencias: tarea.dependencias,
         });
       }
@@ -237,7 +237,7 @@ export default function CrearPlantillaPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Nueva Plantilla de Onboarding</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Nueva Plantilla de Onboarding</h1>
             <p className="text-muted-foreground">
               Define los datos generales y las tareas del proceso
             </p>
@@ -455,9 +455,9 @@ export default function CrearPlantillaPage() {
                           Responsable <span className="text-destructive">*</span>
                         </Label>
                         <Select
-                          value={tareaForm.watch('responsable')}
+                          value={tareaForm.watch('responsableTipo')}
                           onValueChange={(value) =>
-                            tareaForm.setValue('responsable', value as TipoResponsable)
+                            tareaForm.setValue('responsableTipo', value as TipoResponsable)
                           }
                         >
                           <SelectTrigger>
@@ -474,15 +474,15 @@ export default function CrearPlantillaPage() {
                       </div>
                     </div>
 
-                    {/* Duración Estimada */}
+                    {/* Días desde inicio */}
                     <div className="space-y-1">
-                      <Label htmlFor="tarea-duracion">Duración (días)</Label>
+                      <Label htmlFor="tarea-duracion">Días desde inicio</Label>
                       <Input
                         id="tarea-duracion"
                         type="number"
                         min="0"
                         max="365"
-                        {...tareaForm.register('duracionEstimadaDias')}
+                        {...tareaForm.register('diasDesdeInicio')}
                         placeholder="0"
                       />
                     </div>
@@ -527,18 +527,18 @@ export default function CrearPlantillaPage() {
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...tareaForm.register('esOpcional')}
+                          {...tareaForm.register('obligatoria')}
                           className="rounded"
                         />
-                        <span className="text-sm">Opcional</span>
+                        <span className="text-sm">Obligatoria</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...tareaForm.register('requiereAprobacion')}
+                          {...tareaForm.register('requiereEvidencia')}
                           className="rounded"
                         />
-                        <span className="text-sm">Requiere Aprobación</span>
+                        <span className="text-sm">Requiere Evidencia</span>
                       </label>
                     </div>
 
@@ -604,16 +604,16 @@ export default function CrearPlantillaPage() {
                           {tarea.categoria}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {tarea.responsable}
+                          {tarea.responsableTipo}
                         </Badge>
-                        {tarea.esOpcional && (
+                        {tarea.obligatoria === false && (
                           <Badge variant="outline" className="text-xs">
                             Opcional
                           </Badge>
                         )}
-                        {tarea.requiereAprobacion && (
+                        {tarea.requiereEvidencia && (
                           <Badge variant="outline" className="text-xs">
-                            Req. Aprobación
+                            Req. Evidencia
                           </Badge>
                         )}
                         {tarea.dependencias.length > 0 && (

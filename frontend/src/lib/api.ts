@@ -46,8 +46,14 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
+          const refreshPath = '/api/auth/refresh';
+          const signature = await generateRequestSignature('POST', refreshPath);
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
+          }, {
+            headers: {
+              'X-Request-Signature': signature,
+            },
           });
 
           const { accessToken, refreshToken: newRefreshToken } = response.data;
@@ -60,10 +66,10 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch {
-        // Refresh failed, clear tokens
+        // Refresh failed, clear tokens but don't redirect.
+        // Let the error propagate so the calling component can show it.
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
       }
     }
 

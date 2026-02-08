@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   procesosOnboarding,
@@ -13,7 +13,7 @@ export const listProcesos = async (filters?: {
   estado?: ProcessStatus;
   empleadoId?: string;
 }) => {
-  const clauses = [];
+  const clauses = [isNull(procesosOnboarding.deletedAt)];
   if (filters?.estado) {
     clauses.push(eq(procesosOnboarding.estado, filters.estado));
   }

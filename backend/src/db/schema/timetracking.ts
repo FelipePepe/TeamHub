@@ -8,6 +8,7 @@ import {
   timestamp,
   index,
   check,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { timeEntryStatusEnum } from './enums.js';
@@ -70,6 +71,15 @@ export const timetracking = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    uniqueIndex('timetracking_entry_unique').on(
+      table.usuarioId,
+      table.proyectoId,
+      table.fecha,
+      table.descripcion,
+      table.horas,
+      table.estado,
+      table.facturable
+    ),
     // Constraints
     check('timetracking_horas_check', sql`${table.horas} > 0 AND ${table.horas} <= 24`),
 

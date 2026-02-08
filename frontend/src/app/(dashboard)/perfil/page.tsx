@@ -79,7 +79,7 @@ export default function PerfilPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Mi perfil</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Mi perfil</h1>
         <p className="text-slate-500">Gestiona tu información personal</p>
       </div>
 

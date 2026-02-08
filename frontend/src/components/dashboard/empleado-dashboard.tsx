@@ -18,6 +18,10 @@ import { MiOnboardingWidget } from '@/components/onboarding/mi-onboarding-widget
 import { getEmpleadoDashboard } from '@/lib/dashboard';
 import type { EmpleadoDashboardData } from '@/types/dashboard';
 
+/**
+ * Renderiza el dashboard del empleado con KPIs, acciones rápidas y módulos clave.
+ * @returns Vista completa del dashboard para el rol EMPLEADO.
+ */
 export function EmpleadoDashboard() {
   const [data, setData] = useState<EmpleadoDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,21 +124,21 @@ export function EmpleadoDashboard() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-slate-100 rounded" />
+                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.misProyectos.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 No tienes proyectos asignados
               </p>
             ) : (
               <ul className="space-y-2">
                 {data?.sections.misProyectos.map((proyecto) => (
-                  <li key={proyecto.proyectoId} className="flex items-center justify-between p-3 border rounded-lg">
+                  <li key={proyecto.proyectoId} className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
-                      <p className="text-sm font-medium">{proyecto.nombre}</p>
+                      <p className="text-sm font-medium text-foreground">{proyecto.nombre}</p>
                       {proyecto.rol && (
-                        <p className="text-xs text-slate-400">{proyecto.rol}</p>
+                        <p className="text-xs text-muted-foreground">{proyecto.rol}</p>
                       )}
                     </div>
                     <Badge variant="outline">{proyecto.dedicacionPorcentaje}%</Badge>

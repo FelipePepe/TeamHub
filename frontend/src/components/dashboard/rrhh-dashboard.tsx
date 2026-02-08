@@ -14,6 +14,10 @@ import { KpiCard, BarChart, LineChart, AlertList } from '@/components/dashboard'
 import { getRRHHDashboard } from '@/lib/dashboard';
 import type { RRHHDashboardData } from '@/types/dashboard';
 
+/**
+ * Renderiza el dashboard para RRHH con KPIs, gráficos y alertas.
+ * @returns Vista completa del dashboard para el rol RRHH.
+ */
 export function RRHHDashboard() {
   const [data, setData] = useState<RRHHDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,25 +100,25 @@ export function RRHHDashboard() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-slate-100 rounded" />
+                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.onboardingsEnCurso.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 No hay onboardings en curso
               </p>
             ) : (
               <ul className="space-y-3">
                 {data?.sections.onboardingsEnCurso.map((item) => (
-                  <li key={item.procesoId} className="flex items-center justify-between p-3 border rounded-lg">
+                  <li key={item.procesoId} className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
-                      <p className="text-sm font-medium">{item.empleadoNombre}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm font-medium text-foreground">{item.empleadoNombre}</p>
+                      <p className="text-xs text-muted-foreground">
                         Inicio: {new Date(item.fechaInicio).toLocaleDateString('es-ES')}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full"
                           style={{ width: `${item.progreso}%` }}

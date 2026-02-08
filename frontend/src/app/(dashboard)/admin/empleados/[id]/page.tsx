@@ -105,7 +105,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               {empleado.nombre} {empleado.apellidos}
             </h1>
             <p className="text-slate-500">Información del empleado</p>

@@ -55,7 +55,9 @@ const buildDepartamentoFilters = (query: z.infer<typeof listQuerySchema>) => {
     const search = `%${query.search}%`;
     filters.push(or(ilike(departamentos.nombre, search), ilike(departamentos.codigo, search)));
   }
-  if (query.activo !== undefined) {
+  if (query.activo === undefined) {
+    filters.push(isNull(departamentos.deletedAt));
+  } else {
     filters.push(query.activo ? isNull(departamentos.deletedAt) : isNotNull(departamentos.deletedAt));
   }
   return filters;
@@ -160,7 +162,7 @@ departamentosRoutes.get('/:id/empleados', async (c) => {
   const empleados = await db
     .select()
     .from(users)
-    .where(eq(users.departamentoId, id));
+    .where(and(eq(users.departamentoId, id), isNull(users.deletedAt)));
 
   return c.json({ data: empleados.map(toUserResponse) });
 });
@@ -175,7 +177,7 @@ departamentosRoutes.get('/:id/estadisticas', async (c) => {
   const empleados = await db
     .select({ id: users.id, rol: users.rol })
     .from(users)
-    .where(eq(users.departamentoId, id));
+    .where(and(eq(users.departamentoId, id), isNull(users.deletedAt)));
 
   const empleadosPorRol = empleados.reduce<Record<string, number>>((acc, user) => {
     acc[user.rol] = (acc[user.rol] ?? 0) + 1;

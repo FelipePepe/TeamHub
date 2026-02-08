@@ -109,40 +109,43 @@ export function TimesheetGrid({
     <div className="overflow-x-auto">
       <div className="min-w-[700px]">
         {/* Header */}
-        <div className="flex border-b border-slate-200 bg-slate-50">
-          <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2 font-medium text-slate-700">
+        <div className="flex border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60">
+          <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2 font-medium text-slate-700 dark:border-slate-800 dark:text-slate-200">
             Proyecto
           </div>
           {dias.map((dia) => (
             <div
               key={dia.toISOString()}
-              className={`flex h-10 w-16 flex-col items-center justify-center border-r border-slate-200 text-xs ${
-                isWeekend(dia) ? 'bg-slate-100' : ''
+              className={`flex h-10 w-16 flex-col items-center justify-center border-r border-slate-200 text-xs dark:border-slate-800 dark:text-slate-200 ${
+                isWeekend(dia) ? 'bg-slate-100 dark:bg-slate-800' : ''
               }`}
             >
               <span className="font-medium">{format(dia, 'EEE', { locale: es })}</span>
-              <span className="text-slate-500">{format(dia, 'd')}</span>
+              <span className="text-slate-500 dark:text-slate-400">{format(dia, 'd')}</span>
             </div>
           ))}
-          <div className="flex w-16 items-center justify-center bg-slate-100 px-2 font-medium text-slate-700">
+          <div className="flex w-16 items-center justify-center bg-slate-100 px-2 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             Total
           </div>
         </div>
 
         {/* Filas de proyectos */}
         {proyectosConHoras.length === 0 ? (
-          <div className="flex h-20 items-center justify-center text-sm text-slate-500">
+          <div className="flex h-20 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
             No hay proyectos asignados. Registra horas para ver proyectos aquí.
           </div>
         ) : (
           proyectosConHoras.map((proyecto) => (
-            <div key={proyecto.id} className="flex border-b border-slate-200 hover:bg-slate-50/50">
-              <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2">
+            <div
+              key={proyecto.id}
+              className="flex border-b border-slate-200 hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-900/40"
+            >
+              <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2 dark:border-slate-800">
                 <div className="truncate">
-                  <div className="truncate text-sm font-medium text-slate-900">
+                  <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {proyecto.nombre}
                   </div>
-                  <div className="text-xs text-slate-500">{proyecto.codigo}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{proyecto.codigo}</div>
                 </div>
               </div>
               {dias.map((dia) => {
@@ -156,7 +159,7 @@ export function TimesheetGrid({
                   />
                 );
               })}
-              <div className="flex w-16 items-center justify-center bg-slate-50 px-2 text-sm font-semibold text-slate-900">
+              <div className="flex w-16 items-center justify-center bg-slate-50 px-2 text-sm font-semibold text-slate-900 dark:bg-slate-900/60 dark:text-slate-100">
                 {getTotalProyecto(proyecto.id)}h
               </div>
             </div>
@@ -164,8 +167,8 @@ export function TimesheetGrid({
         )}
 
         {/* Fila de totales */}
-        <div className="flex border-b border-slate-300 bg-slate-100">
-          <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2 font-semibold text-slate-700">
+        <div className="flex border-b border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex w-40 shrink-0 items-center border-r border-slate-200 px-3 py-2 font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200">
             Total
           </div>
           {dias.map((dia) => {
@@ -173,15 +176,15 @@ export function TimesheetGrid({
             return (
               <div
                 key={fechaKey}
-                className={`flex h-10 w-16 items-center justify-center border-r border-slate-200 text-sm font-semibold ${
-                  isWeekend(dia) ? 'bg-slate-150' : ''
+                className={`flex h-10 w-16 items-center justify-center border-r border-slate-200 text-sm font-semibold dark:border-slate-800 dark:text-slate-200 ${
+                  isWeekend(dia) ? 'bg-slate-150 dark:bg-slate-800/80' : ''
                 }`}
               >
                 {totalPorDia[fechaKey] > 0 ? `${totalPorDia[fechaKey]}h` : '-'}
               </div>
             );
           })}
-          <div className="flex w-16 items-center justify-center bg-blue-50 px-2 text-sm font-bold text-blue-700">
+          <div className="flex w-16 items-center justify-center bg-blue-50 px-2 text-sm font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">
             {totalSemana}h
           </div>
         </div>

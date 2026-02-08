@@ -15,11 +15,21 @@ interface LineChartProps {
   formatLabel?: (fecha: string) => string;
 }
 
+/**
+ * Formatea una fecha ISO para etiquetas cortas de ejes.
+ * @param fecha - Fecha ISO en string.
+ * @returns Etiqueta breve en español (día/mes).
+ */
 const defaultFormatLabel = (fecha: string) => {
   const date = new Date(fecha);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
 };
 
+/**
+ * Renderiza un gráfico de línea con estilos accesibles y tooltips.
+ * @param props - Props de título, datos, altura y formateador de etiquetas.
+ * @returns Tarjeta con gráfico de línea o estados alternativos.
+ */
 export function LineChart({
   title,
   description,
@@ -68,6 +78,9 @@ export function LineChart({
       .nice()
       .range([chartHeight, 0]);
 
+    const gridColor = 'hsl(var(--border))';
+    const axisColor = 'hsl(var(--muted-foreground))';
+
     // Grid lines
     g.append('g')
       .attr('class', 'grid')
@@ -80,7 +93,7 @@ export function LineChart({
       )
       .call((sel) => sel.select('.domain').remove())
       .call((sel) =>
-        sel.selectAll('line').attr('stroke', '#e2e8f0').attr('stroke-dasharray', '2,2')
+        sel.selectAll('line').attr('stroke', gridColor).attr('stroke-dasharray', '2,2')
       );
 
     // Y axis
@@ -90,7 +103,7 @@ export function LineChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', '#64748b')
+          .attr('fill', axisColor)
           .attr('font-size', '11px')
       );
 
@@ -111,7 +124,7 @@ export function LineChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', '#64748b')
+          .attr('fill', axisColor)
           .attr('font-size', '11px')
       );
 
@@ -237,11 +250,11 @@ export function LineChart({
           <CardTitle className="text-lg">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center text-slate-400" style={{ height }}>
-            Sin datos
-          </div>
-        </CardContent>
+      <CardContent>
+        <div className="flex items-center justify-center text-muted-foreground" style={{ height }}>
+          Sin datos
+        </div>
+      </CardContent>
       </Card>
     );
   }
@@ -257,12 +270,12 @@ export function LineChart({
           <svg ref={svgRef} className="w-full" />
           {tooltip.visible && (
             <div
-              className="absolute pointer-events-none z-10 rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white shadow-lg -translate-x-1/2 -translate-y-full"
+              className="absolute pointer-events-none z-10 rounded-md border border-border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-lg -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y }}
               role="tooltip"
             >
               <div className="font-medium">{tooltip.label}</div>
-              <div className="text-slate-300">{tooltip.value}</div>
+              <div className="text-muted-foreground">{tooltip.value}</div>
             </div>
           )}
         </div>

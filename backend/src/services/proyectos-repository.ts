@@ -1,4 +1,4 @@
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, eq, gte, isNull, lte } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos.js';
 
@@ -13,7 +13,7 @@ type ProyectoFilters = {
 };
 
 export const listProyectos = async (filters: ProyectoFilters = {}) => {
-  const clauses = [];
+  const clauses = [isNull(proyectos.deletedAt)];
   if (filters.estado) {
     clauses.push(eq(proyectos.estado, filters.estado));
   }
@@ -61,11 +61,17 @@ export const updateProyectoById = async (id: string, payload: Partial<NewProyect
 };
 
 export const listAsignacionesByProyectoId = async (proyectoId: string) => {
-  return db.select().from(asignaciones).where(eq(asignaciones.proyectoId, proyectoId));
+  return db
+    .select()
+    .from(asignaciones)
+    .where(and(eq(asignaciones.proyectoId, proyectoId), isNull(asignaciones.deletedAt)));
 };
 
 export const listAsignacionesByUsuarioId = async (usuarioId: string) => {
-  return db.select().from(asignaciones).where(eq(asignaciones.usuarioId, usuarioId));
+  return db
+    .select()
+    .from(asignaciones)
+    .where(and(eq(asignaciones.usuarioId, usuarioId), isNull(asignaciones.deletedAt)));
 };
 
 export const findAsignacionById = async (id: string) => {

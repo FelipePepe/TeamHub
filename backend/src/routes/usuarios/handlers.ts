@@ -1,12 +1,13 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { hashPassword, verifyPassword } from '../../services/auth-service.js';
 import { toProyectoResponse, toUserResponse } from '../../services/mappers.js';
 import { users } from '../../db/schema/users.js';
+import { departamentos } from '../../db/schema/departamentos.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { db } from '../../db/index.js';
 import type { User } from '../../db/schema/users.js';
@@ -45,12 +46,18 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const baseQuery = db.select().from(users);
+    const baseQuery = db
+      .select({
+        user: users,
+        departamentoNombre: departamentos.nombre,
+      })
+      .from(users)
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id));
     const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
     const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
     return c.json({
-      data: list.map(toUserResponse),
+      data: list.map((row) => toUserResponse({ ...row.user, departamentoNombre: row.departamentoNombre })),
       meta: {
         page,
         limit,
@@ -247,7 +254,13 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       .select({ proyecto: proyectos })
       .from(asignaciones)
       .innerJoin(proyectos, eq(asignaciones.proyectoId, proyectos.id))
-      .where(eq(asignaciones.usuarioId, id));
+      .where(
+        and(
+          eq(asignaciones.usuarioId, id),
+          isNull(asignaciones.deletedAt),
+          isNull(proyectos.deletedAt)
+        )
+      );
     return c.json({ data: rows.map((row) => toProyectoResponse(row.proyecto)) });
   });
 
@@ -256,7 +269,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     const rows = await db
       .select({ dedicacionPorcentaje: asignaciones.dedicacionPorcentaje })
       .from(asignaciones)
-      .where(eq(asignaciones.usuarioId, id));
+      .where(and(eq(asignaciones.usuarioId, id), isNull(asignaciones.deletedAt)));
     const dedicacionTotal = rows.reduce(
       (total, item) => total + toNumber(item.dedicacionPorcentaje, 0),
       0

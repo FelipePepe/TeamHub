@@ -4,6 +4,13 @@ import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, Plus, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +38,8 @@ import { CopyWeekDialog } from '@/components/timetracking/copy-week-dialog';
 import { GanttChart } from '@/components/timetracking/gantt-chart';
 import type { GanttProyecto } from '@/types/timetracking';
 import { calculateProgress } from '@/lib/gantt-utils';
+
+const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
 
 export default function TimetrackingPage() {
   const router = useRouter();
@@ -132,7 +141,7 @@ export default function TimetrackingPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Timetracking</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Timetracking</h1>
           <p className="text-slate-500">Registro y consulta de horas</p>
         </div>
         <div className="flex gap-2">
@@ -349,17 +358,24 @@ function RegistroHorasModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Proyecto *</label>
-              <select
-                value={proyectoId}
-                onChange={(e) => setProyectoId(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-                required
+              <Select
+                value={proyectoId || PROYECTO_PLACEHOLDER_VALUE}
+                onValueChange={(value) =>
+                  setProyectoId(value === PROYECTO_PLACEHOLDER_VALUE ? '' : value)
+                }
               >
-                <option value="">Seleccionar</option>
-                {proyectos.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nombre} ({p.codigo})</option>
-                ))}
-              </select>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={PROYECTO_PLACEHOLDER_VALUE}>Seleccionar</SelectItem>
+                  {proyectos.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.nombre} ({p.codigo})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

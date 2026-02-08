@@ -19,12 +19,17 @@ interface KpiCardProps {
 }
 
 const variantStyles = {
-  default: 'bg-slate-100 text-slate-600',
-  success: 'bg-green-100 text-green-600',
-  warning: 'bg-amber-100 text-amber-600',
-  danger: 'bg-red-100 text-red-600',
+  default: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100',
+  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200',
+  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-200',
+  danger: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-200',
 };
 
+/**
+ * Renderiza una tarjeta KPI con estilos accesibles en tema claro/oscuro.
+ * @param props - Props para título, valor, icono y variantes visuales.
+ * @returns Tarjeta KPI con icono, métricas y estados opcionales.
+ */
 export function KpiCard({
   title,
   value,
@@ -56,16 +61,16 @@ export function KpiCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">{title}</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
             {description && (
-              <p className="text-xs text-slate-400 mt-1">{description}</p>
+              <p className="text-xs text-muted-foreground mt-1">{description}</p>
             )}
             {trend && (
               <p
                 className={cn(
                   'text-xs mt-1',
-                  trend.isPositive ? 'text-green-600' : 'text-red-600'
+                  trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                 )}
               >
                 {trend.isPositive ? '+' : ''}{trend.value}% vs mes anterior

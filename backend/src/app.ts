@@ -7,12 +7,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import swaggerUiDist from 'swagger-ui-dist';
 import { errorHandler } from './middleware/error-handler.js';
+import { requestLogger } from './middleware/request-logger.js';
 import { hmacValidation } from './middleware/hmac-validation.js';
 import { securityHeaders } from './middleware/security-headers.js';
 import { createRateLimiter, getRateLimitIp } from './middleware/rate-limit.js';
 import { config } from './config/env.js';
 import { apiRoutes } from './routes/index.js';
 import { verifyAccessToken } from './services/auth-service.js';
+import { isDebugLoggingEnabled } from './services/logger.js';
 import type { HonoEnv } from './types/hono.js';
 
 const app = new Hono<HonoEnv>();
@@ -92,6 +94,9 @@ const globalRateLimit = createRateLimiter({
 
 app.use('*', securityHeaders);
 app.use('*', cors({ origin: config.corsOrigins }));
+if (isDebugLoggingEnabled) {
+  app.use('*', requestLogger);
+}
 app.use('/api/*', hmacValidation);
 app.use('/api/*', globalRateLimit);
 app.onError(errorHandler);

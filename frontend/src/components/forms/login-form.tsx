@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
+import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,35 @@ const mfaSchema = z.object({
 });
 
 type MfaFormData = z.infer<typeof mfaSchema>;
+
+/**
+ * Devuelve un mensaje de error amigable para fallos de login.
+ * @param error - Error lanzado por la llamada de login.
+ * @returns Mensaje traducido para el usuario.
+ */
+const getLoginErrorMessage = (error: unknown): string => {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401) {
+      return 'Usuario y/o contraseña incorrectos';
+    }
+    if (status === 429) {
+      return 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.';
+    }
+    const apiMessage =
+      (error.response?.data as { error?: string; message?: string } | undefined)?.error ??
+      (error.response?.data as { error?: string; message?: string } | undefined)?.message;
+    if (apiMessage) {
+      return apiMessage;
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Error al iniciar sesión';
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -117,8 +147,7 @@ export function LoginForm() {
         router.push('/dashboard');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
-      toast.error(message);
+      toast.error(getLoginErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -305,11 +334,13 @@ export function LoginForm() {
         )}
 
         {mfaSecret && (
-          <div className="bg-slate-100 p-3 rounded text-center mb-4">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="rounded border border-transparent bg-slate-100 p-3 text-center mb-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p className="text-xs text-slate-500 mb-1 dark:text-slate-400">
               {qrCodeDataUrl ? 'O ingresa este código manualmente:' : 'Código para agregar manualmente:'}
             </p>
-            <code className="text-sm font-mono select-all">{mfaSecret}</code>
+            <code className="text-sm font-mono select-all text-slate-800 dark:text-slate-100">
+              {mfaSecret}
+            </code>
           </div>
         )}
 

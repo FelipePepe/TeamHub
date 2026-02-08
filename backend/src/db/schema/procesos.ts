@@ -8,7 +8,9 @@ import {
   date,
   timestamp,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import {
   processStatusEnum,
   taskStatusEnum,
@@ -61,6 +63,9 @@ export const procesosOnboarding = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
+    uniqueIndex('procesos_empleado_plantilla_fecha_unique')
+      .on(table.empleadoId, table.plantillaId, table.fechaInicio)
+      .where(sql`${table.deletedAt} IS NULL`),
     index('procesos_empleado_idx').on(table.empleadoId),
     index('procesos_plantilla_idx').on(table.plantillaId),
     index('procesos_estado_idx').on(table.estado),
@@ -130,7 +135,7 @@ export const tareasOnboarding = pgTable(
     index('tareas_onboarding_responsable_idx').on(table.responsableId),
     index('tareas_onboarding_estado_idx').on(table.estado),
     index('tareas_onboarding_fecha_limite_idx').on(table.fechaLimite),
-    index('tareas_onboarding_orden_idx').on(table.procesoId, table.orden),
+    uniqueIndex('tareas_onboarding_orden_idx').on(table.procesoId, table.orden),
   ]
 );
 

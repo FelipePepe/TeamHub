@@ -202,7 +202,7 @@ export default function ProcesoDetailPage({
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             Onboarding: {proceso.empleadoNombre}
           </h1>
           <p className="text-slate-500">{proceso.plantillaNombre}</p>

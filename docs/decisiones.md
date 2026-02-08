@@ -854,6 +854,24 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Modularizar rutas backend y hooks frontend para reducir archivos >300 líneas (handlers/keys/api/types separados). (2026-01-31)
 - [x] Configurar tests E2E con Playwright (Fase 7): \`frontend/e2e/\`, \`playwright.config.ts\`, specs de login y navegación; \`npm run e2e\`. (2026-01-30)
 - [x] Añadir E2E CRUD departamentos: \`frontend/e2e/departamentos-crud.spec.ts\` (login + listado + crear); requiere \`E2E_USER\` y \`E2E_PASSWORD\`. (2026-01-30)
+- [x] Añadir E2E de contraste de texto para tema claro/oscuro en dashboard. (2026-02-07)
+- [x] Fijar `turbopack.root` en Next.js para evitar warning de lockfiles múltiples. (2026-02-07)
+- [x] Alinear `PLAYWRIGHT_BASE_URL` y aumentar timeout del webServer a 120s. (2026-02-07)
+- [x] Añadir logging debug con middleware de requests (desactivado en Vercel/Render). (2026-02-07)
+- [x] Ajustar estilos de Card para respetar variables de tema y corregir texto invisible en modo oscuro. (2026-02-07)
+- [x] Ajustar estilos de botones para mejorar contraste en modo oscuro. (2026-02-07)
+- [x] Ajustar estilos de Tabs para mejorar contraste en modo oscuro. (2026-02-07)
+- [x] Ajustar estilos de timesheet semanal para mejorar contraste en modo oscuro. (2026-02-07)
+- [x] Alinear `seed-complete-data.sql` con el esquema real (soft delete, enums, usuarios y hashes). (2026-02-07)
+- [x] Añadir restricciones únicas por tabla (tokens, plantillas, procesos, tareas, timetracking). (2026-02-07)
+- [x] Añadir resumen en tarjetas de proyectos (fin estimado, horas restantes, asignados). (2026-02-07)
+- [x] Mostrar nombres de empleados en asignaciones de proyectos. (2026-02-07)
+- [x] Serializar queries del dashboard admin en tests para evitar timeouts de conexión. (2026-02-07)
+- [x] Mejorar mensajes de error de login (401/429) en frontend. (2026-02-07)
+- [x] Ajustar contraste del bloque de código MFA en modo oscuro. (2026-02-07)
+- [x] Mejorar contraste en opciones del menú lateral para modo oscuro (sidebar y mobile sidebar). (2026-02-07)
+- [x] Unificar creación de proyectos con modal y redirigir /proyectos/crear al panel de alta. (2026-02-07)
+- [x] Ajustar decrypt MFA con `authTagLength` y limpiar warning `--localstorage-file` en tests. (2026-02-07)
 
 ### Historial detallado de tareas
 - [x] Revisar fuentes de verdad (docs/adr, OpenAPI, reglas de negocio) y gaps. (2026-01-23)
@@ -945,6 +963,11 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - [x] Forzar click en “Iniciar Proceso” del demo realista para evitar overlay de Dialog en Playwright. (2026-02-07)
 - [x] Hacer `waitForLoad` de demos resiliente (fallback a `domcontentloaded`) para evitar bloqueos por `networkidle`. (2026-02-07)
 - [x] Añadir verificación UI de asignación empleado→proyecto con datos creados por API. (2026-02-07)
+- [x] Añadir E2E de contraste de texto en tema claro/oscuro para dashboard. (2026-02-07)
+- [x] Fijar `turbopack.root` en Next.js para evitar warning de lockfiles múltiples. (2026-02-07)
+- [x] Alinear `PLAYWRIGHT_BASE_URL` y aumentar timeout del webServer a 120s. (2026-02-07)
+- [x] Añadir logging debug con middleware de requests (desactivado en Vercel/Render). (2026-02-07)
+- [x] Ajustar decrypt MFA con `authTagLength` y limpiar warning `--localstorage-file` en tests. (2026-02-07)
 
 ---
 
@@ -1120,9 +1143,104 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - ✅ Responsive: ancho dinámico vía `containerRef.clientWidth`.
   - ✅ Accesibilidad: `role="img"`, `aria-label`, `tabindex` en elementos interactivos.
 
+### ADR-081: Filtro soft delete por defecto en listados
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** Los registros con `deleted_at` seguian apareciendo en listas y conteos porque varios listados no filtraban por soft delete.
+- **Decision:**
+  - Aplicar `deleted_at IS NULL` por defecto en listados de proyectos, asignaciones, plantillas, departamentos, usuarios y procesos de onboarding.
+  - Mantener el acceso a inactivos via `activo=false` en endpoints que ya exponen ese filtro.
+- **Consecuencias:**
+  - ✅ Los listados por defecto muestran solo registros activos.
+  - ✅ Cargas y relaciones no incluyen asignaciones eliminadas.
+  - ⚠️ Para auditar historico se requiere usar filtros explicitos de inactivos.
+
+### ADR-082: Combos consistentes en modo oscuro con Select Radix
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** Los `<select>` nativos renderizan el desplegable con fondo claro en modo oscuro, haciendo ilegible el texto.
+- **Decision:**
+  - Reemplazar los `<select>` nativos por el componente `Select` (Radix UI) en filtros y formularios clave.
+  - Mantener etiquetas y placeholders equivalentes para conservar la UX.
+- **Consecuencias:**
+  - ✅ Desplegables con fondo oscuro consistente en todas las vistas.
+  - ✅ Estilos unificados con el resto del sistema de UI.
+  - ⚠️ Se pierde el estilo nativo del sistema operativo.
+
+### ADR-083: Contraste de tabla de empleados en modo oscuro
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** El texto de la tabla de empleados quedaba demasiado oscuro en modo oscuro, dificultando la lectura.
+- **Decision:** Ajustar colores con variantes `dark:` para cabeceras, filas, nombres, email y paginación.
+- **Consecuencias:**
+  - ✅ Texto legible en modo oscuro.
+  - ✅ Consistencia visual con el resto del dashboard.
+
+### ADR-084: Refresh token con firma HMAC en frontend
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** La renovación de sesión fallaba porque el request de `/auth/refresh` no incluía la firma HMAC requerida por el backend, provocando logout tras pocos minutos.
+- **Decision:** Firmar la llamada de refresh con `X-Request-Signature` usando `generateRequestSignature`.
+- **Consecuencias:**
+  - ✅ Renovación de sesión estable mientras el refresh token sea válido.
+  - ✅ Consistencia con la validación HMAC en `/api/*`.
+
+### ADR-085: Detalle de actividad reciente y visibilidad solo ADMIN
+- **Fecha:** 2026-02-07
+- **Estado:** Aceptado
+- **Contexto:** La actividad reciente mostraba textos técnicos (“INSERT en refresh_tokens”) y no permitía ver el detalle de la operación.
+- **Decision:**
+  - Generar descripciones legibles en UI y abrir un panel con “comando ejecutado” y metadatos (tabla, usuario, campos).
+  - Exponer metadatos del audit log en el dashboard admin para construir el detalle.
+  - Mostrar la tarjeta solo a usuarios ADMIN.
+- **Consecuencias:**
+  - ✅ Actividad más comprensible para negocio y soporte.
+  - ✅ Trazabilidad rápida con detalle por operación.
+  - ⚠️ El comando mostrado es representativo (no SQL literal).
+
+### ADR-086: Diferenciación de errores en authMiddleware (401 vs 500)
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** El catch genérico en `authMiddleware` convertía cualquier error (incluidos timeouts de DB) en HTTP 401 "No autorizado". Esto provocaba que el frontend interpretase fallos de infraestructura como sesiones inválidas, desencadenando un ciclo de refresh fallido y logout forzado.
+- **Decision:** Distinguir `HTTPException` (errores de autenticación reales → 401) de errores inesperados (DB caída, timeouts → 500) en el bloque catch del middleware.
+- **Consecuencias:**
+  - ✅ El frontend puede diferenciar entre sesión expirada y error de servidor.
+  - ✅ El interceptor de axios solo intenta refresh en 401 reales, no en 500.
+  - ✅ Mejor diagnóstico: los logs reflejan el error real (500) en lugar de enmascararlo.
+
+### ADR-087: Eliminación de redirect forzado a /login en interceptor axios
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** Cuando el refresh token fallaba, el interceptor de respuesta ejecutaba `window.location.href = '/login'`, un redirect forzado que interrumpía la UX sin mostrar feedback al usuario. El error nunca se propagaba al componente que originó la petición.
+- **Decision:** Eliminar el `window.location.href = '/login'` del catch del interceptor. Se limpian los tokens pero el error se propaga via `Promise.reject` para que el componente lo capture y muestre un toast informativo.
+- **Consecuencias:**
+  - ✅ El usuario ve el mensaje de error en contexto (toast) sin perder su estado de trabajo.
+  - ✅ El `AuthProvider` no se ve afectado inmediatamente (user state se mantiene en React).
+  - ⚠️ Tras limpiar tokens, las siguientes peticiones fallarán hasta que el usuario re-autentique.
+
+### ADR-088: Mapeo de campos frontend-backend en tareas de plantilla
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** El frontend usaba nombres de campo diferentes al contrato OpenAPI para las tareas de plantilla (ej: `responsable` vs `responsableTipo`, `esOpcional` vs `obligatoria`). Esto causaba error Zod 400 al crear/editar tareas porque el backend no recibía los campos requeridos.
+- **Decision:** Añadir funciones de mapeo bidireccional (`toBackendTarea`/`fromBackendTarea`) en la capa API del frontend (`hooks/plantillas/api.ts`) que traducen entre la nomenclatura del frontend y el contrato OpenAPI.
+- **Consecuencias:**
+  - ✅ Los nombres del frontend son semánticamente claros para los componentes React.
+  - ✅ El contrato OpenAPI del backend se respeta sin modificaciones.
+  - ⚠️ El mapeo es un punto de mantenimiento si el contrato cambia.
+
+### ADR-089: LEFT JOIN departamentos en GET /usuarios
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** El endpoint `GET /usuarios` solo consultaba la tabla `users` sin resolver el nombre del departamento. El frontend mostraba "Sin departamento" en el selector de onboarding aunque los empleados tuviesen departamento asignado.
+- **Decision:** Añadir LEFT JOIN con `departamentos` en la query del listado de usuarios e incluir `departamentoNombre` en la respuesta. Se actualizó el contrato OpenAPI (`UserResponse`) para reflejar el nuevo campo.
+- **Consecuencias:**
+  - ✅ El selector de empleados muestra correctamente el nombre del departamento.
+  - ✅ El contrato OpenAPI está sincronizado con la implementación.
+  - ⚠️ Incremento mínimo en complejidad de la query (LEFT JOIN).
+
 ## Progreso General del Proyecto
 
-### Estado Actual (2026-02-07)
+### Estado Actual (2026-02-08)
 - **Fases completadas:** 6/6 (100%)
   - Fase 1: Dashboards ✅ 100% (D3.js completo)
   - Fase 2: Empleados ✅ 100%

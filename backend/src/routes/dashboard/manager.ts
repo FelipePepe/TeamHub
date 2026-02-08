@@ -94,12 +94,16 @@ export const buildManagerDashboardResponse = async (user: User) => {
       .select({
         registroId: timetracking.id,
         usuarioId: timetracking.usuarioId,
+        usuarioNombre: users.nombre,
+        usuarioApellidos: users.apellidos,
         proyectoId: timetracking.proyectoId,
+        proyectoNombre: proyectos.nombre,
         fecha: timetracking.fecha,
         horas: timetracking.horas,
       })
       .from(timetracking)
       .innerJoin(users, eq(timetracking.usuarioId, users.id))
+      .leftJoin(proyectos, eq(timetracking.proyectoId, proyectos.id))
       .where(and(eq(users.managerId, user.id), eq(timetracking.estado, 'PENDIENTE')))
       .orderBy(desc(timetracking.fecha))
       .limit(MAX_ACTIVITY_ITEMS),
@@ -161,8 +165,8 @@ export const buildManagerDashboardResponse = async (user: User) => {
       equipoOcupacion,
       pendientesAprobacion: pendientesAprobacionRows.map((row) => ({
         registroId: row.registroId,
-        usuarioId: row.usuarioId,
-        proyectoId: row.proyectoId,
+        usuarioNombre: formatNombreCompleto(row.usuarioNombre, row.usuarioApellidos),
+        proyectoNombre: row.proyectoNombre ?? 'Sin proyecto',
         fecha: row.fecha,
         horas: toNumber(row.horas, 0),
       })),

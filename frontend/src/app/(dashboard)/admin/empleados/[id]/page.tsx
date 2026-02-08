@@ -108,7 +108,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
             <h1 className="text-2xl font-semibold text-foreground">
               {empleado.nombre} {empleado.apellidos}
             </h1>
-            <p className="text-slate-500">Información del empleado</p>
+            <p className="text-muted-foreground">Información del empleado</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -139,28 +139,28 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
           <CardContent className="space-y-4">
             {/* Nombre completo */}
             <div>
-              <p className="text-sm text-slate-500">Nombre completo</p>
-              <p className="text-base font-medium text-slate-900">
+              <p className="text-sm text-muted-foreground">Nombre completo</p>
+              <p className="text-base font-medium text-foreground">
                 {empleado.nombre} {empleado.apellidos}
               </p>
             </div>
 
             {/* Email */}
             <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-slate-400" />
+              <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm text-slate-500">Email</p>
-                <p className="text-base text-slate-900">{empleado.email}</p>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-base text-foreground">{empleado.email}</p>
               </div>
             </div>
 
             {/* Teléfono */}
             {empleado.telefono && (
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-slate-400" />
+                <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-slate-500">Teléfono</p>
-                  <p className="text-base text-slate-900">{empleado.telefono}</p>
+                  <p className="text-sm text-muted-foreground">Teléfono</p>
+                  <p className="text-base text-foreground">{empleado.telefono}</p>
                 </div>
               </div>
             )}
@@ -168,10 +168,10 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
             {/* Fecha de nacimiento */}
             {empleado.fechaNacimiento && (
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-slate-400" />
+                <Calendar className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-slate-500">Fecha de Nacimiento</p>
-                  <p className="text-base text-slate-900">
+                  <p className="text-sm text-muted-foreground">Fecha de Nacimiento</p>
+                  <p className="text-base text-foreground">
                     {format(new Date(empleado.fechaNacimiento), 'PPP', { locale: es })}
                   </p>
                 </div>
@@ -180,7 +180,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
 
             {/* Estado */}
             <div>
-              <p className="text-sm text-slate-500 mb-1">Estado</p>
+              <p className="text-sm text-muted-foreground mb-1">Estado</p>
               <Badge variant={empleado.activo ? 'default' : 'secondary'}>
                 {empleado.activo ? 'Activo' : 'Inactivo'}
               </Badge>
@@ -199,7 +199,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
           <CardContent className="space-y-4">
             {/* Rol */}
             <div>
-              <p className="text-sm text-slate-500 mb-1">Rol</p>
+              <p className="text-sm text-muted-foreground mb-1">Rol</p>
               <Badge variant="outline" className="text-base">
                 {empleado.rol}
               </Badge>
@@ -207,32 +207,32 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
 
             {/* Departamento */}
             <div>
-              <p className="text-sm text-slate-500">Departamento</p>
-              <p className="text-base text-slate-900">
-                {empleado.departamentoId ? `ID: ${empleado.departamentoId}` : 'Sin asignar'}
+              <p className="text-sm text-muted-foreground">Departamento</p>
+              <p className="text-base text-foreground">
+                {empleado.departamentoNombre ?? 'Sin asignar'}
               </p>
             </div>
 
             {/* Manager */}
             <div>
-              <p className="text-sm text-slate-500">Manager</p>
-              <p className="text-base text-slate-900">
-                {empleado.managerId ? `ID: ${empleado.managerId}` : 'Sin asignar'}
+              <p className="text-sm text-muted-foreground">Manager</p>
+              <p className="text-base text-foreground">
+                {empleado.managerNombre ?? 'Sin asignar'}
               </p>
             </div>
 
             {/* Fecha de creación */}
             <div>
-              <p className="text-sm text-slate-500">Fecha de registro</p>
-              <p className="text-base text-slate-900">
+              <p className="text-sm text-muted-foreground">Fecha de registro</p>
+              <p className="text-base text-foreground">
                 {format(new Date(empleado.createdAt!), 'PPP', { locale: es })}
               </p>
             </div>
 
             {/* Última actualización */}
             <div>
-              <p className="text-sm text-slate-500">Última actualización</p>
-              <p className="text-base text-slate-900">
+              <p className="text-sm text-muted-foreground">Última actualización</p>
+              <p className="text-base text-foreground">
                 {format(new Date(empleado.updatedAt!), 'PPP', { locale: es })}
               </p>
             </div>
@@ -240,33 +240,6 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
         </Card>
       </div>
 
-      {/* Información adicional */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Información Adicional</CardTitle>
-          <CardDescription>Datos complementarios del empleado</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <p className="text-sm text-slate-500">ID de Usuario</p>
-              <p className="text-sm font-mono text-slate-900">{empleado.id}</p>
-            </div>
-            {empleado.departamentoId && (
-              <div>
-                <p className="text-sm text-slate-500">ID de Departamento</p>
-                <p className="text-sm font-mono text-slate-900">{empleado.departamentoId}</p>
-              </div>
-            )}
-            {empleado.managerId && (
-              <div>
-                <p className="text-sm text-slate-500">ID de Manager</p>
-                <p className="text-sm font-mono text-slate-900">{empleado.managerId}</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

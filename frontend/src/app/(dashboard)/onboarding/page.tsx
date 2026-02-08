@@ -174,7 +174,7 @@ export default function ProcesosPage() {
           <h1 className="text-2xl font-semibold text-foreground">
             Procesos de Onboarding
           </h1>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Gestiona los procesos de incorporación de nuevos empleados
           </p>
         </div>
@@ -199,7 +199,7 @@ export default function ProcesosPage() {
             {/* Búsqueda */}
             <div className="md:col-span-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por empleado..."
                   value={search}
@@ -323,8 +323,8 @@ export default function ProcesosPage() {
             </div>
           ) : filteredProcesos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ClipboardList className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">
+              <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 {search || filters.estado || filters.empleadoId || filters.departamentoId
                   ? 'No se encontraron procesos con los filtros seleccionados'
                   : 'No hay procesos iniciados. Inicia tu primer proceso de onboarding.'}
@@ -365,7 +365,7 @@ export default function ProcesosPage() {
                           </CardTitle>
                           <CardDescription className="flex flex-wrap gap-2 items-center">
                             <span>{proceso.plantillaNombre || 'Plantilla'}</span>
-                            <span className="text-slate-400">•</span>
+                            <span className="text-muted-foreground">•</span>
                             <span>
                               Inicio:{' '}
                               {new Date(proceso.fechaInicio).toLocaleDateString('es-ES')}
@@ -381,7 +381,7 @@ export default function ProcesosPage() {
                       {/* Progress bar */}
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Progreso</span>
+                          <span className="text-muted-foreground">Progreso</span>
                           <span className="font-medium">{Math.round(progreso * 100)}%</span>
                         </div>
                         <Progress value={progreso * 100} className="h-2" />

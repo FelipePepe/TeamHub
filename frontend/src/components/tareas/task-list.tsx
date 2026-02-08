@@ -183,7 +183,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
           {/* Filtros */}
           <div className="flex flex-wrap gap-4 pt-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-500" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filterEstado} onValueChange={(v) => setFilterEstado(v as EstadoTarea | 'all')}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Estado" />
@@ -235,11 +235,11 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
           {isLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 w-full animate-pulse rounded bg-slate-100" />
+                <div key={i} className="h-12 w-full animate-pulse rounded bg-muted" />
               ))}
             </div>
           ) : tareasFiltradas.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
               {tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros'}
             </div>
           ) : (
@@ -260,7 +260,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                   {tareasFiltradas.map((tarea) => (
                     <TableRow
                       key={tarea.id}
-                      className="cursor-pointer hover:bg-slate-50"
+                      className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleEditTask(tarea)}
                     >
                       <TableCell className="font-medium">{tarea.titulo}</TableCell>
@@ -286,7 +286,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                             {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">Sin fechas</span>
+                          <span className="text-xs text-muted-foreground">Sin fechas</span>
                         )}
                       </TableCell>
                       <TableCell>

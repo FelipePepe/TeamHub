@@ -199,7 +199,7 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           <CardTitle>Diagrama Gantt de Tareas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+          <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
             No hay tareas con fechas definidas
           </div>
         </CardContent>

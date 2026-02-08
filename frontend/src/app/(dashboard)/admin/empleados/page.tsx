@@ -136,7 +136,7 @@ export default function EmpleadosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Empleados</h1>
-          <p className="text-slate-500">Gestiona los empleados de la organización</p>
+          <p className="text-muted-foreground">Gestiona los empleados de la organización</p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -157,7 +157,7 @@ export default function EmpleadosPage() {
             {/* Búsqueda */}
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre o email..."
                   value={search}
@@ -249,8 +249,8 @@ export default function EmpleadosPage() {
             </div>
           ) : empleados.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">
+              <Users className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 No se encontraron empleados con los filtros seleccionados
               </p>
             </div>
@@ -294,9 +294,9 @@ export default function EmpleadosPage() {
                               <p className="font-medium text-slate-900 dark:text-slate-100">
                                 {empleado.nombre} {empleado.apellidos}
                               </p>
-                              {(empleado.departamentoNombre || empleado.departamentoId) && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {empleado.departamentoNombre ?? `Departamento ID: ${empleado.departamentoId?.slice(0, 8)}...`}
+                              {empleado.departamentoNombre && (
+                                <p className="text-xs text-muted-foreground">
+                                  {empleado.departamentoNombre}
                                 </p>
                               )}
                             </div>
@@ -357,7 +357,7 @@ export default function EmpleadosPage() {
               {/* Paginación */}
               {totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted-foreground">
                     Mostrando {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} de {total}
                   </p>
                   <div className="flex items-center gap-2">

@@ -148,7 +148,6 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
               width={chartWidth}
               height={totalHeight}
               className="min-w-full"
-              style={{ maxWidth: '100%' }}
             >
                   {/* Background grid */}
                   <g>
@@ -161,7 +160,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           y1={config.headerHeight}
                           x2={x}
                           y2={totalHeight}
-                          stroke="#e2e8f0"
+                          className="stroke-slate-200 dark:stroke-slate-700"
                           strokeWidth={1}
                         />
                       );
@@ -175,14 +174,14 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                       y={0}
                       width={chartWidth}
                       height={config.headerHeight}
-                      fill="#f8fafc"
+                      className="fill-slate-50 dark:fill-slate-800"
                     />
                     <line
                       x1={0}
                       y1={config.headerHeight}
                       x2={chartWidth}
                       y2={config.headerHeight}
-                      stroke="#e2e8f0"
+                      className="stroke-slate-200 dark:stroke-slate-700"
                       strokeWidth={1}
                     />
                     {/* Label column header */}
@@ -190,7 +189,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                       x={config.padding}
                       y={config.headerHeight / 2}
                       dominantBaseline="middle"
-                      className="fill-slate-700 text-sm font-medium"
+                      className="fill-slate-700 dark:fill-slate-200 text-sm font-medium"
                     >
                       Proyecto
                     </text>
@@ -203,7 +202,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           x={x + 4}
                           y={config.headerHeight / 2}
                           dominantBaseline="middle"
-                          className="fill-slate-600 text-xs"
+                          className="fill-slate-600 dark:fill-slate-400 text-xs"
                         >
                           {interval.label}
                         </text>
@@ -260,14 +259,14 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           y={y}
                           width={chartWidth}
                           height={config.rowHeight}
-                          fill={rowIndex % 2 === 0 ? '#ffffff' : '#f8fafc'}
+                          className={rowIndex % 2 === 0 ? 'fill-white dark:fill-slate-900' : 'fill-slate-50 dark:fill-slate-900/50'}
                         />
                         <line
                           x1={0}
                           y1={y + config.rowHeight}
                           x2={chartWidth}
                           y2={y + config.rowHeight}
-                          stroke="#e2e8f0"
+                          className="stroke-slate-200 dark:stroke-slate-700"
                           strokeWidth={1}
                         />
 
@@ -276,7 +275,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           <text
                             x={config.padding}
                             y={y + config.rowHeight / 2 - 6}
-                            className="fill-slate-900 text-sm font-medium"
+                            className="fill-slate-900 dark:fill-slate-100 text-sm font-medium"
                           >
                             {proyecto.nombre.length > 20
                               ? proyecto.nombre.slice(0, 20) + '...'
@@ -285,7 +284,7 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                           <text
                             x={config.padding}
                             y={y + config.rowHeight / 2 + 10}
-                            className="fill-slate-500 text-xs"
+                            className="fill-slate-500 dark:fill-slate-400 text-xs"
                           >
                             {proyecto.codigo}
                           </text>
@@ -373,14 +372,14 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                 </svg>
 
                 {/* Legend */}
-                <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 pt-4">
+                <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 dark:border-slate-700 pt-4">
                   {(Object.keys(ESTADO_COLORS) as ProyectoEstado[]).map((estado) => (
                     <div key={estado} className="flex items-center gap-2">
                       <div
                         className="h-3 w-3 rounded-sm"
                         style={{ backgroundColor: ESTADO_COLORS[estado] }}
                       />
-                      <span className="text-xs text-slate-600">{ESTADO_LABELS[estado]}</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400">{ESTADO_LABELS[estado]}</span>
                     </div>
                   ))}
                 </div>

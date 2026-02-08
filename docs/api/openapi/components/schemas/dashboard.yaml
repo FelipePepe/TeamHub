@@ -117,17 +117,17 @@ DashboardEquipoItem:
 
 DashboardPendienteItem:
   type: object
-  required: [registroId, usuarioId, proyectoId, fecha, horas]
+  required: [registroId, usuarioNombre, proyectoNombre, fecha, horas]
   properties:
     registroId:
       type: string
       format: uuid
-    usuarioId:
+    usuarioNombre:
       type: string
-      format: uuid
-    proyectoId:
+      description: Nombre completo del usuario que registró las horas
+    proyectoNombre:
       type: string
-      format: uuid
+      description: Nombre del proyecto asociado
     fecha:
       type: string
       format: date

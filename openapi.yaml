@@ -157,6 +157,17 @@ paths:
   /procesos/{id}/tareas/{tareaId}/evidencia:
     $ref: './docs/api/openapi/paths/procesos.yaml#/~1procesos~1{id}~1tareas~1{tareaId}~1evidencia'
 
+  /proyectos/{proyectoId}/tareas:
+    $ref: './docs/api/openapi/paths/tareas.yaml#/~1proyectos~1{proyectoId}~1tareas'
+  /usuarios/{usuarioId}/tareas:
+    $ref: './docs/api/openapi/paths/tareas.yaml#/~1usuarios~1{usuarioId}~1tareas'
+  /tareas/{id}:
+    $ref: './docs/api/openapi/paths/tareas.yaml#/~1tareas~1{id}'
+  /tareas/{id}/estado:
+    $ref: './docs/api/openapi/paths/tareas.yaml#/~1tareas~1{id}~1estado'
+  /tareas/{id}/asignar:
+    $ref: './docs/api/openapi/paths/tareas.yaml#/~1tareas~1{id}~1asignar'
+
   /proyectos:
     $ref: './docs/api/openapi/paths/proyectos.yaml#/~1proyectos'
   /proyectos/mis-proyectos:

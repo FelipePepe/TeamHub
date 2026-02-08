@@ -94,8 +94,8 @@ export interface EquipoOcupacion {
 
 export interface PendienteAprobacion {
   registroId: string;
-  usuarioId: string;
-  proyectoId: string;
+  usuarioNombre: string;
+  proyectoNombre: string;
   fecha: string;
   horas: number;
 }

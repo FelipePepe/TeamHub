@@ -44,8 +44,8 @@ export function GanttTooltip({
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <div className="font-semibold text-slate-900">{nombre}</div>
-            <div className="text-xs text-slate-500">{codigo}</div>
+            <div className="font-semibold text-slate-900 dark:text-slate-100">{nombre}</div>
+            <div className="text-xs text-muted-foreground">{codigo}</div>
           </div>
           <Badge
             style={{ backgroundColor: ESTADO_COLORS[estado] }}
@@ -56,20 +56,20 @@ export function GanttTooltip({
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div className="text-slate-500">Inicio:</div>
+          <div className="text-muted-foreground">Inicio:</div>
           <div>{format(fechaInicio, 'd MMM yyyy', { locale: es })}</div>
-          <div className="text-slate-500">Fin:</div>
+          <div className="text-muted-foreground">Fin:</div>
           <div>{format(fechaFin, 'd MMM yyyy', { locale: es })}</div>
-          <div className="text-slate-500">Duración:</div>
+          <div className="text-muted-foreground">Duración:</div>
           <div>{formatDuration(fechaInicio, fechaFin)}</div>
         </div>
 
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-slate-500">Progreso</span>
+            <span className="text-muted-foreground">Progreso</span>
             <span className="font-medium">{progreso}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <div
               className="h-full rounded-full transition-all"
               style={{

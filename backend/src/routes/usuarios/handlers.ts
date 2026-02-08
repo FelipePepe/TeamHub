@@ -1,6 +1,7 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { and, eq, isNull, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
@@ -46,18 +47,25 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    const managers = alias(users, 'managers');
     const baseQuery = db
       .select({
         user: users,
         departamentoNombre: departamentos.nombre,
+        managerNombre: managers.nombre,
+        managerApellidos: managers.apellidos,
       })
       .from(users)
-      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id));
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+      .leftJoin(managers, eq(users.managerId, managers.id));
     const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
     const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
     return c.json({
-      data: list.map((row) => toUserResponse({ ...row.user, departamentoNombre: row.departamentoNombre })),
+      data: list.map((row) => {
+        const managerNombre = [row.managerNombre, row.managerApellidos].filter(Boolean).join(' ').trim() || null;
+        return toUserResponse({ ...row.user, departamentoNombre: row.departamentoNombre, managerNombre });
+      }),
       meta: {
         page,
         limit,
@@ -99,11 +107,29 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.get('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const user = await findUserById(id);
-    if (!user) {
+    const managers = alias(users, 'managers');
+    const rows = await db
+      .select({
+        user: users,
+        departamentoNombre: departamentos.nombre,
+        managerNombre: managers.nombre,
+        managerApellidos: managers.apellidos,
+      })
+      .from(users)
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+      .leftJoin(managers, eq(users.managerId, managers.id))
+      .where(eq(users.id, id))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-    return c.json(toUserResponse(user));
+    const managerNombre = [row.managerNombre, row.managerApellidos].filter(Boolean).join(' ').trim() || null;
+    return c.json(toUserResponse({
+      ...row.user,
+      departamentoNombre: row.departamentoNombre,
+      managerNombre,
+    }));
   });
 
   router.put('/:id', async (c) => {

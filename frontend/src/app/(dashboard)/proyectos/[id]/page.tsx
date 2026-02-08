@@ -79,7 +79,7 @@ export default function ProyectoDetailPage({
   const { data: tareasData, isLoading: tareasLoading } = useTareasByProyecto(id);
   const updateEstado = useUpdateProyectoEstado();
   const deleteProyecto = useDeleteProyecto();
-  const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
+  const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
   const empleados = empleadosData?.data ?? [];
   const empleadosById = new Map(empleados.map((empleado) => [empleado.id, empleado]));
   const asignaciones = asignacionesData?.data ?? [];
@@ -146,7 +146,7 @@ export default function ProyectoDetailPage({
           </Button>
           <div>
             <h1 className="text-2xl font-semibold text-foreground">{proyecto.nombre}</h1>
-            <p className="text-slate-500">{proyecto.codigo}</p>
+            <p className="text-muted-foreground">{proyecto.codigo}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export default function ProyectoDetailPage({
             {proyecto.fechaFinEstimada && (
               <div>Fin estimado: {format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })}</div>
             )}
-            {proyecto.descripcion && <p className="text-sm text-slate-600">{proyecto.descripcion}</p>}
+            {proyecto.descripcion && <p className="text-sm text-muted-foreground">{proyecto.descripcion}</p>}
           </CardContent>
         </Card>
 
@@ -218,26 +218,26 @@ export default function ProyectoDetailPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Estadísticas (OpenAPI ProyectoStatsResponse)
+              Estadísticas
             </CardTitle>
           </CardHeader>
           <CardContent>
             {stats ? (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-slate-500">Presupuesto (h)</p>
+                  <p className="text-sm text-muted-foreground">Presupuesto (h)</p>
                   <p className="text-xl font-semibold">{stats.presupuestoHoras ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Horas consumidas</p>
+                  <p className="text-sm text-muted-foreground">Horas consumidas</p>
                   <p className="text-xl font-semibold">{stats.horasConsumidas ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Asignaciones activas</p>
+                  <p className="text-sm text-muted-foreground">Asignaciones activas</p>
                   <p className="text-xl font-semibold">{stats.asignacionesActivas ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Progreso</p>
+                  <p className="text-sm text-muted-foreground">Progreso</p>
                   <p className="text-xl font-semibold">{stats.progreso != null ? `${Math.round(stats.progreso * 100)}%` : '—'}</p>
                 </div>
               </div>
@@ -254,25 +254,25 @@ export default function ProyectoDetailPage({
             <Users className="h-5 w-5" />
             Asignaciones
           </CardTitle>
-          <CardDescription>Equipo asignado al proyecto (GET /proyectos/:id/asignaciones)</CardDescription>
+          <CardDescription>Equipo asignado al proyecto</CardDescription>
         </CardHeader>
         <CardContent>
           {asignaciones.length === 0 ? (
-            <p className="text-sm text-slate-500">No hay asignaciones</p>
+            <p className="text-sm text-muted-foreground">No hay asignaciones</p>
           ) : (
-            <ul className="divide-y divide-slate-200">
+            <ul className="divide-y divide-border">
               {asignaciones.map((a) => {
                 const empleado = empleadosById.get(a.usuarioId);
                 const nombreEmpleado = empleado
                   ? `${empleado.nombre} ${empleado.apellidos ?? ''}`.trim()
-                  : `${a.usuarioId.slice(0, 8)}…`;
+                  : 'Usuario desconocido';
                 return (
                   <li key={a.id} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-slate-400" />
+                      <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">{nombreEmpleado}</span>
                       {a.rol && <Badge variant="outline">{a.rol}</Badge>}
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-muted-foreground">
                         {format(new Date(a.fechaInicio), 'd MMM yyyy', { locale: es })}
                         {a.fechaFin && ` – ${format(new Date(a.fechaFin), 'd MMM yyyy', { locale: es })}`}
                       </span>
@@ -348,6 +348,20 @@ function AddAsignacionButton({
   );
 }
 
+const ROLES_ASIGNACION = [
+  'Tech Lead',
+  'Desarrollador',
+  'QA / Tester',
+  'Diseñador',
+  'Analista',
+  'Product Owner',
+  'Scrum Master',
+  'DevOps',
+  'Consultor',
+];
+
+const NONE_ROL_SENTINEL = '__none__';
+
 function AddAsignacionModal({
   proyectoId,
   empleados,
@@ -387,7 +401,7 @@ function AddAsignacionModal({
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Añadir asignación (CreateAsignacionRequest)</DialogTitle>
+          <DialogTitle>Añadir asignación</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -417,8 +431,19 @@ function AddAsignacionModal({
             <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Rol</Label>
-            <Input value={rol} onChange={(e) => setRol(e.target.value)} placeholder="Opcional" />
+            <Label>Rol en el proyecto</Label>
+            <Select
+              value={rol || NONE_ROL_SENTINEL}
+              onValueChange={(value) => setRol(value === NONE_ROL_SENTINEL ? '' : value)}
+            >
+              <SelectTrigger><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_ROL_SENTINEL}>Sin rol asignado</SelectItem>
+                {ROLES_ASIGNACION.map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>

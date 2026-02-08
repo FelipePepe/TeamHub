@@ -87,7 +87,7 @@ export function DepartamentoForm({
   const createDepartamento = useCreateDepartamento();
   const updateDepartamento = useUpdateDepartamento();
 
-  const { data: managersData } = useEmpleados({ activo: true, limit: 200 });
+  const { data: managersData } = useEmpleados({ activo: true, limit: 100 });
   const managers = (managersData?.data ?? []).filter((u) =>
     RESPONSABLE_ROLES.includes(u.rol as UserRole)
   );
@@ -205,7 +205,7 @@ export function DepartamentoForm({
 
         {isEditing && isLoadingDepartamento ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -245,7 +245,7 @@ export function DepartamentoForm({
               {errors.codigo && (
                 <p className="text-sm text-red-500">{errors.codigo.message}</p>
               )}
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Solo mayúsculas, números, guiones y guiones bajos
               </p>
             </div>
@@ -258,7 +258,7 @@ export function DepartamentoForm({
                 rows={3}
                 placeholder="Descripción del departamento..."
                 disabled={isLoading}
-                className="flex min-h-[60px] w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                className="flex min-h-[60px] w-full rounded-md border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-slate-500 dark:placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 dark:focus-visible:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                 {...register('descripcion')}
               />
               {errors.descripcion && (
@@ -323,7 +323,7 @@ export function DepartamentoForm({
               {errors.color && (
                 <p className="text-sm text-red-500">{errors.color.message}</p>
               )}
-              <p className="text-xs text-slate-500">Color para identificar el departamento en la UI</p>
+              <p className="text-xs text-muted-foreground">Color para identificar el departamento en la UI</p>
             </div>
 
             <DialogFooter>

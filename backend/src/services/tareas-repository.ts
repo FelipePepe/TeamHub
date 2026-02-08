@@ -1,28 +1,72 @@
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { tareas, type Tarea, type NuevaTarea } from '../db/schema/tareas.js';
+import { users } from '../db/schema/users.js';
+
+/** Tarea enriquecida con los datos básicos del usuario asignado (nombre, apellidos) */
+export type TareaConUsuario = Tarea & {
+  usuarioAsignado: { id: string; nombre: string; apellidos: string | null } | null;
+};
+
+/**
+ * Transforma filas del JOIN tarea+usuario al tipo enriquecido TareaConUsuario.
+ * @param rows - Resultado de la query con LEFT JOIN a users
+ * @returns Array de tareas con el objeto `usuarioAsignado` embebido
+ */
+function mapRowsToTareaConUsuario(
+  rows: { tarea: Tarea; usuario: { id: string; nombre: string; apellidos: string | null } | null }[]
+): TareaConUsuario[] {
+  return rows.map((row) => ({
+    ...row.tarea,
+    usuarioAsignado: row.usuario,
+  }));
+}
 
 export class TareasRepository {
   /**
-   * Obtener todas las tareas de un proyecto (activas)
+   * Obtener todas las tareas activas de un proyecto con datos del usuario asignado.
+   * Realiza LEFT JOIN con la tabla users para incluir nombre y apellidos.
+   * @param proyectoId - UUID del proyecto
+   * @returns Tareas ordenadas por orden y fecha de creación, con `usuarioAsignado` embebido
    */
-  async findByProyecto(proyectoId: string): Promise<Tarea[]> {
-    return db
-      .select()
+  async findByProyecto(proyectoId: string): Promise<TareaConUsuario[]> {
+    const rows = await db
+      .select({
+        tarea: tareas,
+        usuario: {
+          id: users.id,
+          nombre: users.nombre,
+          apellidos: users.apellidos,
+        },
+      })
       .from(tareas)
+      .leftJoin(users, eq(tareas.usuarioAsignadoId, users.id))
       .where(and(eq(tareas.proyectoId, proyectoId), isNull(tareas.deletedAt)))
       .orderBy(tareas.orden, tareas.createdAt);
+    return mapRowsToTareaConUsuario(rows);
   }
 
   /**
-   * Obtener todas las tareas asignadas a un usuario
+   * Obtener todas las tareas asignadas a un usuario con datos del usuario asignado.
+   * Realiza LEFT JOIN con la tabla users para incluir nombre y apellidos.
+   * @param usuarioId - UUID del usuario asignado
+   * @returns Tareas ordenadas por fecha de creación descendente, con `usuarioAsignado` embebido
    */
-  async findByUsuario(usuarioId: string): Promise<Tarea[]> {
-    return db
-      .select()
+  async findByUsuario(usuarioId: string): Promise<TareaConUsuario[]> {
+    const rows = await db
+      .select({
+        tarea: tareas,
+        usuario: {
+          id: users.id,
+          nombre: users.nombre,
+          apellidos: users.apellidos,
+        },
+      })
       .from(tareas)
+      .leftJoin(users, eq(tareas.usuarioAsignadoId, users.id))
       .where(and(eq(tareas.usuarioAsignadoId, usuarioId), isNull(tareas.deletedAt)))
       .orderBy(desc(tareas.createdAt));
+    return mapRowsToTareaConUsuario(rows);
   }
 
   /**

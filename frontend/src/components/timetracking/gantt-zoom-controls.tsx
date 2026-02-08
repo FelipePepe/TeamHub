@@ -17,7 +17,7 @@ const ZOOM_OPTIONS: { value: GanttZoomLevel; label: string }[] = [
 export function GanttZoomControls({ zoom, onZoomChange }: GanttZoomControlsProps) {
   return (
     <div className="flex items-center gap-1">
-      <span className="mr-2 text-sm text-slate-500">Zoom:</span>
+      <span className="mr-2 text-sm text-muted-foreground">Zoom:</span>
       {ZOOM_OPTIONS.map((option) => (
         <Button
           key={option.value}

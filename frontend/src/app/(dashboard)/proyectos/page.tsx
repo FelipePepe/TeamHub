@@ -146,7 +146,7 @@ export default function ProyectosPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Proyectos</h1>
-          <p className="text-slate-500">Gestiona proyectos y asignaciones</p>
+          <p className="text-muted-foreground">Gestiona proyectos y asignaciones</p>
         </div>
         {canManageProjects && (
           <Button onClick={handleOpenCreate}>
@@ -167,7 +167,7 @@ export default function ProyectosPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre, código o cliente..."
                   value={search}
@@ -246,8 +246,8 @@ export default function ProyectosPage() {
             </div>
           ) : filteredProyectos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FolderKanban className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">No se encontraron proyectos</p>
+              <FolderKanban className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No se encontraron proyectos</p>
               {canManageProjects && (
                 <Button
                   onClick={handleOpenCreate}
@@ -276,31 +276,31 @@ export default function ProyectosPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
                       Proyecto
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
                       Cliente
                     </th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
                       Estado
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-300">
                       Acciones
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-border">
                   {filteredProyectos.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={p.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-slate-900">{p.nombre}</p>
-                          <p className="text-xs text-slate-500">{p.codigo}</p>
+                          <p className="font-medium text-foreground">{p.nombre}</p>
+                          <p className="text-xs text-muted-foreground">{p.codigo}</p>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {p.cliente ?? '—'}
                       </td>
                       <td className="px-4 py-3">{getEstadoBadge(p.estado)}</td>
@@ -399,7 +399,7 @@ function ProyectoCard({
           {getEstadoBadge(proyecto.estado)}
         </div>
         {proyecto.cliente && (
-          <p className="text-sm text-slate-500">Cliente: {proyecto.cliente}</p>
+          <p className="text-sm text-muted-foreground">Cliente: {proyecto.cliente}</p>
         )}
       </CardHeader>
       <CardContent className="pt-0">

@@ -484,3 +484,85 @@ Se realizó una auditoría de seguridad completa del proyecto TeamHub que abarc�
 - `mfa-service.test.ts`: Actualizado formato de cifrado de 3 a 4 partes (salt:iv:authTag:data)
 - `mfa-service.test.ts`: Actualizado test de formato invalido (4 partes ahora es formato valido)
 - `mfa-service.test.ts`: Actualizado test de tampering de authTag para nuevo formato
+
+---
+
+## Auditoría de UI (ADR-093)
+
+**Fecha:** 2026-02-08
+**Alcance:** Frontend — todas las pantallas de la aplicación
+**Branch:** `bugfix/security-audit-fixes`
+
+### Resumen
+
+Se realizó una auditoría pantalla por pantalla del frontend que identificó y corrigió tres categorías de problemas:
+
+| Categoría | Hallazgos | Corregidos |
+|-----------|-----------|------------|
+| IDs (UUID) expuestos al usuario | 6 | 6 |
+| Colores hardcodeados sin dark mode | ~100 | ~100 |
+| Labels de enums crudos en dashboards | 3 gráficas | 3 |
+
+### 1. IDs expuestos al usuario
+
+Los siguientes UUIDs se mostraban en la interfaz:
+
+| Pantalla | Problema | Corrección |
+|----------|----------|------------|
+| Empleado detalle | `departamentoId` mostrado como texto | Reemplazado por `departamentoNombre` (LEFT JOIN) |
+| Empleado detalle | `managerId` mostrado como texto | Reemplazado por `managerNombre` (LEFT JOIN con alias) |
+| Empleado detalle | Sección "Información Adicional" con IDs crudos | Sección eliminada |
+| Empleados listado | Fallback `departamentoId.slice(0,8)...` | Eliminado, solo se muestra si `departamentoNombre` existe |
+| Proyectos detalle | `usuarioId.slice(0,8)…` como nombre | Reemplazado por `'Usuario desconocido'` |
+| Dashboard manager | `pendientesAprobacion` con solo IDs | Añadidos `usuarioNombre` y `proyectoNombre` (LEFT JOIN) |
+
+**Cambios backend requeridos:**
+- `GET /usuarios/:id` y `GET /usuarios`: LEFT JOIN con `departamentos` + alias `managers` para resolver `departamentoNombre` y `managerNombre`
+- Dashboard manager: LEFT JOIN con `users` y `proyectos` en query de `pendientesAprobacion`
+
+### 2. Dark mode — colores hardcodeados
+
+Se identificaron ~100 instancias de colores `text-slate-*`, `bg-slate-*`, `border-slate-*` sin variante `dark:` en 16+ archivos:
+
+| Archivo | Instancias corregidas |
+|---------|----------------------|
+| `empleados/[id]/page.tsx` | 5 |
+| `empleados/page.tsx` | 5 |
+| `departamentos/page.tsx` | 7 |
+| `departamento-form.tsx` | 4 |
+| `proyectos/page.tsx` | 13 |
+| `proyectos/[id]/page.tsx` | 8 |
+| `task-list.tsx` | 5 |
+| `timetracking/page.tsx` | 9 |
+| `copy-week-dialog.tsx` | 5 |
+| `gantt-tooltip.tsx` | 5 |
+| `onboarding/page.tsx` | 6 |
+| `onboarding/[id]/page.tsx` | 13 |
+| `perfil/page.tsx` | 5 |
+| `manager-dashboard.tsx` | 3 |
+| `mi-onboarding-widget.tsx` | 8 |
+| Otros | ~5 |
+
+**Patrón de corrección:** Reemplazo sistemático por tokens semánticos de shadcn/ui:
+- `text-slate-900` / `text-gray-900` → `text-foreground`
+- `text-slate-500` / `text-gray-500` → `text-muted-foreground`
+- `bg-slate-100` → `bg-muted`
+- `border-slate-200` → `border-border`
+- `divide-slate-200` → `divide-border`
+
+### 3. Labels de enums crudos en dashboards
+
+| Dashboard | Gráfica | Antes | Después |
+|-----------|---------|-------|---------|
+| Admin | Usuarios por rol | `ADMIN`, `RRHH` | `Administrador`, `Recursos Humanos` |
+| Admin | Proyectos por estado | `PLANIFICACION`, `ACTIVO` | `Planificación`, `Activo` |
+| Admin | Horas por estado | `PENDIENTE`, `APROBADO` | `Pendiente`, `Aprobado` |
+| Empleado | Horas por estado | `PENDIENTE`, `APROBADO` | `Pendiente`, `Aprobado` |
+
+**Solución:** Constantes de mapeo en `backend/src/routes/dashboard/constants.ts`: `ROL_LABELS`, `PROYECTO_ESTADO_LABELS`, `TIMETRACKING_ESTADO_LABELS`.
+
+### Verificación
+
+- Frontend: 241/241 tests pasando (2 tests actualizados para nuevos datos mock)
+- Backend: 226/226 tests pasando
+- Lint: sin warnings en ambos lados

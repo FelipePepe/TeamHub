@@ -368,6 +368,29 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Mitigación:** Renovate Bot, Snyk/Dependabot, migración a `jose` si CVE ≥ 8.0
 - **Referencia:** docs/adr/091-jsonwebtoken-dependency-mitigation.md
 
+### ADR-092: Enriquecimiento de respuesta de Tareas con datos del usuario asignado
+
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** El endpoint `GET /api/proyectos/:id/tareas` solo devolvía `usuarioAsignadoId` (UUID) pero no los datos del usuario asignado (nombre, apellidos). El frontend mostraba "Sin asignar" para todas las tareas porque esperaba `usuarioAsignado: { id, nombre, apellidos }` según el tipo `Tarea`.
+- **Decisión:** Modificar el repositorio de tareas para hacer LEFT JOIN con la tabla `users` en `findByProyecto` y `findByUsuario`, devolviendo `usuarioAsignado` como objeto embebido. Crear tipo `TareaConUsuario` y actualizar mapper, servicio y contrato OpenAPI.
+- **Consecuencias:**
+  - **Positivas:** El frontend muestra correctamente el nombre del usuario asignado; el contrato OpenAPI ahora documenta los 7 endpoints de tareas de proyecto
+  - **Negativas:** Una query adicional (LEFT JOIN) por llamada, impacto mínimo en rendimiento
+  - **Lección:** Los tests existentes no verificaban la presencia de `usuarioAsignado` en la respuesta; añadir tests de integración end-to-end para validar contratos completos
+
+### ADR-093: Auditoría de UI — Eliminación de IDs expuestos y corrección de dark mode
+
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** Auditoría pantalla por pantalla detectó: (1) IDs crudos (UUID) expuestos al usuario en detalle de empleado y fallbacks de departamento/proyecto; (2) ~100 instancias de colores hardcoded sin dark: variants; (3) gráficas de dashboard con etiquetas de enums crudas (ADMIN, ACTIVO, PENDIENTE).
+- **Decisión:**
+  - Backend: añadir `ROL_LABELS`, `PROYECTO_ESTADO_LABELS`, `TIMETRACKING_ESTADO_LABELS` en constantes dashboard; enriquecer `GET /usuarios/:id` y listado con LEFT JOIN a departamentos + alias managers; añadir LEFT JOIN en `pendientesAprobacion` del manager dashboard
+  - Frontend: reemplazar exposición de IDs por nombres resueltos; migrar ~100 clases de color (`text-slate-*`, `bg-slate-*`, `border-slate-*`) a tokens semánticos (`text-muted-foreground`, `text-foreground`, `bg-muted`, `border-border`)
+- **Consecuencias:**
+  - **Positivas:** Ningún ID visible al usuario en ninguna pantalla; dark mode completamente funcional en todos los dashboards y pantallas
+  - **Negativas:** LEFT JOINs adicionales en endpoints de usuarios (impacto mínimo); se deben mantener los mapas de labels sincronizados con los enums de la DB
+
 ---
 
 ## 4. API y Contratos
@@ -1392,7 +1415,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - **Tests:** 226+ pasando (100 backend + 126+ frontend + 10 charts)
 - **Cobertura:** Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
+- **API:** OpenAPI v1.0.0 con 154+ endpoints; filtro `managerId` añadido; endpoints de tareas de proyecto documentados
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal

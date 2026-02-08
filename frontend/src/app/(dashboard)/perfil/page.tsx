@@ -80,14 +80,14 @@ export default function PerfilPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-foreground">Mi perfil</h1>
-        <p className="text-slate-500">Gestiona tu información personal</p>
+        <p className="text-muted-foreground">Gestiona tu información personal</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile card */}
         <Card className="lg:col-span-1">
           <CardHeader className="text-center">
-            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-slate-200 text-2xl font-semibold text-slate-600">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-muted text-2xl font-semibold text-muted-foreground">
               {user?.nombre.charAt(0)}
               {user?.apellidos?.charAt(0)}
             </div>
@@ -98,7 +98,7 @@ export default function PerfilPage() {
           </CardHeader>
           <CardContent className="text-center">
             <Badge>{user?.rol}</Badge>
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-4 text-xs text-muted-foreground">
               Estado: {user?.activo ? 'Activo' : 'Inactivo'}
             </p>
           </CardContent>
@@ -134,7 +134,7 @@ export default function PerfilPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" defaultValue={user?.email} disabled />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 El email no se puede cambiar
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function PerfilPage() {
 
             <div>
               <h3 className="text-lg font-medium">Cambiar contraseña</h3>
-              <p className="text-sm text-slate-500 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Actualiza tu contraseña de acceso
               </p>
               <div className="space-y-4">

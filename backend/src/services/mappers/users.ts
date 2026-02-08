@@ -10,6 +10,7 @@ type UserResponseInput = {
   departamentoId?: string | null;
   departamentoNombre?: string | null;
   managerId?: string | null;
+  managerNombre?: string | null;
   activo?: boolean;
   deletedAt?: Date | string | null;
 };
@@ -42,6 +43,7 @@ export const toUserResponse = (user: UserResponseInput | User) => ({
   departamentoId: user.departamentoId ?? undefined,
   departamentoNombre: (user as UserResponseInput).departamentoNombre ?? undefined,
   managerId: user.managerId ?? undefined,
+  managerNombre: (user as UserResponseInput).managerNombre ?? undefined,
   activo: resolveActiveState(user),
 });
 

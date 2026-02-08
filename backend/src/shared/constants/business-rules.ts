@@ -7,4 +7,17 @@ export const BUSINESS_RULES = Object.freeze({
     totpWindow: 1,
     totpDigits: 6,
   },
+  proyectos: {
+    rolesAsignacion: [
+      'Tech Lead',
+      'Desarrollador',
+      'QA / Tester',
+      'Diseñador',
+      'Analista',
+      'Product Owner',
+      'Scrum Master',
+      'DevOps',
+      'Consultor',
+    ],
+  },
 });

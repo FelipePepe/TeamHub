@@ -6,7 +6,7 @@ import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.j
 import { proyectos } from '../../db/schema/proyectos.js';
 import { timetracking } from '../../db/schema/timetracking.js';
 import { users } from '../../db/schema/users.js';
-import { MAX_ACTIVITY_ITEMS, MAX_ALERT_ITEMS } from './constants.js';
+import { MAX_ACTIVITY_ITEMS, MAX_ALERT_ITEMS, PROYECTO_ESTADO_LABELS, ROL_LABELS, TIMETRACKING_ESTADO_LABELS } from './constants.js';
 import { buildAlertsFromTareas, getMonthRange, toNumber } from './utils.js';
 
 /**
@@ -162,7 +162,7 @@ export const buildAdminDashboardResponse = async () => {
     charts: {
       usuariosPorRol: usuariosPorRolRows.map((row: { rol: string; total: number }) => ({
         id: row.rol,
-        label: row.rol,
+        label: ROL_LABELS[row.rol] ?? row.rol,
         value: toNumber(row.total, 0),
       })),
       usuariosPorDepartamento: usuariosPorDepartamentoRows.map((row: { departamentoId: string | null; departamentoNombre: string | null; total: number }) => ({
@@ -172,12 +172,12 @@ export const buildAdminDashboardResponse = async () => {
       })),
       proyectosPorEstado: proyectosPorEstadoRows.map((row: { estado: string; total: number }) => ({
         id: row.estado,
-        label: row.estado,
+        label: PROYECTO_ESTADO_LABELS[row.estado] ?? row.estado,
         value: toNumber(row.total, 0),
       })),
       horasPorEstado: horasPorEstadoRows.map((row: { estado: string; total: number }) => ({
         id: row.estado,
-        label: row.estado,
+        label: TIMETRACKING_ESTADO_LABELS[row.estado] ?? row.estado,
         value: toNumber(row.total, 0),
       })),
     },

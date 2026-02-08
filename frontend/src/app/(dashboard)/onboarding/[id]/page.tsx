@@ -175,7 +175,7 @@ export default function ProcesoDetailPage({
       case 'CANCELADA':
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
-        return <Circle className="h-5 w-5 text-slate-400" />;
+        return <Circle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -205,7 +205,7 @@ export default function ProcesoDetailPage({
           <h1 className="text-2xl font-semibold text-foreground">
             Onboarding: {proceso.empleadoNombre}
           </h1>
-          <p className="text-slate-500">{proceso.plantillaNombre}</p>
+          <p className="text-muted-foreground">{proceso.plantillaNombre}</p>
         </div>
         {getEstadoBadge(proceso.estado)}
       </div>
@@ -219,7 +219,7 @@ export default function ProcesoDetailPage({
           {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Progreso general</span>
+              <span className="text-muted-foreground">Progreso general</span>
               <span className="font-medium">
                 {tareasCompletadas} de {tareas.length} tareas completadas ({Math.round(progreso * 100)}%)
               </span>
@@ -230,7 +230,7 @@ export default function ProcesoDetailPage({
           {/* Detalles */}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm text-slate-500">Fecha de inicio</p>
+              <p className="text-sm text-muted-foreground">Fecha de inicio</p>
               <p className="font-medium">
                 {new Date(proceso.fechaInicio).toLocaleDateString('es-ES', {
                   year: 'numeric',
@@ -241,7 +241,7 @@ export default function ProcesoDetailPage({
             </div>
             {proceso.fechaFinEsperada && (
               <div>
-                <p className="text-sm text-slate-500">Fecha estimada de finalización</p>
+                <p className="text-sm text-muted-foreground">Fecha estimada de finalización</p>
                 <p className="font-medium">
                   {new Date(proceso.fechaFinEsperada).toLocaleDateString('es-ES', {
                     year: 'numeric',
@@ -253,7 +253,7 @@ export default function ProcesoDetailPage({
             )}
             {proceso.fechaFinReal && (
               <div>
-                <p className="text-sm text-slate-500">Fecha real de finalización</p>
+                <p className="text-sm text-muted-foreground">Fecha real de finalización</p>
                 <p className="font-medium">
                   {new Date(proceso.fechaFinReal).toLocaleDateString('es-ES', {
                     year: 'numeric',
@@ -267,7 +267,7 @@ export default function ProcesoDetailPage({
 
           {proceso.notas && (
             <div>
-              <p className="text-sm text-slate-500 mb-1">Notas</p>
+              <p className="text-sm text-muted-foreground mb-1">Notas</p>
               <p className="text-sm">{proceso.notas}</p>
             </div>
           )}
@@ -320,7 +320,7 @@ export default function ProcesoDetailPage({
         </CardHeader>
         <CardContent>
           {tareas.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">
+            <p className="text-center text-muted-foreground py-8">
               No hay tareas definidas para este proceso
             </p>
           ) : (
@@ -338,7 +338,7 @@ export default function ProcesoDetailPage({
                     <div className="flex flex-col items-center">
                       {getTareaIcon(tarea.estado)}
                       {!isLastTarea && (
-                        <div className="w-0.5 flex-1 bg-slate-200 my-2" />
+                        <div className="w-0.5 flex-1 bg-border my-2" />
                       )}
                     </div>
 
@@ -346,11 +346,11 @@ export default function ProcesoDetailPage({
                     <div className="flex-1 pb-8">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h4 className="font-medium text-slate-900 mb-1">
+                          <h4 className="font-medium text-foreground mb-1">
                             {tarea.titulo}
                           </h4>
                           {tarea.descripcion && (
-                            <p className="text-sm text-slate-600 mb-2">
+                            <p className="text-sm text-muted-foreground mb-2">
                               {tarea.descripcion}
                             </p>
                           )}
@@ -369,12 +369,12 @@ export default function ProcesoDetailPage({
                             )}
                           </div>
                           {tarea.notas && (
-                            <p className="text-sm text-slate-500 mt-2 italic">
+                            <p className="text-sm text-muted-foreground mt-2 italic">
                               Notas: {tarea.notas}
                             </p>
                           )}
                           {tarea.completadaAt && (
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               Completada el{' '}
                               {new Date(tarea.completadaAt).toLocaleDateString('es-ES')}
                             </p>

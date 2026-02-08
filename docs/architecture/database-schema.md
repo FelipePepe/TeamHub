@@ -599,6 +599,19 @@ SET LOCAL app.user_agent = 'Mozilla/5.0...';
 
 Ver `src/db/audit-context.ts` para helpers de TypeScript.
 
+### Campos Virtuales (resueltos via JOIN)
+
+Los siguientes campos no existen en la BD sino que se resuelven en tiempo de consulta mediante LEFT JOIN:
+
+| Endpoint | Campo virtual | Origen |
+|----------|--------------|--------|
+| `GET /usuarios/:id`, `GET /usuarios` | `departamentoNombre` | `departamentos.nombre` via LEFT JOIN |
+| `GET /usuarios/:id`, `GET /usuarios` | `managerNombre` | Self-JOIN en `users` con alias `managers` |
+| `GET /dashboard/manager` (pendientes) | `usuarioNombre` | LEFT JOIN con `users` |
+| `GET /dashboard/manager` (pendientes) | `proyectoNombre` | LEFT JOIN con `proyectos` |
+
+El patrón de self-JOIN usa `alias()` de Drizzle ORM para resolver la relación reflexiva `users.manager_id` → `users`.
+
 ### Campos Sensibles
 Los siguientes campos se excluyen del log de auditoría:
 - `password_hash`

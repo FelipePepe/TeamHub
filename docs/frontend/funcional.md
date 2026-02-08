@@ -219,6 +219,8 @@ El módulo de timetracking incluye 3 vistas principales accesibles mediante tabs
 ## Reglas de Negocio UI
 - Restricciones por rol en menus y vistas.
 - Estados visuales segun estado de entidad (activo/inactivo, aprobado/pendiente).
+- **Nunca exponer IDs (UUID) al usuario**: todas las referencias a entidades relacionadas se muestran con nombres legibles (ej: nombre del departamento, nombre del manager). Si el nombre no está disponible, se muestra "Sin asignar" o "Usuario desconocido".
+- **Dark mode completo**: todas las pantallas soportan modo oscuro. Se usan tokens semánticos de shadcn/ui en vez de colores hardcodeados (ver doc técnico).
 
 ## Wireflows (implementados)
 
@@ -258,3 +260,4 @@ El módulo de timetracking incluye 3 vistas principales accesibles mediante tabs
 - Migrar gráficos de dashboards (bar-chart, line-chart) a D3.js para mayor interactividad (ADR-065).
 - Tests E2E completos para flujos críticos.
 - Optimizaciones de performance (lazy loading, code splitting).
+- Migrar valores hardcodeados (roles de asignación, estados, categorías) a tablas configurables en BD.

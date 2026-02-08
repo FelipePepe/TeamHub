@@ -4,6 +4,26 @@ import { useMemo } from 'react';
 import { useAuth } from './use-auth';
 import type { UserRole } from '@/types';
 
+/**
+ * Hook para verificación de permisos client-side.
+ * 
+ * ⚠️ LIMITACIÓN DE SEGURIDAD:
+ * Los permisos se calculan desde el estado del cliente y NO sustituyen
+ * la validación de permisos server-side. Un atacante puede modificar el
+ * estado de React para cambiar su rol y ver opciones de UI no autorizadas.
+ * 
+ * Este hook solo debe usarse para:
+ * - Mostrar/ocultar elementos de UI
+ * - Navegación condicional
+ * - UX mejorada
+ * 
+ * La autorización real SIEMPRE se valida en el backend mediante:
+ * - authMiddleware (verifica JWT)
+ * - requireRoles(...) (verifica permisos específicos)
+ * 
+ * @see backend/src/middleware/auth.ts
+ * @see backend/src/middleware/require-roles.ts
+ */
 export function usePermissions() {
   const { user } = useAuth();
 

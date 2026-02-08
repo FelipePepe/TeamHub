@@ -35,7 +35,7 @@ export const updateTareaSchema = z.object({
 });
 
 export const completarTareaSchema = z.object({
-  evidenciaUrl: z.string().optional(),
+  evidenciaUrl: z.string().url().optional(),
   notas: z.string().optional(),
 });
 

@@ -2,6 +2,7 @@ import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { eq, inArray } from 'drizzle-orm';
 import type { HonoEnv } from '../../../types/hono.js';
+import { requireRoles } from '../../../middleware/auth.js';
 import { parseJson, parseParams } from '../../../validators/parse.js';
 import { toTimetrackingResponse } from '../../../services/mappers.js';
 import { db } from '../../../db/index.js';
@@ -15,7 +16,7 @@ import { toNumber } from '../utils.js';
 import { z } from 'zod';
 
 export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
-  router.post('/aprobar-masivo', async (c) => {
+  router.post('/aprobar-masivo', requireRoles('ADMIN', 'RRHH', 'MANAGER'), async (c) => {
     const payload = await parseJson(c, bulkApproveSchema);
     const user = c.get('user') as User;
     const now = new Date();
@@ -83,7 +84,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ data: Array.from(grouped.values()) });
   });
 
-  router.patch('/:id/aprobar', async (c) => {
+  router.patch('/:id/aprobar', requireRoles('ADMIN', 'RRHH', 'MANAGER'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     await parseJson(c, approveSchema ?? z.object({}));
     const registro = await findTimetrackingById(id);
@@ -106,7 +107,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toTimetrackingResponse(updated));
   });
 
-  router.patch('/:id/rechazar', async (c) => {
+  router.patch('/:id/rechazar', requireRoles('ADMIN', 'RRHH', 'MANAGER'), async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     const payload = await parseJson(c, rejectSchema);
     const registro = await findTimetrackingById(id);

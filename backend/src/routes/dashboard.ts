@@ -1,6 +1,6 @@
 import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, requireRoles } from '../middleware/auth.js';
 import type { User } from '../db/schema/users.js';
 import { buildAdminDashboardResponse } from './dashboard/admin.js';
 import { buildEmpleadoDashboardResponse } from './dashboard/empleado.js';
@@ -11,15 +11,15 @@ export const dashboardRoutes = new Hono<HonoEnv>();
 
 dashboardRoutes.use('*', authMiddleware);
 
-dashboardRoutes.get('/admin', async (c) => {
+dashboardRoutes.get('/admin', requireRoles('ADMIN'), async (c) => {
   return c.json(await buildAdminDashboardResponse());
 });
 
-dashboardRoutes.get('/rrhh', async (c) => {
+dashboardRoutes.get('/rrhh', requireRoles('ADMIN', 'RRHH'), async (c) => {
   return c.json(await buildRrhhDashboardResponse());
 });
 
-dashboardRoutes.get('/manager', async (c) => {
+dashboardRoutes.get('/manager', requireRoles('ADMIN', 'RRHH', 'MANAGER'), async (c) => {
   const user = c.get('user') as User;
   return c.json(await buildManagerDashboardResponse(user));
 });

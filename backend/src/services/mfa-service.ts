@@ -4,41 +4,63 @@ import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
+const SALT_LENGTH = 16;
 
 /**
- * Deriva una clave de cifrado de 32 bytes a partir del secreto de MFA.
+ * Deriva una clave de cifrado de 32 bytes a partir del secreto de MFA y un salt.
+ * @param salt - Salt para la derivación de clave.
  * @returns Clave derivada en formato Buffer.
  */
-const deriveKey = () => scryptSync(config.MFA_ENCRYPTION_KEY, 'mfa-salt', 32);
+const deriveKey = (salt: Buffer) => scryptSync(config.MFA_ENCRYPTION_KEY, salt, 32);
 
 /**
- * Cifra un secreto MFA y devuelve el payload en base64 (iv:authTag:data).
+ * Cifra un secreto MFA y devuelve el payload en base64 (salt:iv:authTag:data).
  * @param plainSecret - Secreto MFA en texto plano.
  * @returns Secreto cifrado en formato base64.
+ * @throws Error si el secreto está vacío.
  */
 export const encryptMfaSecret = (plainSecret: string): string => {
-  const key = deriveKey();
+  if (!plainSecret || typeof plainSecret !== 'string') {
+    throw new Error('Invalid MFA secret: must be a non-empty string');
+  }
+  
+  const salt = randomBytes(SALT_LENGTH);
+  const key = deriveKey(salt);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
   const encrypted = Buffer.concat([cipher.update(plainSecret, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
-  // Format: iv:authTag:encryptedData (all base64)
-  return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
+  // Format: salt:iv:authTag:encryptedData (all base64)
+  return `${salt.toString('base64')}:${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
 };
 
 /**
- * Descifra un secreto MFA cifrado en formato base64 (iv:authTag:data).
+ * Descifra un secreto MFA cifrado en formato base64.
+ * Soporta formato nuevo (salt:iv:authTag:data) y legacy (iv:authTag:data).
  * @param encryptedSecret - Secreto cifrado en formato base64.
  * @returns Secreto MFA en texto plano.
  * @throws Error si el formato es inválido o el authTag no valida.
  */
 export const decryptMfaSecret = (encryptedSecret: string): string => {
   const parts = encryptedSecret.split(':');
-  if (parts.length !== 3) {
+  let salt: Buffer;
+  let ivB64: string;
+  let authTagB64: string;
+  let dataB64: string;
+
+  if (parts.length === 4) {
+    // Nuevo formato con salt dinámico
+    [, ivB64, authTagB64, dataB64] = parts;
+    salt = Buffer.from(parts[0], 'base64');
+  } else if (parts.length === 3) {
+    // Legacy formato con salt estático - backward compatible
+    [ivB64, authTagB64, dataB64] = parts;
+    salt = Buffer.from('mfa-salt');
+  } else {
     throw new Error('Invalid encrypted secret format');
   }
-  const [ivB64, authTagB64, dataB64] = parts;
-  const key = deriveKey();
+
+  const key = deriveKey(salt);
   const iv = Buffer.from(ivB64, 'base64');
   const authTag = Buffer.from(authTagB64, 'base64');
   const encrypted = Buffer.from(dataB64, 'base64');
@@ -153,4 +175,25 @@ export const verifyTotpCode = (secret: string, code: string, timestampMs = Date.
   }
 
   return false;
+};
+
+/**
+ * Verifica que un valor tenga el formato de secreto MFA cifrado esperado.
+ * Formato válido: salt:iv:authTag:data (4 partes base64) o iv:authTag:data (3 partes, legacy).
+ * @param value - Valor a verificar.
+ * @returns true si el valor parece estar cifrado.
+ */
+export const isEncryptedMfaSecret = (value: string): boolean => {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+  
+  const parts = value.split(':');
+  if (parts.length !== 3 && parts.length !== 4) {
+    return false;
+  }
+  
+  // Verificar que cada parte sea base64 válido
+  const base64Regex = /^[A-Za-z0-9+/=]+$/;
+  return parts.every(part => part.length > 0 && base64Regex.test(part));
 };

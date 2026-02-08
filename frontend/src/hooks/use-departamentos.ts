@@ -152,7 +152,7 @@ export function useCreateDepartamento() {
       queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear departamento:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear departamento:', error);
     },
   });
 }
@@ -175,7 +175,7 @@ export function useUpdateDepartamento() {
       queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar departamento:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar departamento:', error);
     },
   });
 }
@@ -194,7 +194,7 @@ export function useDeleteDepartamento() {
       queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar departamento:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar departamento:', error);
     },
   });
 }

@@ -22,10 +22,11 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Añadir firma HMAC
+      // Añadir firma HMAC (incluye body hash)
       const method = config.method?.toUpperCase() || 'GET';
       const path = `/api${config.url || ''}`;
-      const signature = await generateRequestSignature(method, path);
+      const body = config.data != null ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
+      const signature = await generateRequestSignature(method, path, body);
       config.headers['X-Request-Signature'] = signature;
     }
     return config;
@@ -47,7 +48,8 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           const refreshPath = '/api/auth/refresh';
-          const signature = await generateRequestSignature('POST', refreshPath);
+          const refreshBody = JSON.stringify({ refreshToken });
+          const signature = await generateRequestSignature('POST', refreshPath, refreshBody);
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
           }, {

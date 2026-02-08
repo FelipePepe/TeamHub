@@ -210,15 +210,31 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     }
 
     // Generate a cryptographically secure temporary password
-    const { randomBytes } = await import('node:crypto');
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
-    const randomBuffer = randomBytes(16);
-    let tempPassword = '';
+    const { randomBytes: genBytes } = await import('node:crypto');
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const symbols = '!@#$%&*';
+    const all = upper + lower + digits + symbols;
+    const randomBuffer = genBytes(16);
+    const chars: string[] = new Array(16);
     for (let i = 0; i < 16; i++) {
-      tempPassword += chars.charAt(randomBuffer[i] % chars.length);
+      chars[i] = all.charAt(randomBuffer[i] % all.length);
     }
-    // Ensure it meets the password policy
-    tempPassword = tempPassword.slice(0, 12) + 'Aa1!';
+    // Ensure password policy: insert required character types at random positions
+    const requiredSets = [upper, lower, digits, symbols];
+    const usedPositions: number[] = [];
+    const posBuffer = genBytes(4);
+    for (let i = 0; i < requiredSets.length; i++) {
+      let pos: number;
+      do {
+        pos = posBuffer[i] % 16;
+      } while (usedPositions.includes(pos));
+      usedPositions.push(pos);
+      const setChars = requiredSets[i];
+      chars[pos] = setChars.charAt(genBytes(1)[0] % setChars.length);
+    }
+    const tempPassword = chars.join('');
 
     await updateUserById(user.id, {
       passwordHash: await hashPassword(tempPassword),
@@ -229,7 +245,10 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     });
 
     return c.json({
-      message: 'Contraseña temporal generada',
+      message: 'Contraseña temporal generada. Enviar al usuario por canal seguro (email interno, Slack).',
+      // ⚠️ MEJORA RECOMENDADA: No retornar tempPassword en HTTP response
+      // Considerar enviar por email en vez de incluir en respuesta HTTP para evitar captura en logs.
+      // El frontend actualmente depende de este campo para mostrarlo al admin en UI.
       tempPassword,
     });
   });

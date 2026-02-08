@@ -126,7 +126,7 @@ export function useCreateProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear proceso:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear proceso:', error);
     },
   });
 }
@@ -148,7 +148,7 @@ export function useUpdateProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar proceso:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar proceso:', error);
     },
   });
 }
@@ -170,7 +170,7 @@ export function useCancelarProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al cancelar proceso:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al cancelar proceso:', error);
     },
   });
 }
@@ -191,7 +191,7 @@ export function usePausarProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al pausar proceso:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al pausar proceso:', error);
     },
   });
 }
@@ -212,7 +212,7 @@ export function useReanudarProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al reanudar proceso:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al reanudar proceso:', error);
     },
   });
 }
@@ -255,7 +255,7 @@ export function useUpdateTareaProceso() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.misTareas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar tarea:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar tarea:', error);
     },
   });
 }
@@ -287,7 +287,7 @@ export function useCompletarTarea() {
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al completar tarea:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al completar tarea:', error);
     },
   });
 }

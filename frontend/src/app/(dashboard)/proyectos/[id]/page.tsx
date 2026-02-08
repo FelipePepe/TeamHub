@@ -79,7 +79,7 @@ export default function ProyectoDetailPage({
   const { data: tareasData, isLoading: tareasLoading } = useTareasByProyecto(id);
   const updateEstado = useUpdateProyectoEstado();
   const deleteProyecto = useDeleteProyecto();
-  const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
+  const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
   const empleados = empleadosData?.data ?? [];
   const empleadosById = new Map(empleados.map((empleado) => [empleado.id, empleado]));
   const asignaciones = asignacionesData?.data ?? [];
@@ -218,7 +218,7 @@ export default function ProyectoDetailPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Estadísticas (OpenAPI ProyectoStatsResponse)
+              Estadísticas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -254,7 +254,7 @@ export default function ProyectoDetailPage({
             <Users className="h-5 w-5" />
             Asignaciones
           </CardTitle>
-          <CardDescription>Equipo asignado al proyecto (GET /proyectos/:id/asignaciones)</CardDescription>
+          <CardDescription>Equipo asignado al proyecto</CardDescription>
         </CardHeader>
         <CardContent>
           {asignaciones.length === 0 ? (
@@ -348,6 +348,20 @@ function AddAsignacionButton({
   );
 }
 
+const ROLES_ASIGNACION = [
+  'Tech Lead',
+  'Desarrollador',
+  'QA / Tester',
+  'Diseñador',
+  'Analista',
+  'Product Owner',
+  'Scrum Master',
+  'DevOps',
+  'Consultor',
+];
+
+const NONE_ROL_SENTINEL = '__none__';
+
 function AddAsignacionModal({
   proyectoId,
   empleados,
@@ -387,7 +401,7 @@ function AddAsignacionModal({
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Añadir asignación (CreateAsignacionRequest)</DialogTitle>
+          <DialogTitle>Añadir asignación</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -417,8 +431,19 @@ function AddAsignacionModal({
             <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Rol</Label>
-            <Input value={rol} onChange={(e) => setRol(e.target.value)} placeholder="Opcional" />
+            <Label>Rol en el proyecto</Label>
+            <Select
+              value={rol || NONE_ROL_SENTINEL}
+              onValueChange={(value) => setRol(value === NONE_ROL_SENTINEL ? '' : value)}
+            >
+              <SelectTrigger><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_ROL_SENTINEL}>Sin rol asignado</SelectItem>
+                {ROLES_ASIGNACION.map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>

@@ -368,6 +368,17 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Mitigación:** Renovate Bot, Snyk/Dependabot, migración a `jose` si CVE ≥ 8.0
 - **Referencia:** docs/adr/091-jsonwebtoken-dependency-mitigation.md
 
+### ADR-092: Enriquecimiento de respuesta de Tareas con datos del usuario asignado
+
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** El endpoint `GET /api/proyectos/:id/tareas` solo devolvía `usuarioAsignadoId` (UUID) pero no los datos del usuario asignado (nombre, apellidos). El frontend mostraba "Sin asignar" para todas las tareas porque esperaba `usuarioAsignado: { id, nombre, apellidos }` según el tipo `Tarea`.
+- **Decisión:** Modificar el repositorio de tareas para hacer LEFT JOIN con la tabla `users` en `findByProyecto` y `findByUsuario`, devolviendo `usuarioAsignado` como objeto embebido. Crear tipo `TareaConUsuario` y actualizar mapper, servicio y contrato OpenAPI.
+- **Consecuencias:**
+  - **Positivas:** El frontend muestra correctamente el nombre del usuario asignado; el contrato OpenAPI ahora documenta los 7 endpoints de tareas de proyecto
+  - **Negativas:** Una query adicional (LEFT JOIN) por llamada, impacto mínimo en rendimiento
+  - **Lección:** Los tests existentes no verificaban la presencia de `usuarioAsignado` en la respuesta; añadir tests de integración end-to-end para validar contratos completos
+
 ---
 
 ## 4. API y Contratos
@@ -1392,7 +1403,7 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - **Tests:** 226+ pasando (100 backend + 126+ frontend + 10 charts)
 - **Cobertura:** Core 100%, Important 80%+
 - **Seguridad:** OWASP 96.5%, sin vulnerabilidades
-- **API:** OpenAPI v1.0.0 con 154 endpoints; filtro `managerId` añadido
+- **API:** OpenAPI v1.0.0 con 154+ endpoints; filtro `managerId` añadido; endpoints de tareas de proyecto documentados
 - **Releases:**
   - v1.0.0: Primera release con fases 1-5 completas
   - v1.1.0: Seed data scripts y fix formateo decimal

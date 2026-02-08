@@ -83,7 +83,7 @@ export function TaskFormModal({
   const isEdit = !!tarea;
   const createTarea = useCreateTarea();
   const updateTarea = useUpdateTarea();
-  const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
+  const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
   const empleados = empleadosData?.data ?? [];
 
   const {

@@ -123,6 +123,21 @@ schemas:
   ProcesoStatsResponse:
     $ref: './schemas/procesos.yaml#/ProcesoStatsResponse'
 
+  UsuarioAsignadoRef:
+    $ref: './schemas/tareas.yaml#/UsuarioAsignadoRef'
+  TareaResponse:
+    $ref: './schemas/tareas.yaml#/TareaResponse'
+  TareaListResponse:
+    $ref: './schemas/tareas.yaml#/TareaListResponse'
+  CreateTareaRequest:
+    $ref: './schemas/tareas.yaml#/CreateTareaRequest'
+  UpdateTareaRequest:
+    $ref: './schemas/tareas.yaml#/UpdateTareaRequest'
+  UpdateEstadoTareaRequest:
+    $ref: './schemas/tareas.yaml#/UpdateEstadoTareaRequest'
+  ReasignarTareaRequest:
+    $ref: './schemas/tareas.yaml#/ReasignarTareaRequest'
+
   ProyectoResponse:
     $ref: './schemas/proyectos.yaml#/ProyectoResponse'
   ProyectoListResponse:

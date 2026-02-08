@@ -9,6 +9,7 @@ type TareaResponseInput = {
   estado: string;
   prioridad: string;
   usuarioAsignadoId?: string | null;
+  usuarioAsignado?: { id: string; nombre: string; apellidos: string | null } | null;
   fechaInicio?: string | Date | null;
   fechaFin?: string | Date | null;
   horasEstimadas?: number | string | null;
@@ -19,7 +20,14 @@ type TareaResponseInput = {
   updatedAt?: Date | string;
 };
 
-export const toTareaResponse = (tarea: TareaResponseInput | Tarea) => ({
+/**
+ * Mapea una tarea del dominio/DB al formato de respuesta de la API.
+ * Incluye `usuarioAsignado` con datos básicos del usuario (nombre, apellidos)
+ * cuando la tarea viene enriquecida desde el repositorio (LEFT JOIN con users).
+ * @param tarea - Tarea cruda o enriquecida con datos del usuario asignado
+ * @returns Objeto de respuesta conforme al contrato OpenAPI TareaResponse
+ */
+export const toTareaResponse = (tarea: TareaResponseInput | (Tarea & { usuarioAsignado?: { id: string; nombre: string; apellidos: string | null } | null })) => ({
   id: tarea.id,
   proyectoId: tarea.proyectoId,
   titulo: tarea.titulo,
@@ -27,6 +35,7 @@ export const toTareaResponse = (tarea: TareaResponseInput | Tarea) => ({
   estado: tarea.estado,
   prioridad: tarea.prioridad,
   usuarioAsignadoId: tarea.usuarioAsignadoId,
+  usuarioAsignado: tarea.usuarioAsignado ?? null,
   fechaInicio: tarea.fechaInicio,
   fechaFin: tarea.fechaFin,
   horasEstimadas: toNumberOrUndefined(tarea.horasEstimadas),

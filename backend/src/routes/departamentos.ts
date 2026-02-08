@@ -9,7 +9,7 @@ import { toDepartamentoResponse, toUserResponse } from '../services/mappers.js';
 import { db } from '../db/index.js';
 import { departamentos } from '../db/schema/departamentos.js';
 import { users } from '../db/schema/users.js';
-import { and, eq, ilike, isNotNull, isNull, or } from 'drizzle-orm';
+import { and, eq, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import type { Departamento } from '../db/schema/departamentos.js';
 import {
   createDepartamento,
@@ -70,10 +70,22 @@ departamentosRoutes.get('/', async (c) => {
     activo: query.activo,
   });
   const whereClause = filters.length ? and(...filters) : undefined;
-  const baseQuery = db.select().from(departamentos);
+  const baseQuery = db
+    .select({
+      departamento: departamentos,
+      usuariosCount: sql<number>`count(${users.id})`.as('usuarios_count'),
+    })
+    .from(departamentos)
+    .leftJoin(users, and(eq(users.departamentoId, departamentos.id), isNull(users.deletedAt)))
+    .groupBy(departamentos.id);
   const list = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
-  return c.json({ data: list.map(toDepartamentoResponse) });
+  return c.json({
+    data: list.map((row) => ({
+      ...toDepartamentoResponse(row.departamento),
+      _count: { usuarios: Number(row.usuariosCount) },
+    })),
+  });
 });
 
 departamentosRoutes.post('/', requireRoles('ADMIN', 'RRHH'), async (c) => {

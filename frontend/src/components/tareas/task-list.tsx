@@ -96,7 +96,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
   const updateEstadoTarea = useUpdateEstadoTarea();
   const reasignarTarea = useReasignarTarea();
   const deleteTarea = useDeleteTarea();
-  const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
+  const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
   const empleados = empleadosData?.data ?? [];
 
   // Filtros

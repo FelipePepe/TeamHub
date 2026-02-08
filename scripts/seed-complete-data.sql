@@ -4,166 +4,174 @@
 -- ============================================
 -- 1. DEPARTAMENTOS (6 departamentos)
 -- ============================================
-INSERT INTO departamentos (id, nombre, codigo, descripcion, activo)
+INSERT INTO departamentos (id, nombre, codigo, descripcion)
 VALUES
-  (gen_random_uuid(), 'Desarrollo', 'DEV', 'Equipo de desarrollo de software', true),
-  (gen_random_uuid(), 'Recursos Humanos', 'RRHH', 'Gestión de personal y talento', true),
-  (gen_random_uuid(), 'Marketing', 'MKT', 'Marketing digital y contenidos', true),
-  (gen_random_uuid(), 'Ventas', 'SALES', 'Equipo comercial', true),
-  (gen_random_uuid(), 'Finanzas', 'FIN', 'Contabilidad y finanzas', true),
-  (gen_random_uuid(), 'Soporte', 'SUP', 'Atención al cliente y soporte técnico', true)
+  (gen_random_uuid(), 'Desarrollo', 'DEV', 'Equipo de desarrollo de software'),
+  (gen_random_uuid(), 'Recursos Humanos', 'RRHH', 'Gestión de personal y talento'),
+  (gen_random_uuid(), 'Marketing', 'MKT', 'Marketing digital y contenidos'),
+  (gen_random_uuid(), 'Ventas', 'SALES', 'Equipo comercial'),
+  (gen_random_uuid(), 'Finanzas', 'FIN', 'Contabilidad y finanzas'),
+  (gen_random_uuid(), 'Soporte', 'SUP', 'Atención al cliente y soporte técnico')
 ON CONFLICT (codigo) DO NOTHING;
 
 -- ============================================
 -- 2. USUARIOS CON DIFERENTES ROLES (12 usuarios)
 -- ============================================
--- Password para todos: Test123!
+-- ⚠️ SEGURIDAD: Password para todos los usuarios de seed: Test123!
+-- 
+-- ⚠️ ACCIÓN OBLIGATORIA: Cambiar TODOS los passwords inmediatamente después
+-- de poblar la base de datos. Estos hashes bcrypt son públicos en el repositorio
+-- y cualquier persona con acceso puede usarlos para autenticarse.
+-- 
+-- Para cambiar passwords en bulk:
+-- UPDATE users SET password_hash = '$2a$10$TU_NUEVO_HASH_AQUI', must_change_password = true
+-- WHERE email LIKE '%@teamhub.com';
+--
 
 -- ADMIN
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol)
 SELECT 
   gen_random_uuid(),
   'admin@teamhub.com',
   'María',
   'González Admin',
-  '$2b$10$YourHashHere', -- Reemplazar con hash real si es necesario
-  'ADMIN',
-  true
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW', -- Test123!
+  'ADMIN'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@teamhub.com');
 
 -- RRHH (2 usuarios)
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'rrhh1@teamhub.com',
   'Ana',
   'Martínez',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'RRHH',
-  (SELECT id FROM departamentos WHERE codigo = 'RRHH' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'RRHH' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'rrhh1@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'rrhh2@teamhub.com',
   'Carlos',
   'Ruiz',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'RRHH',
-  (SELECT id FROM departamentos WHERE codigo = 'RRHH' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'RRHH' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'rrhh2@teamhub.com');
 
 -- MANAGER (3 usuarios de diferentes departamentos)
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'manager.dev@teamhub.com',
   'Pedro',
   'López Manager',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'MANAGER',
-  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'manager.dev@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'manager.mkt@teamhub.com',
   'Laura',
   'Sánchez Manager',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'MANAGER',
-  (SELECT id FROM departamentos WHERE codigo = 'MKT' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'MKT' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'manager.mkt@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'manager.sales@teamhub.com',
   'Javier',
   'Torres Manager',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'MANAGER',
-  (SELECT id FROM departamentos WHERE codigo = 'SALES' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'SALES' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'manager.sales@teamhub.com');
 
 -- EMPLEADOS (6 usuarios)
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'dev1@teamhub.com',
   'Luis',
   'García Dev',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'dev1@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'dev2@teamhub.com',
   'Elena',
   'Fernández Dev',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'dev2@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
+SELECT 
+  gen_random_uuid(),
+  'admin@teamhub.example.com',
+  'Felipe',
+  'Pepe',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
+  'EMPLEADO',
+  (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1)
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@teamhub.example.com');
+
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'mkt1@teamhub.com',
   'Sofía',
   'Moreno Marketing',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'MKT' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'MKT' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'mkt1@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'sales1@teamhub.com',
   'Miguel',
   'Jiménez Sales',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'SALES' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'SALES' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'sales1@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'fin1@teamhub.com',
   'Isabel',
   'Romero Finanzas',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'FIN' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'FIN' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'fin1@teamhub.com');
 
-INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id, activo)
+INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
   'sup1@teamhub.com',
   'Diego',
   'Vargas Soporte',
-  '$2b$10$YourHashHere',
+  '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
-  (SELECT id FROM departamentos WHERE codigo = 'SUP' LIMIT 1),
-  true
+  (SELECT id FROM departamentos WHERE codigo = 'SUP' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'sup1@teamhub.com');
 
 -- ============================================
@@ -345,7 +353,7 @@ SELECT
   80,
   32
 FROM users u
-WHERE u.email IN ('dev1@teamhub.com', 'dev2@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev1@teamhub.com', 'dev2@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- MKT-001: 2 marketing
@@ -373,7 +381,7 @@ SELECT
   60,
   24
 FROM users u
-WHERE u.email IN ('dev1@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev1@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- PORTAL-001: 2 desarrolladores
@@ -387,7 +395,7 @@ SELECT
   50,
   20
 FROM users u
-WHERE u.email IN ('dev2@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev2@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- SUP-TICKET-001: 2 personas (1 dev + 1 soporte)
@@ -408,11 +416,11 @@ ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 -- 5. TIMETRACKING (registros variados)
 -- ============================================
 
--- Registros de esta semana para felipepepe@gmail.com en varios proyectos
+-- Registros de esta semana para admin@teamhub.example.com en varios proyectos
 INSERT INTO timetracking (id, usuario_id, proyecto_id, fecha, horas, descripcion, estado, facturable)
 SELECT 
   gen_random_uuid(),
-  (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1),
+  (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1),
   p.id,
   CURRENT_DATE - (EXTRACT(DOW FROM CURRENT_DATE)::integer) + offset_days,
   CASE 
@@ -424,7 +432,7 @@ SELECT
     ELSE 0
   END,
   'Desarrollo funcionalidad ' || p.codigo,
-  'APROBADO',
+  'APROBADO'::time_entry_status,
   true
 FROM proyectos p
 CROSS JOIN generate_series(0, 4) AS offset_days
@@ -445,8 +453,8 @@ SELECT
   END,
   'Trabajo en ' || p.nombre,
   CASE 
-    WHEN offset_days < 3 THEN 'APROBADO'
-    ELSE 'PENDIENTE'
+    WHEN offset_days < 3 THEN 'APROBADO'::time_entry_status
+    ELSE 'PENDIENTE'::time_entry_status
   END,
   true
 FROM users u
@@ -469,7 +477,7 @@ SELECT
   CURRENT_DATE - (EXTRACT(DOW FROM CURRENT_DATE)::integer) + offset_days,
   6,
   'Campaña redes sociales',
-  'APROBADO',
+  'APROBADO'::time_entry_status,
   true
 FROM users u
 CROSS JOIN proyectos p
@@ -482,9 +490,9 @@ ON CONFLICT DO NOTHING;
 -- 6. VERIFICACIÓN
 -- ============================================
 
-SELECT 'Departamentos creados:' as tipo, COUNT(*) as total FROM departamentos WHERE activo = true
+SELECT 'Departamentos creados:' as tipo, COUNT(*) as total FROM departamentos WHERE deleted_at IS NULL
 UNION ALL
-SELECT 'Usuarios creados:', COUNT(*) FROM users WHERE activo = true
+SELECT 'Usuarios creados:', COUNT(*) FROM users WHERE deleted_at IS NULL
 UNION ALL
 SELECT 'Proyectos creados:', COUNT(*) FROM proyectos WHERE deleted_at IS NULL
 UNION ALL
@@ -498,7 +506,7 @@ SELECT
   rol,
   COUNT(*) as cantidad
 FROM users
-WHERE activo = true
+WHERE deleted_at IS NULL
 GROUP BY rol
 ORDER BY rol;
 

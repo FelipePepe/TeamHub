@@ -5,9 +5,15 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     services:
       postgres:
         image: postgres:16-alpine
@@ -23,6 +29,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      # ⚠️ RECOMENDACIÓN: Pinear actions a SHA específico en vez de tag
+      # Ejemplo: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      # Reduce riesgo de supply chain attack si una action es comprometida
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4

@@ -19,6 +19,11 @@ const COLORS = [
   '#ec4899', '#06b6d4', '#f97316', '#6366f1',
 ];
 
+/**
+ * Renderiza un gráfico de barras con estilos accesibles y tooltips.
+ * @param props - Props de título, datos, altura y estado de carga.
+ * @returns Tarjeta con gráfico de barras o estados alternativos.
+ */
 export function BarChart({
   title,
   description,
@@ -208,11 +213,11 @@ export function BarChart({
           <CardTitle className="text-lg">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center text-slate-400" style={{ height }}>
-            Sin datos
-          </div>
-        </CardContent>
+      <CardContent>
+        <div className="flex items-center justify-center text-muted-foreground" style={{ height }}>
+          Sin datos
+        </div>
+      </CardContent>
       </Card>
     );
   }

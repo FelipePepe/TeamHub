@@ -6,6 +6,7 @@ type RateLimitOptions = {
   keyGenerator: (c: Parameters<MiddlewareHandler>[0]) => string | undefined;
   message?: string;
   skipSuccessfulRequests?: boolean;
+  maxEntries?: number;
 };
 
 type RateLimitState = {
@@ -14,6 +15,10 @@ type RateLimitState = {
 };
 
 const getClientIp = (c: Parameters<MiddlewareHandler>[0]) => {
+  // ⚠️ LIMITACIÓN: No se validan proxies de confianza
+  // En producción con proxy reverso (Nginx, Cloudflare), configurar
+  // el middleware trusted-proxy de Hono para extraer la IP real correctamente.
+  // Ejemplo: app.use(trustedProxy({ allowedProxies: ['10.0.0.0/8'] }))
   const forwardedFor = c.req.header('x-forwarded-for');
   return forwardedFor?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown';
 };
@@ -26,6 +31,11 @@ const getClientIp = (c: Parameters<MiddlewareHandler>[0]) => {
  * - Limpieza automática de entradas expiradas cada 10 minutos
  * - Respeta el estándar Retry-After header
  * - Opción de no contar requests exitosos
+ * - Protección contra memory exhaustion con maxEntries
+ * 
+ * ⚠️ LIMITACIÓN: Store in-memory no es distribuido.
+ * En deployments multi-instancia, cada instancia tiene su propio contador.
+ * Para producción con escalado horizontal, migrar a Redis.
  * 
  * @param options Configuración del rate limiter
  * @returns Middleware de Hono
@@ -36,6 +46,7 @@ export const createRateLimiter = ({
   keyGenerator,
   message,
   skipSuccessfulRequests = false,
+  maxEntries = 10000,
 }: RateLimitOptions): MiddlewareHandler => {
   const store = new Map<string, RateLimitState>();
   let cleanupIntervalId: NodeJS.Timeout | null = null;
@@ -88,6 +99,16 @@ export const createRateLimiter = ({
 
     // Inicializar o resetear contador si expiró
     if (!state || state.resetAt <= now) {
+      // Protección contra memory exhaustion: rechazar si se excede maxEntries
+      if (store.size >= maxEntries && !state) {
+        return c.json(
+          { 
+            error: 'Service temporarily unavailable', 
+            code: 'RATE_LIMIT_STORAGE_FULL' 
+          },
+          503
+        );
+      }
       store.set(key, { count: 1, resetAt: now + windowMs });
     } else {
       state.count += 1;

@@ -57,10 +57,10 @@ export function MiOnboardingWidget() {
   // Get estado badge
   const getEstadoBadge = (estado: string) => {
     const styles: Record<string, string> = {
-      EN_CURSO: 'bg-blue-100 text-blue-800',
-      COMPLETADO: 'bg-green-100 text-green-800',
-      CANCELADO: 'bg-red-100 text-red-800',
-      PAUSADO: 'bg-yellow-100 text-yellow-800',
+      EN_CURSO: 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200',
+      COMPLETADO: 'bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-200',
+      CANCELADO: 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-200',
+      PAUSADO: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-200',
     };
 
     const labels: Record<string, string> = {
@@ -173,7 +173,7 @@ export function MiOnboardingWidget() {
                     </p>
                   </div>
                   {tarea.prioridad === 'URGENTE' && (
-                    <Badge variant="outline" className="text-xs bg-red-50 text-red-700">
+                    <Badge variant="outline" className="text-xs bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300">
                       Urgente
                     </Badge>
                   )}
@@ -207,7 +207,7 @@ export function MiOnboardingWidget() {
 
         {/* Completed state */}
         {proceso.estado === 'COMPLETADO' && (
-          <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 text-green-800">
+          <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 text-green-800 dark:bg-green-950/40 dark:text-green-300">
             <CheckCircle2 className="h-5 w-5" />
             <span className="text-sm font-medium">
               ¡Onboarding completado! 🎉
@@ -217,7 +217,7 @@ export function MiOnboardingWidget() {
 
         {/* Paused state */}
         {proceso.estado === 'PAUSADO' && (
-          <div className="flex items-center gap-2 p-3 rounded-md bg-yellow-50 text-yellow-800">
+          <div className="flex items-center gap-2 p-3 rounded-md bg-yellow-50 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
             <AlertCircle className="h-5 w-5" />
             <span className="text-sm">
               El proceso está pausado temporalmente

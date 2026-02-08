@@ -1,0 +1,155 @@
+UsuarioAsignadoRef:
+  type: object
+  description: Datos básicos del usuario asignado a la tarea
+  required: [id, nombre]
+  properties:
+    id:
+      type: string
+      format: uuid
+    nombre:
+      type: string
+    apellidos:
+      type: string
+      nullable: true
+
+TareaResponse:
+  type: object
+  required: [id, proyectoId, titulo, estado, prioridad, orden]
+  properties:
+    id:
+      type: string
+      format: uuid
+    proyectoId:
+      type: string
+      format: uuid
+    titulo:
+      type: string
+    descripcion:
+      type: string
+      nullable: true
+    estado:
+      type: string
+      enum: [TODO, IN_PROGRESS, REVIEW, DONE, BLOCKED]
+    prioridad:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
+    usuarioAsignadoId:
+      type: string
+      format: uuid
+      nullable: true
+    usuarioAsignado:
+      nullable: true
+      allOf:
+        - $ref: '#/UsuarioAsignadoRef'
+    fechaInicio:
+      type: string
+      format: date-time
+      nullable: true
+    fechaFin:
+      type: string
+      format: date-time
+      nullable: true
+    horasEstimadas:
+      type: number
+      nullable: true
+    horasReales:
+      type: number
+      nullable: true
+    orden:
+      type: number
+    dependeDe:
+      type: string
+      format: uuid
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+TareaListResponse:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '../index.yaml#/schemas/TareaResponse'
+
+CreateTareaRequest:
+  type: object
+  required: [titulo]
+  properties:
+    titulo:
+      type: string
+      minLength: 3
+      maxLength: 200
+    descripcion:
+      type: string
+    prioridad:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
+    usuarioAsignadoId:
+      type: string
+      format: uuid
+    fechaInicio:
+      type: string
+      format: date
+    fechaFin:
+      type: string
+      format: date
+    horasEstimadas:
+      type: number
+      minimum: 0
+    dependeDe:
+      type: string
+      format: uuid
+
+UpdateTareaRequest:
+  type: object
+  properties:
+    titulo:
+      type: string
+      minLength: 3
+      maxLength: 200
+    descripcion:
+      type: string
+    prioridad:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
+    usuarioAsignadoId:
+      type: string
+      format: uuid
+    fechaInicio:
+      type: string
+      format: date
+    fechaFin:
+      type: string
+      format: date
+    horasEstimadas:
+      type: number
+      minimum: 0
+    horasReales:
+      type: number
+      minimum: 0
+    dependeDe:
+      type: string
+      format: uuid
+
+UpdateEstadoTareaRequest:
+  type: object
+  required: [estado]
+  properties:
+    estado:
+      type: string
+      enum: [TODO, IN_PROGRESS, REVIEW, DONE, BLOCKED]
+
+ReasignarTareaRequest:
+  type: object
+  required: [usuarioAsignadoId]
+  properties:
+    usuarioAsignadoId:
+      type: string
+      format: uuid
+      nullable: true

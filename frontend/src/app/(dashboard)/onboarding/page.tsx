@@ -15,6 +15,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,6 +39,8 @@ import { useEmpleados } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
 import { IniciarProcesoModal } from '@/components/onboarding/iniciar-proceso-modal';
 import { toast } from 'sonner';
+
+const FILTRO_TODOS_VALUE = '__todos__';
 
 /**
  * Página de listado de procesos de onboarding
@@ -162,10 +171,10 @@ export default function ProcesosPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             Procesos de Onboarding
           </h1>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Gestiona los procesos de incorporación de nuevos empleados
           </p>
         </div>
@@ -190,7 +199,7 @@ export default function ProcesosPage() {
             {/* Búsqueda */}
             <div className="md:col-span-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por empleado..."
                   value={search}
@@ -202,55 +211,76 @@ export default function ProcesosPage() {
 
             {/* Filtro por estado */}
             <div>
-              <select
-                value={filters.estado ?? ''}
-                onChange={(e) =>
-                  handleFilterChange('estado', e.target.value || undefined)
+              <Select
+                value={filters.estado ?? FILTRO_TODOS_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    'estado',
+                    value === FILTRO_TODOS_VALUE ? undefined : value
+                  )
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="">Todos los estados</option>
-                <option value="EN_CURSO">En Curso</option>
-                <option value="PAUSADO">Pausado</option>
-                <option value="COMPLETADO">Completado</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los estados" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos los estados</SelectItem>
+                  <SelectItem value="EN_CURSO">En Curso</SelectItem>
+                  <SelectItem value="PAUSADO">Pausado</SelectItem>
+                  <SelectItem value="COMPLETADO">Completado</SelectItem>
+                  <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Filtro por empleado */}
             <div>
-              <select
-                value={filters.empleadoId ?? ''}
-                onChange={(e) =>
-                  handleFilterChange('empleadoId', e.target.value || undefined)
+              <Select
+                value={filters.empleadoId ?? FILTRO_TODOS_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    'empleadoId',
+                    value === FILTRO_TODOS_VALUE ? undefined : value
+                  )
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="">Todos los empleados</option>
-                {empleados.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.nombre} {emp.apellidos}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los empleados" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos los empleados</SelectItem>
+                  {empleados.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.nombre} {emp.apellidos}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Filtro por departamento */}
             <div>
-              <select
-                value={filters.departamentoId ?? ''}
-                onChange={(e) =>
-                  handleFilterChange('departamentoId', e.target.value || undefined)
+              <Select
+                value={filters.departamentoId ?? FILTRO_TODOS_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    'departamentoId',
+                    value === FILTRO_TODOS_VALUE ? undefined : value
+                  )
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="">Todos los departamentos</option>
-                {departamentos.map((dept: Departamento) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.nombre}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los departamentos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos los departamentos</SelectItem>
+                  {departamentos.map((dept: Departamento) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -293,8 +323,8 @@ export default function ProcesosPage() {
             </div>
           ) : filteredProcesos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ClipboardList className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">
+              <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 {search || filters.estado || filters.empleadoId || filters.departamentoId
                   ? 'No se encontraron procesos con los filtros seleccionados'
                   : 'No hay procesos iniciados. Inicia tu primer proceso de onboarding.'}
@@ -335,7 +365,7 @@ export default function ProcesosPage() {
                           </CardTitle>
                           <CardDescription className="flex flex-wrap gap-2 items-center">
                             <span>{proceso.plantillaNombre || 'Plantilla'}</span>
-                            <span className="text-slate-400">•</span>
+                            <span className="text-muted-foreground">•</span>
                             <span>
                               Inicio:{' '}
                               {new Date(proceso.fechaInicio).toLocaleDateString('es-ES')}
@@ -351,7 +381,7 @@ export default function ProcesosPage() {
                       {/* Progress bar */}
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Progreso</span>
+                          <span className="text-muted-foreground">Progreso</span>
                           <span className="font-medium">{Math.round(progreso * 100)}%</span>
                         </div>
                         <Progress value={progreso * 100} className="h-2" />

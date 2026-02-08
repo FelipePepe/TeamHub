@@ -1,10 +1,10 @@
 {
   "name": "frontend",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "NODE_OPTIONS='--max-old-space-size=2048' next dev",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "start": "next start",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",

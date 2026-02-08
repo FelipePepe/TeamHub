@@ -13,5 +13,9 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
+    env: {
+      NODE_ENV: 'test',
+      DISABLE_HMAC: 'true',
+    },
   }
 });

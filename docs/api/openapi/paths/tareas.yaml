@@ -1,0 +1,324 @@
+/proyectos/{proyectoId}/tareas:
+  get:
+    tags: [Tareas]
+    summary: List project tasks
+    description: Retorna las tareas activas del proyecto con datos del usuario asignado
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: proyectoId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Task list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Project not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  post:
+    tags: [Tareas]
+    summary: Create task
+    description: Crea una nueva tarea en el proyecto. Requiere rol ADMIN, RRHH o MANAGER.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: proyectoId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/CreateTareaRequest'
+    responses:
+      '201':
+        description: Task created
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/usuarios/{usuarioId}/tareas:
+  get:
+    tags: [Tareas]
+    summary: List tasks assigned to user
+    description: Retorna las tareas asignadas al usuario con datos del usuario asignado
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: usuarioId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Task list
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaListResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/tareas/{id}:
+  get:
+    tags: [Tareas]
+    summary: Get task by id
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Task detail
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  put:
+    tags: [Tareas]
+    summary: Update task
+    description: Actualiza una tarea existente. Requiere rol ADMIN, RRHH o MANAGER.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateTareaRequest'
+    responses:
+      '200':
+        description: Task updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaResponse'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+  delete:
+    tags: [Tareas]
+    summary: Delete task (soft delete)
+    description: Elimina una tarea (soft delete). Requiere rol ADMIN, RRHH o MANAGER.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Task deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/MessageResponse'
+      '400':
+        description: Task has dependents
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/tareas/{id}/estado:
+  patch:
+    tags: [Tareas]
+    summary: Change task status
+    description: Cambia el estado de una tarea con validación de transiciones.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/UpdateEstadoTareaRequest'
+    responses:
+      '200':
+        description: Task status updated
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaResponse'
+      '400':
+        description: Invalid state transition
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+
+/tareas/{id}/asignar:
+  patch:
+    tags: [Tareas]
+    summary: Reassign task
+    description: Reasigna una tarea a otro usuario. Requiere rol ADMIN, RRHH o MANAGER.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/index.yaml#/schemas/ReasignarTareaRequest'
+    responses:
+      '200':
+        description: Task reassigned
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/TareaResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'
+      '404':
+        description: Task or user not found
+        content:
+          application/json:
+            schema:
+              $ref: '../components/index.yaml#/schemas/ErrorResponse'

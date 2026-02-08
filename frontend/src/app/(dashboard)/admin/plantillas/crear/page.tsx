@@ -237,7 +237,7 @@ export default function CrearPlantillaPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Nueva Plantilla de Onboarding</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Nueva Plantilla de Onboarding</h1>
             <p className="text-muted-foreground">
               Define los datos generales y las tareas del proceso
             </p>
@@ -474,9 +474,9 @@ export default function CrearPlantillaPage() {
                       </div>
                     </div>
 
-                    {/* Duración Estimada */}
+                    {/* Días desde inicio */}
                     <div className="space-y-1">
-                      <Label htmlFor="tarea-duracion">Duración (días)</Label>
+                      <Label htmlFor="tarea-duracion">Días desde inicio</Label>
                       <Input
                         id="tarea-duracion"
                         type="number"
@@ -530,7 +530,7 @@ export default function CrearPlantillaPage() {
                           {...tareaForm.register('esOpcional')}
                           className="rounded"
                         />
-                        <span className="text-sm">Opcional</span>
+                        <span className="text-sm">Es Opcional</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input

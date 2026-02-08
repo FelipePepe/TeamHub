@@ -85,7 +85,7 @@ export function useCreateEmpleado() {
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al crear empleado:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al crear empleado:', error);
     },
   });
 }
@@ -110,7 +110,7 @@ export function useUpdateEmpleado() {
       queryClient.invalidateQueries({ queryKey: [empleadosKeys.all[0], 'manager'] });
     },
     onError: (error: ApiError) => {
-      console.error('Error al actualizar empleado:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar empleado:', error);
     },
   });
 }
@@ -128,7 +128,7 @@ export function useDeleteEmpleado() {
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      console.error('Error al eliminar empleado:', error);
+      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar empleado:', error);
     },
   });
 }

@@ -19,6 +19,11 @@ interface MobileSidebarProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Renderiza la navegación lateral en mobile usando un Sheet.
+ * @param props - Estado de apertura y callback para cambios.
+ * @returns Sidebar móvil con enlaces de navegación por rol.
+ */
 export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();

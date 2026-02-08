@@ -15,6 +15,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +31,8 @@ import { EmpleadoForm } from '@/components/forms/empleado-form';
 import { toast } from 'sonner';
 import type { EmpleadoFilters } from '@/types';
 import type { User } from '@/types';
+
+const FILTRO_TODOS_VALUE = '__todos__';
 
 /**
  * Página de listado de empleados para administradores y RRHH
@@ -126,8 +135,8 @@ export default function EmpleadosPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Empleados</h1>
-          <p className="text-slate-500">Gestiona los empleados de la organización</p>
+          <h1 className="text-2xl font-semibold text-foreground">Empleados</h1>
+          <p className="text-muted-foreground">Gestiona los empleados de la organización</p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -148,7 +157,7 @@ export default function EmpleadosPage() {
             {/* Búsqueda */}
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre o email..."
                   value={search}
@@ -160,38 +169,47 @@ export default function EmpleadosPage() {
 
             {/* Filtro por rol */}
             <div>
-              <select
-                value={filters.rol ?? ''}
-                onChange={(e) =>
-                  handleFilterChange('rol', e.target.value || undefined)
+              <Select
+                value={filters.rol ?? FILTRO_TODOS_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange('rol', value === FILTRO_TODOS_VALUE ? undefined : value)
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="">Todos los roles</option>
-                <option value="ADMIN">Administrador</option>
-                <option value="RRHH">Recursos Humanos</option>
-                <option value="MANAGER">Manager</option>
-                <option value="EMPLEADO">Empleado</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos los roles</SelectItem>
+                  <SelectItem value="ADMIN">Administrador</SelectItem>
+                  <SelectItem value="RRHH">Recursos Humanos</SelectItem>
+                  <SelectItem value="MANAGER">Manager</SelectItem>
+                  <SelectItem value="EMPLEADO">Empleado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Filtro por estado */}
             <div>
-              <select
-                value={filters.activo === undefined ? '' : String(filters.activo)}
-                onChange={(e) => {
-                  const value = e.target.value;
+              <Select
+                value={
+                  filters.activo === undefined ? FILTRO_TODOS_VALUE : String(filters.activo)
+                }
+                onValueChange={(value) =>
                   handleFilterChange(
                     'activo',
-                    value === '' ? undefined : value === 'true'
-                  );
-                }}
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    value === FILTRO_TODOS_VALUE ? undefined : value === 'true'
+                  )
+                }
               >
-                <option value="">Todos</option>
-                <option value="true">Activos</option>
-                <option value="false">Inactivos</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos</SelectItem>
+                  <SelectItem value="true">Activos</SelectItem>
+                  <SelectItem value="false">Inactivos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -231,8 +249,8 @@ export default function EmpleadosPage() {
             </div>
           ) : empleados.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">
+              <Users className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 No se encontraron empleados con los filtros seleccionados
               </p>
             </div>
@@ -242,49 +260,49 @@ export default function EmpleadosPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Empleado
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Email
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Rol
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Estado
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-200">
                         Acciones
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                     {empleados.map((empleado) => (
                       <tr
                         key={empleado.id}
-                        className="hover:bg-slate-50 transition-colors"
+                        className="hover:bg-slate-50 transition-colors dark:hover:bg-slate-900/60"
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
                               {empleado.nombre.charAt(0)}
                               {empleado.apellidos?.charAt(0) ?? ''}
                             </div>
                             <div>
-                              <p className="font-medium text-slate-900">
+                              <p className="font-medium text-slate-900 dark:text-slate-100">
                                 {empleado.nombre} {empleado.apellidos}
                               </p>
-                              {empleado.departamentoId && (
-                                <p className="text-xs text-slate-500">
-                                  Departamento ID: {empleado.departamentoId.slice(0, 8)}...
+                              {empleado.departamentoNombre && (
+                                <p className="text-xs text-muted-foreground">
+                                  {empleado.departamentoNombre}
                                 </p>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
                           {empleado.email}
                         </td>
                         <td className="px-4 py-3">
@@ -339,7 +357,7 @@ export default function EmpleadosPage() {
               {/* Paginación */}
               {totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted-foreground">
                     Mostrando {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} de {total}
                   </p>
                   <div className="flex items-center gap-2">
@@ -352,7 +370,7 @@ export default function EmpleadosPage() {
                       <ChevronLeft className="h-4 w-4" />
                       Anterior
                     </Button>
-                    <span className="text-sm text-slate-600">
+                    <span className="text-sm text-slate-600 dark:text-slate-300">
                       Página {currentPage} de {totalPages}
                     </span>
                     <Button

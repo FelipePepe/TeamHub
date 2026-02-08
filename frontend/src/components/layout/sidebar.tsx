@@ -8,6 +8,10 @@ import { getNavigationForRole, isNavItemActive } from '@/lib/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import logoTeamHub from '@/assets/logo-teamhub-alt.png';
 
+/**
+ * Renderiza la barra lateral principal con navegación según el rol.
+ * @returns Sidebar con enlaces de navegación y estado activo.
+ */
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();

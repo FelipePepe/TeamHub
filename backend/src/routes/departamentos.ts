@@ -2,14 +2,14 @@ import type { HonoEnv } from '../types/hono.js';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, requireRoles } from '../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../validators/parse.js';
 import { optionalBooleanFromString, uuidSchema } from '../validators/common.js';
 import { toDepartamentoResponse, toUserResponse } from '../services/mappers.js';
 import { db } from '../db/index.js';
 import { departamentos } from '../db/schema/departamentos.js';
 import { users } from '../db/schema/users.js';
-import { and, eq, ilike, isNotNull, isNull, or } from 'drizzle-orm';
+import { and, eq, ilike, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import type { Departamento } from '../db/schema/departamentos.js';
 import {
   createDepartamento,
@@ -55,7 +55,9 @@ const buildDepartamentoFilters = (query: z.infer<typeof listQuerySchema>) => {
     const search = `%${query.search}%`;
     filters.push(or(ilike(departamentos.nombre, search), ilike(departamentos.codigo, search)));
   }
-  if (query.activo !== undefined) {
+  if (query.activo === undefined) {
+    filters.push(isNull(departamentos.deletedAt));
+  } else {
     filters.push(query.activo ? isNull(departamentos.deletedAt) : isNotNull(departamentos.deletedAt));
   }
   return filters;
@@ -68,13 +70,25 @@ departamentosRoutes.get('/', async (c) => {
     activo: query.activo,
   });
   const whereClause = filters.length ? and(...filters) : undefined;
-  const baseQuery = db.select().from(departamentos);
+  const baseQuery = db
+    .select({
+      departamento: departamentos,
+      usuariosCount: sql<number>`count(${users.id})`.as('usuarios_count'),
+    })
+    .from(departamentos)
+    .leftJoin(users, and(eq(users.departamentoId, departamentos.id), isNull(users.deletedAt)))
+    .groupBy(departamentos.id);
   const list = await (whereClause ? baseQuery.where(whereClause) : baseQuery);
 
-  return c.json({ data: list.map(toDepartamentoResponse) });
+  return c.json({
+    data: list.map((row) => ({
+      ...toDepartamentoResponse(row.departamento),
+      _count: { usuarios: Number(row.usuariosCount) },
+    })),
+  });
 });
 
-departamentosRoutes.post('/', async (c) => {
+departamentosRoutes.post('/', requireRoles('ADMIN', 'RRHH'), async (c) => {
   const payload = await parseJson(c, createDepartamentoSchema);
   const existing = await findDepartamentoByNombreOrCodigo(payload.nombre, payload.codigo);
   if (existing) {
@@ -107,7 +121,7 @@ departamentosRoutes.get('/:id', async (c) => {
   return c.json(toDepartamentoResponse(departamento));
 });
 
-departamentosRoutes.put('/:id', async (c) => {
+departamentosRoutes.put('/:id', requireRoles('ADMIN', 'RRHH'), async (c) => {
   const { id } = parseParams(c, idParamsSchema);
   const payload = await parseJson(c, updateDepartamentoSchema);
   const departamento = await findDepartamentoById(id);
@@ -140,7 +154,7 @@ departamentosRoutes.put('/:id', async (c) => {
   return c.json(toDepartamentoResponse(updated));
 });
 
-departamentosRoutes.delete('/:id', async (c) => {
+departamentosRoutes.delete('/:id', requireRoles('ADMIN', 'RRHH'), async (c) => {
   const { id } = parseParams(c, idParamsSchema);
   const departamento = await findDepartamentoById(id);
   if (!departamento) {
@@ -160,7 +174,7 @@ departamentosRoutes.get('/:id/empleados', async (c) => {
   const empleados = await db
     .select()
     .from(users)
-    .where(eq(users.departamentoId, id));
+    .where(and(eq(users.departamentoId, id), isNull(users.deletedAt)));
 
   return c.json({ data: empleados.map(toUserResponse) });
 });
@@ -175,7 +189,7 @@ departamentosRoutes.get('/:id/estadisticas', async (c) => {
   const empleados = await db
     .select({ id: users.id, rol: users.rol })
     .from(users)
-    .where(eq(users.departamentoId, id));
+    .where(and(eq(users.departamentoId, id), isNull(users.deletedAt)));
 
   const empleadosPorRol = empleados.reduce<Record<string, number>>((acc, user) => {
     acc[user.rol] = (acc[user.rol] ?? 0) + 1;

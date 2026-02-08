@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
+import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,25 @@ const mfaSchema = z.object({
 });
 
 type MfaFormData = z.infer<typeof mfaSchema>;
+
+/**
+ * Devuelve un mensaje de error amigable para fallos de login.
+ * @param error - Error lanzado por la llamada de login.
+ * @returns Mensaje traducido para el usuario.
+ */
+const getLoginErrorMessage = (error: unknown): string => {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401) {
+      return 'Usuario y/o contraseña incorrectos';
+    }
+    if (status === 429) {
+      return 'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.';
+    }
+  }
+
+  return 'Error al iniciar sesión';
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -129,6 +149,10 @@ export function LoginForm() {
       const mfaData = await setupMfa(token);
       let qrUrl: string | null = null;
       try {
+        // ⚠️ NOTA DE SEGURIDAD: Import dinámico de qrcode
+        // En Next.js App Router con Edge Runtime, no se puede usar Subresource Integrity (SRI)
+        // para imports dinámicos. El módulo se carga desde node_modules local, no CDN.
+        // Mantener package-lock.json actualizado y ejecutar npm audit regularmente.
         const QRCode = await import('qrcode');
         qrUrl = await QRCode.toDataURL(mfaData.otpauthUrl, { width: 192, margin: 1 });
       } catch (error) {
@@ -309,7 +333,9 @@ export function LoginForm() {
             <p className="text-xs text-slate-500 mb-1">
               {qrCodeDataUrl ? 'O ingresa este código manualmente:' : 'Código para agregar manualmente:'}
             </p>
-            <code className="text-sm font-mono select-all">{mfaSecret}</code>
+            <code className="text-sm font-mono select-all text-slate-800 dark:text-slate-100">
+              {mfaSecret}
+            </code>
           </div>
         )}
 

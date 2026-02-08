@@ -15,11 +15,21 @@ interface LineChartProps {
   formatLabel?: (fecha: string) => string;
 }
 
+/**
+ * Formatea una fecha ISO para etiquetas cortas de ejes.
+ * @param fecha - Fecha ISO en string.
+ * @returns Etiqueta breve en español (día/mes).
+ */
 const defaultFormatLabel = (fecha: string) => {
   const date = new Date(fecha);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
 };
 
+/**
+ * Renderiza un gráfico de línea con estilos accesibles y tooltips.
+ * @param props - Props de título, datos, altura y formateador de etiquetas.
+ * @returns Tarjeta con gráfico de línea o estados alternativos.
+ */
 export function LineChart({
   title,
   description,
@@ -237,11 +247,11 @@ export function LineChart({
           <CardTitle className="text-lg">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center text-slate-400" style={{ height }}>
-            Sin datos
-          </div>
-        </CardContent>
+      <CardContent>
+        <div className="flex items-center justify-center text-muted-foreground" style={{ height }}>
+          Sin datos
+        </div>
+      </CardContent>
       </Card>
     );
   }

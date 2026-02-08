@@ -49,19 +49,19 @@ export function CopyWeekDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="rounded-lg border border-slate-200 p-4">
-            <div className="mb-2 text-sm font-medium text-slate-500">Desde</div>
+          <div className="rounded-lg border border-border p-4">
+            <div className="mb-2 text-sm font-medium text-muted-foreground">Desde</div>
             <div className="text-sm">
               {format(prevWeekStart, "d MMM", { locale: es })} - {format(prevWeekEnd, "d MMM yyyy", { locale: es })}
             </div>
           </div>
 
           <div className="flex justify-center">
-            <span className="text-slate-400">↓</span>
+            <span className="text-muted-foreground">↓</span>
           </div>
 
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <div className="mb-2 text-sm font-medium text-blue-600">Hacia</div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 p-4">
+            <div className="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">Hacia</div>
             <div className="text-sm">
               {format(currentWeekStart, "d MMM", { locale: es })} - {format(currentWeekEnd, "d MMM yyyy", { locale: es })}
             </div>

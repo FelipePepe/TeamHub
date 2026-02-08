@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   FolderKanban,
   Plus,
@@ -12,12 +12,23 @@ import {
   Filter,
   LayoutGrid,
   List,
+  Calendar,
+  Users,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProyectoForm } from '@/components/forms/proyecto-form';
 import {
   useProyectos,
   useDeleteProyecto,
@@ -27,6 +38,8 @@ import {
 } from '@/hooks/use-proyectos';
 import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const ESTADOS: { value: ProyectoEstado; label: string }[] = [
   { value: 'PLANIFICACION', label: 'Planificación' },
@@ -35,13 +48,20 @@ const ESTADOS: { value: ProyectoEstado; label: string }[] = [
   { value: 'COMPLETADO', label: 'Completado' },
   { value: 'CANCELADO', label: 'Cancelado' },
 ];
+const ESTADO_TODOS_VALUE = '__todos__';
 
+/**
+ * Página de listado de proyectos con filtros, vistas y modal de creación.
+ * @returns Vista principal de proyectos con opciones de gestión.
+ */
 export default function ProyectosPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { canManageProjects } = usePermissions();
   const [filters, setFilters] = useState<ProyectoFilters>({});
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { data: proyectosData, isLoading, error } = useProyectos(filters);
   const deleteProyecto = useDeleteProyecto();
@@ -55,10 +75,37 @@ export default function ProyectosPage() {
       (p.cliente?.toLowerCase().includes(search.toLowerCase()) ?? false)
   );
 
+  /**
+   * Sincroniza el modal de creación cuando se llega desde /proyectos/crear.
+   * @returns void
+   */
+  useEffect(() => {
+    const createParam = searchParams.get('crear');
+    if (createParam !== '1' && createParam !== 'true') return;
+    if (!canManageProjects) {
+      router.replace('/proyectos', { scroll: false });
+      return;
+    }
+    setIsCreateOpen(true);
+    router.replace('/proyectos', { scroll: false });
+  }, [searchParams, router, canManageProjects]);
+
+  /**
+   * Actualiza los filtros de proyecto con el valor indicado.
+   * @param key - Clave del filtro a actualizar.
+   * @param value - Valor del filtro.
+   * @returns void
+   */
   const handleFilterChange = (key: keyof ProyectoFilters, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  /**
+   * Elimina un proyecto tras confirmación del usuario.
+   * @param id - ID del proyecto.
+   * @param nombre - Nombre del proyecto para el mensaje de confirmación.
+   * @returns Promesa resuelta cuando finaliza la eliminación.
+   */
   const handleDelete = async (id: string, nombre: string) => {
     if (!confirm(`¿Eliminar el proyecto "${nombre}"?`)) return;
     try {
@@ -69,6 +116,11 @@ export default function ProyectosPage() {
     }
   };
 
+  /**
+   * Genera el badge de estado según el estado del proyecto.
+   * @param estado - Estado actual del proyecto.
+   * @returns Componente Badge con el label correspondiente.
+   */
   const getEstadoBadge = (estado: ProyectoEstado) => {
     const variant =
       estado === 'ACTIVO'
@@ -80,15 +132,23 @@ export default function ProyectosPage() {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
+  /**
+   * Abre el modal de creación de proyectos.
+   * @returns void
+   */
+  const handleOpenCreate = () => {
+    setIsCreateOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Proyectos</h1>
-          <p className="text-slate-500">Gestiona proyectos y asignaciones</p>
+          <h1 className="text-2xl font-semibold text-foreground">Proyectos</h1>
+          <p className="text-muted-foreground">Gestiona proyectos y asignaciones</p>
         </div>
         {canManageProjects && (
-          <Button onClick={() => router.push('/proyectos/crear')}>
+          <Button onClick={handleOpenCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Crear proyecto
           </Button>
@@ -106,7 +166,7 @@ export default function ProyectosPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre, código o cliente..."
                   value={search}
@@ -116,24 +176,27 @@ export default function ProyectosPage() {
               </div>
             </div>
             <div>
-              <select
-                value={filters.estado ?? ''}
-                onChange={(e) =>
+              <Select
+                value={filters.estado ?? ESTADO_TODOS_VALUE}
+                onValueChange={(value) =>
                   handleFilterChange(
                     'estado',
-                    e.target.value ? (e.target.value as ProyectoEstado) : undefined
+                    value === ESTADO_TODOS_VALUE ? undefined : (value as ProyectoEstado)
                   )
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
-                aria-label="Estado"
               >
-                <option value="">Todos los estados</option>
-                {ESTADOS.map((e) => (
-                  <option key={e.value} value={e.value}>
-                    {e.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9" aria-label="Estado">
+                  <SelectValue placeholder="Todos los estados" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ESTADO_TODOS_VALUE}>Todos los estados</SelectItem>
+                  {ESTADOS.map((e) => (
+                    <SelectItem key={e.value} value={e.value}>
+                      {e.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -182,11 +245,11 @@ export default function ProyectosPage() {
             </div>
           ) : filteredProyectos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FolderKanban className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">No se encontraron proyectos</p>
+              <FolderKanban className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No se encontraron proyectos</p>
               {canManageProjects && (
                 <Button
-                  onClick={() => router.push('/proyectos/crear')}
+                  onClick={handleOpenCreate}
                   className="mt-4"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -212,31 +275,31 @@ export default function ProyectosPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
                       Proyecto
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
                       Cliente
                     </th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
                       Estado
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                    <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-300">
                       Acciones
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-border">
                   {filteredProyectos.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={p.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-slate-900">{p.nombre}</p>
-                          <p className="text-xs text-slate-500">{p.codigo}</p>
+                          <p className="font-medium text-foreground">{p.nombre}</p>
+                          <p className="text-xs text-muted-foreground">{p.codigo}</p>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {p.cliente ?? '—'}
                       </td>
                       <td className="px-4 py-3">{getEstadoBadge(p.estado)}</td>
@@ -281,10 +344,22 @@ export default function ProyectosPage() {
           )}
         </CardContent>
       </Card>
+
+      <ProyectoForm open={isCreateOpen} onOpenChange={setIsCreateOpen} />
     </div>
   );
 }
 
+/**
+ * Renderiza una tarjeta de proyecto con acciones básicas.
+ * @param proyecto - Datos del proyecto.
+ * @param canManage - Si el usuario puede gestionar proyectos.
+ * @param onView - Handler para ver el detalle.
+ * @param onEdit - Handler para editar.
+ * @param onDelete - Handler para eliminar.
+ * @param getEstadoBadge - Función que devuelve el badge de estado.
+ * @returns Tarjeta con información y acciones del proyecto.
+ */
 function ProyectoCard({
   proyecto,
   canManage,
@@ -300,6 +375,16 @@ function ProyectoCard({
   onDelete: () => void;
   getEstadoBadge: (e: ProyectoEstado) => React.ReactNode;
 }) {
+  const horasConsumidas = proyecto.horasConsumidas ?? 0;
+  const horasRestantes =
+    proyecto.presupuestoHoras != null
+      ? Math.max(proyecto.presupuestoHoras - horasConsumidas, 0)
+      : undefined;
+  const fechaFinLabel = proyecto.fechaFinEstimada
+    ? format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })
+    : '—';
+  const asignacionesLabel = '—';
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
@@ -311,10 +396,33 @@ function ProyectoCard({
           {getEstadoBadge(proyecto.estado)}
         </div>
         {proyecto.cliente && (
-          <p className="text-sm text-slate-500">Cliente: {proyecto.cliente}</p>
+          <p className="text-sm text-muted-foreground">Cliente: {proyecto.cliente}</p>
         )}
       </CardHeader>
       <CardContent className="pt-0">
+        <div className="mb-4 grid gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Fin estimado:</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {fechaFinLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5" />
+            <span>Horas restantes:</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {horasRestantes != null ? `${horasRestantes.toFixed(1)}h` : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5" />
+            <span>Empleados asignados:</span>
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {asignacionesLabel}
+            </span>
+          </div>
+        </div>
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={onView}>
             <Eye className="mr-1 h-4 w-4" />

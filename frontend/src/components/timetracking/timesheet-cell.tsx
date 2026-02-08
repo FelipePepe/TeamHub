@@ -61,9 +61,9 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
   return (
     <div
       className={cn(
-        'flex h-10 w-16 items-center justify-center border-r border-slate-200 text-sm',
-        isWeekend && 'bg-slate-50',
-        !disabled && !isEditing && 'cursor-pointer hover:bg-slate-100',
+        'flex h-10 w-16 items-center justify-center border-r border-slate-200 text-sm dark:border-slate-800 dark:text-slate-200',
+        isWeekend && 'bg-slate-50 dark:bg-slate-900/60',
+        !disabled && !isEditing && 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800',
         disabled && 'cursor-not-allowed opacity-50'
       )}
       onClick={handleClick}
@@ -77,10 +77,16 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
           onChange={handleChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="h-8 w-14 rounded border border-blue-400 px-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="h-8 w-14 rounded border border-blue-400 px-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-blue-500 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-blue-500"
         />
       ) : (
-        <span className={cn(value > 0 ? 'font-medium text-slate-900' : 'text-slate-400')}>
+        <span
+          className={cn(
+            value > 0
+              ? 'font-medium text-slate-900 dark:text-slate-100'
+              : 'text-slate-400 dark:text-slate-500'
+          )}
+        >
           {value > 0 ? `${value}h` : '-'}
         </span>
       )}

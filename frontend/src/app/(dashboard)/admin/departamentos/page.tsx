@@ -114,8 +114,8 @@ export default function DepartamentosPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Departamentos</h1>
-          <p className="text-slate-500">
+          <h1 className="text-2xl font-semibold text-foreground">Departamentos</h1>
+          <p className="text-muted-foreground">
             Gestiona los departamentos de la organización
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function DepartamentosPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             {/* Búsqueda */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nombre o código..."
                 value={search}
@@ -186,8 +186,8 @@ export default function DepartamentosPage() {
       ) : departamentos.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Building2 className="mb-4 h-12 w-12 text-slate-400" />
-            <p className="text-center text-slate-600">
+            <Building2 className="mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-center text-muted-foreground">
               {filters.search
                 ? 'No se encontraron departamentos con ese criterio'
                 : 'No hay departamentos registrados'}
@@ -228,13 +228,13 @@ export default function DepartamentosPage() {
               <CardContent className="space-y-4">
                 {/* Descripción */}
                 {departamento.descripcion && (
-                  <p className="text-sm text-slate-600 line-clamp-2">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {departamento.descripcion}
                   </p>
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-2 text-sm text-slate-500">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
                   <span>{departamento._count?.usuarios || 0} empleados</span>
                 </div>
@@ -254,7 +254,7 @@ export default function DepartamentosPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(departamento)}
-                    className="gap-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-700"
                   >
                     <Trash2 className="h-3 w-3" />
                     Eliminar

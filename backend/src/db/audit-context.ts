@@ -25,20 +25,16 @@ export async function setAuditContext(
 
   // Establecer variables de sesión local (solo para esta transacción)
   if (userId) {
-    await client.query(`SET LOCAL app.current_user_id = '${userId}'`);
+    await client.query("SELECT set_config('app.current_user_id', $1, true)", [userId]);
   }
   if (userEmail) {
-    await client.query(
-      `SET LOCAL app.current_user_email = '${userEmail.replace(/'/g, "''")}'`
-    );
+    await client.query("SELECT set_config('app.current_user_email', $1, true)", [userEmail]);
   }
   if (ipAddress) {
-    await client.query(`SET LOCAL app.client_ip = '${ipAddress}'`);
+    await client.query("SELECT set_config('app.client_ip', $1, true)", [ipAddress]);
   }
   if (userAgent) {
-    await client.query(
-      `SET LOCAL app.user_agent = '${userAgent.replace(/'/g, "''").substring(0, 500)}'`
-    );
+    await client.query("SELECT set_config('app.user_agent', $1, true)", [userAgent.substring(0, 500)]);
   }
 }
 

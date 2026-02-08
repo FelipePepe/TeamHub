@@ -4,36 +4,71 @@ import { BUSINESS_RULES } from '../shared/constants/business-rules.js';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
+const SALT_LENGTH = 16;
 
-const deriveKey = () => scryptSync(config.MFA_ENCRYPTION_KEY, 'mfa-salt', 32);
+/**
+ * Deriva una clave de cifrado de 32 bytes a partir del secreto de MFA y un salt.
+ * @param salt - Salt para la derivación de clave.
+ * @returns Clave derivada en formato Buffer.
+ */
+const deriveKey = (salt: Buffer) => scryptSync(config.MFA_ENCRYPTION_KEY, salt, 32);
 
+/**
+ * Cifra un secreto MFA y devuelve el payload en base64 (salt:iv:authTag:data).
+ * @param plainSecret - Secreto MFA en texto plano.
+ * @returns Secreto cifrado en formato base64.
+ * @throws Error si el secreto está vacío.
+ */
 export const encryptMfaSecret = (plainSecret: string): string => {
-  const key = deriveKey();
+  if (!plainSecret || typeof plainSecret !== 'string') {
+    throw new Error('Invalid MFA secret: must be a non-empty string');
+  }
+  
+  const salt = randomBytes(SALT_LENGTH);
+  const key = deriveKey(salt);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
   const encrypted = Buffer.concat([cipher.update(plainSecret, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
-  // Format: iv:authTag:encryptedData (all base64)
-  return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
+  // Format: salt:iv:authTag:encryptedData (all base64)
+  return `${salt.toString('base64')}:${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
 };
 
+/**
+ * Descifra un secreto MFA cifrado en formato base64.
+ * Formato: salt:iv:authTag:data (todas las partes en base64).
+ * @param encryptedSecret - Secreto cifrado en formato base64.
+ * @returns Secreto MFA en texto plano.
+ * @throws Error si el formato es inválido o el authTag no valida.
+ */
 export const decryptMfaSecret = (encryptedSecret: string): string => {
   const parts = encryptedSecret.split(':');
-  if (parts.length !== 3) {
-    throw new Error('Invalid encrypted secret format');
+
+  if (parts.length !== 4) {
+    throw new Error('Invalid encrypted secret format: expected salt:iv:authTag:data');
   }
-  const [ivB64, authTagB64, dataB64] = parts;
-  const key = deriveKey();
+
+  const [saltB64, ivB64, authTagB64, dataB64] = parts;
+  const salt = Buffer.from(saltB64, 'base64');
+
+  const key = deriveKey(salt);
   const iv = Buffer.from(ivB64, 'base64');
   const authTag = Buffer.from(authTagB64, 'base64');
   const encrypted = Buffer.from(dataB64, 'base64');
-  const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
+  const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv, {
+    authTagLength: authTag.length,
+  });
   decipher.setAuthTag(authTag);
   return decipher.update(encrypted) + decipher.final('utf8');
 };
 
 const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
+/**
+ * Convierte un buffer a Base32.
+ * @param buffer - Buffer de entrada.
+ * @returns Cadena Base32.
+ */
 const toBase32 = (buffer: Buffer): string => {
   let bits = '';
   for (const byte of buffer) {
@@ -53,6 +88,11 @@ const toBase32 = (buffer: Buffer): string => {
   return output;
 };
 
+/**
+ * Convierte una cadena Base32 a Buffer.
+ * @param input - Cadena Base32.
+ * @returns Buffer decodificado.
+ */
 const fromBase32 = (input: string): Buffer => {
   const normalized = input.replace(/=+$/g, '').toUpperCase();
   let bits = '';
@@ -73,11 +113,21 @@ const fromBase32 = (input: string): Buffer => {
   return Buffer.from(bytes);
 };
 
+/**
+ * Genera un secreto MFA Base32.
+ * @returns Secreto Base32.
+ */
 export const generateMfaSecret = () => {
   const buffer = randomBytes(20);
   return toBase32(buffer);
 };
 
+/**
+ * Genera un código TOTP para un secreto y timestamp dados.
+ * @param secret - Secreto Base32.
+ * @param timestampMs - Timestamp en milisegundos.
+ * @returns Código TOTP como string.
+ */
 export const generateTotpCode = (secret: string, timestampMs = Date.now()) => {
   const {
     totpDigits,
@@ -95,6 +145,13 @@ export const generateTotpCode = (secret: string, timestampMs = Date.now()) => {
   return code.toString().padStart(totpDigits, '0');
 };
 
+/**
+ * Verifica un código TOTP dentro de la ventana de tolerancia.
+ * @param secret - Secreto Base32.
+ * @param code - Código TOTP.
+ * @param timestampMs - Timestamp en milisegundos.
+ * @returns true si el código es válido dentro de la ventana.
+ */
 export const verifyTotpCode = (secret: string, code: string, timestampMs = Date.now()) => {
   const { totpStepSeconds, totpWindow } = BUSINESS_RULES.auth;
   if (!/^\d+$/.test(code)) {
@@ -109,4 +166,25 @@ export const verifyTotpCode = (secret: string, code: string, timestampMs = Date.
   }
 
   return false;
+};
+
+/**
+ * Verifica que un valor tenga el formato de secreto MFA cifrado esperado.
+ * Formato válido: salt:iv:authTag:data (4 partes base64) o iv:authTag:data (3 partes, legacy).
+ * @param value - Valor a verificar.
+ * @returns true si el valor parece estar cifrado.
+ */
+export const isEncryptedMfaSecret = (value: string): boolean => {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+  
+  const parts = value.split(':');
+  if (parts.length !== 3 && parts.length !== 4) {
+    return false;
+  }
+  
+  // Verificar que cada parte sea base64 válido
+  const base64Regex = /^[A-Za-z0-9+/=]+$/;
+  return parts.every(part => part.length > 0 && base64Regex.test(part));
 };

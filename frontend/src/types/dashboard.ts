@@ -16,6 +16,14 @@ export interface ActivityItem {
   tipo: string;
   descripcion: string;
   fecha?: string;
+  operation?: string;
+  tableName?: string;
+  recordId?: string;
+  usuarioId?: string;
+  usuarioEmail?: string;
+  changedFields?: string[];
+  oldData?: Record<string, unknown> | null;
+  newData?: Record<string, unknown> | null;
 }
 
 export interface AlertItem {
@@ -86,8 +94,8 @@ export interface EquipoOcupacion {
 
 export interface PendienteAprobacion {
   registroId: string;
-  usuarioId: string;
-  proyectoId: string;
+  usuarioNombre: string;
+  proyectoNombre: string;
   fecha: string;
   horas: number;
 }

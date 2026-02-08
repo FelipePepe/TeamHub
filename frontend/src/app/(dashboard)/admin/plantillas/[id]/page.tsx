@@ -226,7 +226,7 @@ export default function EditarPlantillaPage({
       descripcion: tarea.descripcion,
       categoria: tarea.categoria,
       responsable: tarea.responsable,
-      duracionEstimadaDias: tarea.duracionEstimadaDias,
+      duracionEstimadaDias: tarea.duracionEstimadaDias || 0,
       esOpcional: tarea.esOpcional,
       requiereAprobacion: tarea.requiereAprobacion,
       dependencias: tarea.dependencias || [],
@@ -308,7 +308,7 @@ export default function EditarPlantillaPage({
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Editar Plantilla</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Editar Plantilla</h1>
             <p className="text-muted-foreground">{plantilla.nombre}</p>
           </div>
         </div>
@@ -543,9 +543,9 @@ export default function EditarPlantillaPage({
                       </div>
                     </div>
 
-                    {/* Duración Estimada */}
+                    {/* Días desde inicio */}
                     <div className="space-y-1">
-                      <Label htmlFor="tarea-duracion">Duración (días)</Label>
+                      <Label htmlFor="tarea-duracion">Días desde inicio</Label>
                       <Input
                         id="tarea-duracion"
                         type="number"
@@ -599,7 +599,7 @@ export default function EditarPlantillaPage({
                           {...tareaForm.register('esOpcional')}
                           className="rounded"
                         />
-                        <span className="text-sm">Opcional</span>
+                        <span className="text-sm">Es Opcional</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input

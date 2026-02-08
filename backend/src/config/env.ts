@@ -14,14 +14,16 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
-  CORS_ORIGINS: z.string().min(1),
+  CORS_ORIGINS: z.string().min(1).refine((v) => !v.includes('*'), { message: 'Wildcard (*) not allowed in CORS_ORIGINS' }),
   APP_BASE_URL: z.string().url(),
-  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+  JWT_ACCESS_EXPIRES_IN: z.string().regex(/^\d+[smhd]$/, 'Must be a duration like 15m, 1h, 30d').default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().positive().default(12),
   MFA_ISSUER: z.string().default('TeamHub'),
   MFA_ENCRYPTION_KEY: z.string().min(32),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  VERCEL: z.string().optional(),
+  RENDER: z.string().optional(),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
@@ -31,6 +33,25 @@ const envSchema = z.object({
   PG_SSL_REJECT_UNAUTHORIZED: z.coerce.boolean().default(true),
   BOOTSTRAP_TOKEN: z.string().min(32).optional(),
   API_HMAC_SECRET: z.string().min(32),
+  DISABLE_HMAC: z.coerce.boolean().default(false),  // Explicit flag for disabling HMAC in tests
+}).superRefine((data, ctx) => {
+  if (data.NODE_ENV === 'production') {
+    const secretFields = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'MFA_ENCRYPTION_KEY', 'API_HMAC_SECRET'] as const;
+    for (const field of secretFields) {
+      if (data[field].includes('change-me')) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: `${field} must be changed from default placeholder in production` });
+      }
+    }
+    
+    // Prevent DISABLE_HMAC=true in production
+    if (data.DISABLE_HMAC) {
+      ctx.addIssue({ 
+        code: z.ZodIssueCode.custom, 
+        path: ['DISABLE_HMAC'], 
+        message: 'DISABLE_HMAC cannot be true in production environment' 
+      });
+    }
+  }
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -2,6 +2,9 @@ node_modules
 .next
 out
 dist
+
+# Environment files - TODAS las variantes
+.env
 .env.local
 .env.e2e
 # Playwright E2E

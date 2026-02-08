@@ -128,6 +128,6 @@ curl http://localhost:3001/api/plantillas \
 
 ---
 
-**Última actualización:** 2026-01-29  
-**Versión API:** 1.0.0  
+**Última actualización:** 2026-02-08
+**Versión API:** 1.0.0
 **Estado:** ✅ Completo (149 endpoints documentados)

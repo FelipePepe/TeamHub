@@ -76,7 +76,7 @@ export const refreshTokens = pgTable(
   },
   (table) => [
     index('refresh_tokens_usuario_idx').on(table.usuarioId),
-    index('refresh_tokens_hash_idx').on(table.tokenHash),
+    uniqueIndex('refresh_tokens_hash_idx').on(table.tokenHash),
     index('refresh_tokens_expires_idx').on(table.expiresAt),
   ]
 );
@@ -98,7 +98,7 @@ export const passwordResetTokens = pgTable(
   },
   (table) => [
     index('password_reset_tokens_usuario_idx').on(table.usuarioId),
-    index('password_reset_tokens_hash_idx').on(table.tokenHash),
+    uniqueIndex('password_reset_tokens_hash_idx').on(table.tokenHash),
   ]
 );
 

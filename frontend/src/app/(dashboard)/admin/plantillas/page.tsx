@@ -14,6 +14,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,6 +33,8 @@ import {
 import { useDepartamentos } from '@/hooks/use-departamentos';
 import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
+
+const FILTRO_TODOS_VALUE = '__todos__';
 
 /**
  * Página de listado de plantillas de onboarding para administradores y RRHH
@@ -124,7 +133,7 @@ export default function PlantillasPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             Plantillas de Onboarding
           </h1>
           <p className="text-slate-500">
@@ -162,39 +171,51 @@ export default function PlantillasPage() {
 
             {/* Filtro por departamento */}
             <div>
-              <select
-                value={filters.departamentoId ?? ''}
-                onChange={(e) =>
-                  handleFilterChange('departamentoId', e.target.value || undefined)
+              <Select
+                value={filters.departamentoId ?? FILTRO_TODOS_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    'departamentoId',
+                    value === FILTRO_TODOS_VALUE ? undefined : value
+                  )
                 }
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
               >
-                <option value="">Todos los departamentos</option>
-                {departamentos.map((dept: Departamento) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.nombre}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los departamentos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todos los departamentos</SelectItem>
+                  {departamentos.map((dept: Departamento) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Filtro por estado */}
             <div>
-              <select
-                value={filters.activo === undefined ? '' : String(filters.activo)}
-                onChange={(e) => {
-                  const value = e.target.value;
+              <Select
+                value={
+                  filters.activo === undefined ? FILTRO_TODOS_VALUE : String(filters.activo)
+                }
+                onValueChange={(value) =>
                   handleFilterChange(
                     'activo',
-                    value === '' ? undefined : value === 'true'
-                  );
-                }}
-                className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                    value === FILTRO_TODOS_VALUE ? undefined : value === 'true'
+                  )
+                }
               >
-                <option value="">Todas</option>
-                <option value="true">Activas</option>
-                <option value="false">Inactivas</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FILTRO_TODOS_VALUE}>Todas</SelectItem>
+                  <SelectItem value="true">Activas</SelectItem>
+                  <SelectItem value="false">Inactivas</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>

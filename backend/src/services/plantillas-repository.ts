@@ -15,7 +15,9 @@ export const listPlantillas = async (filters?: {
   if (filters?.departamentoId) {
     clauses.push(eq(plantillasOnboarding.departamentoId, filters.departamentoId));
   }
-  if (filters?.activo !== undefined) {
+  if (filters?.activo === undefined) {
+    clauses.push(isNull(plantillasOnboarding.deletedAt));
+  } else {
     clauses.push(
       filters.activo ? isNull(plantillasOnboarding.deletedAt) : isNotNull(plantillasOnboarding.deletedAt)
     );

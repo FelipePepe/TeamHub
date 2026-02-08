@@ -80,7 +80,9 @@ const mockEmpleado: User = {
   apellidos: 'Pérez García',
   rol: 'MANAGER',
   departamentoId: 'dept-456',
+  departamentoNombre: 'Tecnología',
   managerId: 'mgr-789',
+  managerNombre: 'Ana López',
   telefono: '+34 600 123 456',
   fechaNacimiento: '1985-03-15',
   activo: true,
@@ -139,8 +141,8 @@ describe('EmpleadoDetailPage', () => {
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
       expect(screen.getByText('MANAGER')).toBeInTheDocument();
-      expect(screen.getByText(/ID: dept-456/i)).toBeInTheDocument();
-      expect(screen.getByText(/ID: mgr-789/i)).toBeInTheDocument();
+      expect(screen.getByText('Tecnología')).toBeInTheDocument();
+      expect(screen.getByText('Ana López')).toBeInTheDocument();
     });
 
     it('muestra badge de estado activo', () => {
@@ -159,12 +161,19 @@ describe('EmpleadoDetailPage', () => {
       expect(screen.queryByText('+34 600 123 456')).not.toBeInTheDocument();
     });
 
-    it('muestra "Sin asignar" cuando no hay departamento', () => {
-      empleadosMocks.data = { ...mockEmpleado, departamentoId: undefined };
+    it('muestra "Sin asignar" cuando no hay departamento ni manager', () => {
+      empleadosMocks.data = {
+        ...mockEmpleado,
+        departamentoId: undefined,
+        departamentoNombre: undefined,
+        managerId: undefined,
+        managerNombre: undefined,
+      };
 
       render(<EmpleadoDetailContent empleadoId="emp-123" />);
 
-      expect(screen.getByText('Sin asignar')).toBeInTheDocument();
+      const sinAsignar = screen.getAllByText('Sin asignar');
+      expect(sinAsignar.length).toBe(2);
     });
   });
 

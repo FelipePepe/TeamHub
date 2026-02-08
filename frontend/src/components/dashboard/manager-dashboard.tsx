@@ -94,30 +94,30 @@ export function ManagerDashboard() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-slate-100 rounded" />
+                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.equipoOcupacion.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 No hay miembros en el equipo
               </p>
             ) : (
               <ul className="space-y-3">
                 {data?.sections.equipoOcupacion.map((item) => (
-                  <li key={item.usuarioId} className="flex items-center justify-between p-3 border rounded-lg">
+                  <li key={item.usuarioId} className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
-                      <p className="text-sm font-medium">{item.nombre}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm font-medium text-foreground">{item.nombre}</p>
+                      <p className="text-xs text-muted-foreground">
                         {item.proyectosActivos} proyecto{item.proyectosActivos !== 1 ? 's' : ''} activo{item.proyectosActivos !== 1 ? 's' : ''}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       {item.horasPendientes > 0 && (
-                        <Badge variant="outline" className="text-amber-600">
+                        <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
                           {item.horasPendientes}h pendientes
                         </Badge>
                       )}
-                      <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${item.ocupacion > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
                           style={{ width: `${Math.min(item.ocupacion, 100)}%` }}
@@ -149,20 +149,21 @@ export function ManagerDashboard() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-slate-100 rounded" />
+                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.pendientesAprobacion.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 No hay horas pendientes de aprobacion
               </p>
             ) : (
               <ul className="space-y-2">
                 {data?.sections.pendientesAprobacion.map((item) => (
-                  <li key={item.registroId} className="flex items-center justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                  <li key={item.registroId} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-lg">
                     <div>
-                      <p className="text-sm font-medium">
-                        {new Date(item.fecha).toLocaleDateString('es-ES', {
+                      <p className="text-sm font-medium text-foreground">{item.usuarioNombre}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.proyectoNombre} &middot; {new Date(item.fecha).toLocaleDateString('es-ES', {
                           day: '2-digit',
                           month: 'short',
                         })}

@@ -1648,7 +1648,7 @@ docker exec -it teamhub-postgres psql -U teamhub -d teamhub
 ### Corto Plazo (v1.1)
 - [ ] Notificaciones por email (tareas vencidas, asignaciones)
 - [ ] Exportación de reportes a PDF/Excel
-- [ ] Modo oscuro
+- [x] Modo oscuro (completado — ADR-093, auditoría completa de dark mode en todas las pantallas)
 
 ### Medio Plazo (v1.2)
 - [ ] Integración con proveedores de identidad (Google, Microsoft)

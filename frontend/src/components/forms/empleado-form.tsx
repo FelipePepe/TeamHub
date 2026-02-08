@@ -18,20 +18,37 @@ function generateTempPassword(): string {
   const special = '!@#$%&*';
   const all = uppercase + lowercase + numbers + special;
 
-  // Asegurar al menos uno de cada tipo
-  let password =
-    uppercase[Math.floor(Math.random() * uppercase.length)] +
-    lowercase[Math.floor(Math.random() * lowercase.length)] +
-    numbers[Math.floor(Math.random() * numbers.length)] +
-    special[Math.floor(Math.random() * special.length)];
+  const getSecureRandom = (max: number): number => {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return array[0] % max;
+  };
 
-  // Completar hasta 12 caracteres
-  for (let i = password.length; i < 12; i++) {
-    password += all[Math.floor(Math.random() * all.length)];
+  // Generar caracteres aleatorios
+  const chars: string[] = new Array(12);
+  for (let i = 0; i < 12; i++) {
+    chars[i] = all[getSecureRandom(all.length)];
   }
 
-  // Mezclar los caracteres
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+  // Insertar caracteres requeridos en posiciones aleatorias
+  const requiredSets = [uppercase, lowercase, numbers, special];
+  const usedPositions: number[] = [];
+  for (const set of requiredSets) {
+    let pos: number;
+    do {
+      pos = getSecureRandom(12);
+    } while (usedPositions.includes(pos));
+    usedPositions.push(pos);
+    chars[pos] = set[getSecureRandom(set.length)];
+  }
+
+  // Fisher-Yates shuffle con crypto
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = getSecureRandom(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join('');
 }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

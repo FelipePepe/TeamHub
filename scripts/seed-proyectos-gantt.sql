@@ -101,7 +101,7 @@ INSERT INTO asignaciones (id, proyecto_id, usuario_id, fecha_inicio, rol)
 SELECT 
   gen_random_uuid(),
   p.id,
-  (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1),
+  (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1),
   p.fecha_inicio,
   'Desarrollador'
 FROM proyectos p
@@ -111,7 +111,7 @@ WHERE p.codigo IN ('CLOUD-001', 'MOBILE-001', 'CRM-001', 'WEB-001', 'TRANS-001',
 INSERT INTO timetracking (id, usuario_id, proyecto_id, fecha, horas, descripcion, estado, facturable)
 SELECT 
   gen_random_uuid(),
-  (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1),
+  (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1),
   p.id,
   CURRENT_DATE - (EXTRACT(DOW FROM CURRENT_DATE)::integer) + offset_days, -- Lunes de esta semana + offset
   CASE 
@@ -149,7 +149,7 @@ SELECT
   COUNT(*) as total_asignaciones,
   COUNT(DISTINCT proyecto_id) as proyectos_con_asignaciones
 FROM asignaciones
-WHERE usuario_id = (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1);
+WHERE usuario_id = (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1);
 
 SELECT 
   p.codigo,
@@ -157,7 +157,7 @@ SELECT
   SUM(t.horas) as horas_totales
 FROM timetracking t
 JOIN proyectos p ON t.proyecto_id = p.id
-WHERE t.usuario_id = (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1)
+WHERE t.usuario_id = (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1)
 AND t.fecha >= CURRENT_DATE - INTERVAL '7 days'
 GROUP BY p.codigo, DATE(t.fecha)
 ORDER BY fecha, p.codigo;

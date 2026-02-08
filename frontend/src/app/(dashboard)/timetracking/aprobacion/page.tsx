@@ -112,7 +112,7 @@ export default function TimetrackingAprobacionPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Pendientes de aprobación</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Pendientes de aprobación</h1>
           <p className="text-slate-500">GET /timetracking/pendientes-aprobacion</p>
         </div>
       </div>

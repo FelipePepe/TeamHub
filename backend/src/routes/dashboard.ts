@@ -19,7 +19,7 @@ dashboardRoutes.get('/rrhh', async (c) => {
   return c.json(await buildRrhhDashboardResponse());
 });
 
-dashboardRoutes.get('/manager', requireRoles('ADMIN', 'RRHH', 'MANAGER'), async (c) => {
+dashboardRoutes.get('/manager', async (c) => {
   const user = c.get('user') as User;
   return c.json(await buildManagerDashboardResponse(user));
 });

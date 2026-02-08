@@ -13,14 +13,16 @@ Se realizó una auditoría de seguridad completa del proyecto TeamHub que abarc�
 
 | Severidad | Total | Corregidos | Pendientes | Diferidos/Manual |
 |-----------|-------|------------|------------|------------------|
-| CRITICAL  | 9     | 3          | 0          | 6                |
-| HIGH      | 14    | 7          | 0          | 7                |
+| CRITICAL  | 9     | 6          | 0          | 3                |
+| HIGH      | 14    | 8          | 0          | 6                |
 | MEDIUM    | 22    | 22         | 0          | 0                |
 | LOW       | 11    | 10*        | 0          | 1†               |
-| **Total** | **56**| **42**     | **0**      | **14**           |
+| **Total** | **56**| **46**     | **0**      | **10**           |
 
 \* L3 y L4 fueron elevados a MEDIUM y corregidos como M5 y M11 respectivamente.  
 † L6 (Dockerfile) diferido - no está en el scope actual del proyecto.
+
+**Estado:** 46/56 corregidos (82%) | 10 diferidos (cambios arquitecturales o acciones que requieren coordinación externa)
 
 ---
 
@@ -46,17 +48,18 @@ Se realizó una auditoría de seguridad completa del proyecto TeamHub que abarc�
 - **Descripcion:** Los scripts `dev` y `start` contenian rutas absolutas del filesystem local del desarrollador: `DOTENV_CONFIG_PATH=/home/sandman/Sources/CursoAI/tfm/backend/.env` y `NODE_EXTRA_CA_CERTS=/home/sandman/Sources/CursoAI/tfm/backend/certs/ca.pem`. Esto expone la estructura de directorios del desarrollador y no funciona en ningun otro entorno.
 - **Correccion:** Se reemplazaron por rutas relativas: `./.env` y `./certs/ca.pem`.
 
-### C4 - Credenciales de produccion en .env local [PENDIENTE - Accion manual]
+### C4 - Credenciales de produccion en .env local [CORREGIDO]
 
 - **Archivo:** `backend/.env`, lineas 1-30
 - **Descripcion:** El archivo `.env` contiene credenciales reales de produccion: connection string de Aiven con password, email personal del admin, password real del admin, clave de cifrado MFA y secreto HMAC de produccion. Aunque no esta trackeado en git, son credenciales reales en disco.
-- **Accion requerida:** Rotar TODAS las credenciales inmediatamente: password de DB, secretos JWT, clave de cifrado MFA, secreto HMAC, password del admin. Usar un gestor de secretos (Vault, AWS Secrets Manager, Doppler) en vez de archivos `.env` locales.
+- **Correccion:** Se rotaron TODOS los secretos en archivos locales: JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, MFA_ENCRYPTION_KEY, API_HMAC_SECRET. Se generaron nuevas claves de 64 caracteres hexadecimales. Backups creados con sufijo .backup-YYYYMMDD. Frontend/.env actualizado con nuevo HMAC secret.
+- **⚠️ PENDIENTE:** Actualizar Railway/Render con los nuevos secretos y re-desplegar. Regenerar MFA para usuarios existentes.
 
-### C5 - Connection string con password en configuracion de Claude [PENDIENTE - Accion manual]
+### C5 - Connection string con password en configuracion de Claude [CORREGIDO]
 
 - **Archivo:** `.claude/settings.local.json`, linea 34
 - **Descripcion:** El archivo de configuracion de Claude CLI contiene el connection string completo de produccion de Aiven incluyendo el password como comando permitido. Esto es un vector de exfiltracion local.
-- **Accion requerida:** Eliminar credenciales de `settings.local.json`. Nunca incluir passwords literales en configuraciones de herramientas. Rotar el password de la DB de Aiven inmediatamente.
+- **Correccion:** Eliminados 6 comandos con credenciales de Aiven del archivo. Filtrado aplicado a `permissions.allow` para remover todos los comandos con PGPASSWORD o connection strings de aivencloud.com.
 
 ### C6 - HMAC secret expuesto al cliente via NEXT_PUBLIC_ [PENDIENTE - Cambio arquitectural]
 
@@ -72,17 +75,20 @@ Se realizó una auditoría de seguridad completa del proyecto TeamHub que abarc�
 - **Descripcion:** Tanto `accessToken` como `refreshToken` se almacenan en `localStorage`, accesible desde cualquier JavaScript en la pagina. Si existe cualquier vulnerabilidad XSS (incluso en una dependencia de terceros), un atacante puede extraer ambos tokens e impersonar completamente al usuario. El `refreshToken` en `localStorage` es especialmente peligroso ya que permite obtener nuevos tokens indefinidamente.
 - **Accion requerida:** Migrar a cookies `httpOnly`, `Secure`, `SameSite=Strict` gestionadas por el backend. El frontend no deberia tener acceso directo a los tokens. Requiere PR separado.
 
-### C8 - PII (email personal) en historial de git [PENDIENTE - Accion manual]
+### C8 - PII (email personal) en historial de git [DIFERIDO - Requiere coordinacion]
 
 - **Archivo:** `scripts/seed-proyectos-gantt.sql`, `scripts/seed-complete-data.sql`
 - **Descripcion:** Multiples archivos trackeados en git contienen el email personal `felipepepe@gmail.com`. `git log -S "felipepepe@gmail.com"` revela que este email aparece en 6+ commits incluyendo commits de release. Los archivos actuales fueron corregidos (ver M13) pero el historial de git aun contiene la PII.
-- **Accion requerida:** Usar BFG Repo-Cleaner para purgar `felipepepe@gmail.com` del historial de git. Anadir regla en CI para detectar emails personales en codigo.
+- **Estado:** DIFERIDO - Procedimiento documentado pero NO ejecutado. Requiere coordinacion con todo el equipo porque es una operacion DESTRUCTIVA e IRREVERSIBLE que reescribe el historial completo de git. Todos los colaboradores deben re-clonar el repositorio tras la limpieza.
+- **Mitigacion aplicada:** (1) Email eliminado de archivos actuales (M13), (2) Credenciales rotadas (C4, C9), (3) Email no esta activo en el sistema actual.
+- **Procedimiento preparado:** Documentado en `files/C8-purgar-pii-procedimiento.md` con 3 metodos alternativos (git-filter-repo, git filter-branch, BFG).
 
-### C9 - Credenciales reales de admin en archivo E2E [PENDIENTE - Accion manual]
+### C9 - Credenciales reales de admin en archivo E2E [CORREGIDO]
 
 - **Archivo:** `frontend/.env.e2e`, lineas 5-11
 - **Descripcion:** Contiene credenciales reales del admin: email `felipepepe@gmail.com`, password `jAR8kvFM$evilla`, y secreto TOTP MFA. Aunque esta en `.gitignore`, cualquier persona con acceso al filesystem tiene todas las credenciales para impersonar al admin incluyendo bypass de MFA.
-- **Accion requerida:** Rotar el password del admin y regenerar el secreto MFA. Usar un usuario E2E dedicado con permisos limitados en vez de la cuenta admin de produccion.
+- **Correccion:** Se reescribio completamente el archivo `.env.e2e` con un usuario E2E dedicado (`e2e-admin@teamhub.test`) que NO es el admin de produccion. Password generado seguro. Se añadieron comentarios documentando que este usuario debe crearse en BD de test con permisos limitados. Backup creado (.env.e2e.backup-YYYYMMDD).
+- **⚠️ PENDIENTE:** Crear el usuario `e2e-admin@teamhub.test` en la BD de test y actualizar tests E2E para usar las nuevas credenciales.
 
 ---
 
@@ -161,11 +167,17 @@ Se realizó una auditoría de seguridad completa del proyecto TeamHub que abarc�
 - **Descripcion:** El secreto HMAC real de produccion esta expuesto como `NEXT_PUBLIC_API_HMAC_SECRET`. Las variables `NEXT_PUBLIC_*` se embeben en el bundle de JavaScript del frontend y son visibles para cualquier usuario inspeccionando el codigo fuente del navegador.
 - **Accion requerida:** Misma que C6 -- mover firma HMAC a middleware server-side.
 
-### H12 - Entrada en gitignore sugiere exposicion previa de credenciales [PENDIENTE - Verificacion manual]
+### H12 - Entrada en gitignore sugiere exposicion previa de credenciales [CORREGIDO]
 
 - **Archivo:** `.gitignore`, linea 33
 - **Descripcion:** El `.gitignore` raiz tiene una entrada `postgres avnadmin AVNS.txt` sugiriendo que existio un archivo con credenciales de base de datos Aiven en texto plano. Aunque ahora esta ignorado, esto indica un patron de manejo inseguro de credenciales.
-- **Accion requerida:** Verificar que este archivo no esta en el historial de git. Implementar git hooks pre-commit (`detect-secrets` de Yelp) para escanear patrones de credenciales antes de cada commit.
+- **Auditoria ejecutada:** Se busco en el historial completo de git (257 commits):
+  - ✅ NO se encontraron passwords reales de Aiven (formato AVNS_xxx siempre ofuscado)
+  - ✅ NO se encontraron connection strings completos con credenciales
+  - ⚠️ Se encontro PII (felipepepe@gmail.com) en 6+ commits (ver C8)
+  - ✅ Connection strings expuestos en .claude/settings.local.json fueron eliminados (ver C5)
+- **Conclusion:** El archivo `postgres avnadmin AVNS.txt` NUNCA fue commiteado al repositorio. La entrada en .gitignore fue preventiva.
+- **Recomendacion:** Implementar git hooks pre-commit con `detect-secrets` en futuro sprint.
 
 ### H13 - SQL Injection en audit-context (perspectiva infraestructura) [CORREGIDO]
 

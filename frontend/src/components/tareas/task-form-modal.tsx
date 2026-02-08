@@ -29,8 +29,6 @@ import { useEmpleados } from '@/hooks/use-empleados';
 import { toast } from 'sonner';
 import type { Tarea, PrioridadTarea } from '@/types';
 
-const SIN_ASIGNAR_VALUE = '__sin_asignar__';
-
 const tareaFormSchema = z
   .object({
     titulo: z.string().min(3, 'Mínimo 3 caracteres').max(200, 'Máximo 200 caracteres'),
@@ -83,7 +81,7 @@ export function TaskFormModal({
   const isEdit = !!tarea;
   const createTarea = useCreateTarea();
   const updateTarea = useUpdateTarea();
-  const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
+  const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
   const empleados = empleadosData?.data ?? [];
 
   const {
@@ -243,17 +241,15 @@ export function TaskFormModal({
             <div className="space-y-2">
               <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
               <Select
-                value={usuarioAsignadoId || SIN_ASIGNAR_VALUE}
-                onValueChange={(value) =>
-                  setValue('usuarioAsignadoId', value === SIN_ASIGNAR_VALUE ? undefined : value)
-                }
+                value={usuarioAsignadoId}
+                onValueChange={(value) => setValue('usuarioAsignadoId', value)}
                 disabled={isSubmitting}
               >
                 <SelectTrigger id="usuarioAsignadoId">
                   <SelectValue placeholder="Seleccionar usuario" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
+                  <SelectItem value="">Sin asignar</SelectItem>
                   {empleados.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.nombre} {emp.apellidos || ''}

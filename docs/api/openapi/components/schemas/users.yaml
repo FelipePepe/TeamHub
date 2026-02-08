@@ -18,15 +18,9 @@ UserResponse:
     departamentoId:
       type: string
       format: uuid
-    departamentoNombre:
-      type: string
-      description: Nombre del departamento asignado (resuelto via JOIN)
     managerId:
       type: string
       format: uuid
-    managerNombre:
-      type: string
-      description: Nombre completo del manager asignado (resuelto via JOIN)
     activo:
       type: boolean
 

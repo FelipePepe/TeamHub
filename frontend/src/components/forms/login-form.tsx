@@ -137,7 +137,8 @@ export function LoginForm() {
         router.push('/dashboard');
       }
     } catch (error) {
-      toast.error(getLoginErrorMessage(error));
+      const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -198,13 +199,6 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await verifyMfa(mfaToken, data.code);
-      
-      // Limpiar mfaSecret del state inmediatamente después de verificación exitosa
-      // para prevenir extracción via XSS o React DevTools
-      if (mfaSecret) {
-        setMfaSecret(null);
-      }
-      
       toast.success('Sesión iniciada correctamente');
       router.push('/dashboard');
     } catch (error) {
@@ -335,8 +329,8 @@ export function LoginForm() {
         )}
 
         {mfaSecret && (
-          <div className="rounded border border-transparent bg-slate-100 p-3 text-center mb-4 dark:border-slate-800 dark:bg-slate-900/70">
-            <p className="text-xs text-slate-500 mb-1 dark:text-slate-400">
+          <div className="bg-slate-100 p-3 rounded text-center mb-4">
+            <p className="text-xs text-slate-500 mb-1">
               {qrCodeDataUrl ? 'O ingresa este código manualmente:' : 'Código para agregar manualmente:'}
             </p>
             <code className="text-sm font-mono select-all text-slate-800 dark:text-slate-100">

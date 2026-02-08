@@ -1,14 +1,12 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { and, eq, isNull, sql } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
+import { and, eq, sql } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { hashPassword, verifyPassword } from '../../services/auth-service.js';
 import { toProyectoResponse, toUserResponse } from '../../services/mappers.js';
 import { users } from '../../db/schema/users.js';
-import { departamentos } from '../../db/schema/departamentos.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { db } from '../../db/index.js';
 import type { User } from '../../db/schema/users.js';
@@ -47,25 +45,12 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const managers = alias(users, 'managers');
-    const baseQuery = db
-      .select({
-        user: users,
-        departamentoNombre: departamentos.nombre,
-        managerNombre: managers.nombre,
-        managerApellidos: managers.apellidos,
-      })
-      .from(users)
-      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
-      .leftJoin(managers, eq(users.managerId, managers.id));
+    const baseQuery = db.select().from(users);
     const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
     const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
     return c.json({
-      data: list.map((row) => {
-        const managerNombre = [row.managerNombre, row.managerApellidos].filter(Boolean).join(' ').trim() || null;
-        return toUserResponse({ ...row.user, departamentoNombre: row.departamentoNombre, managerNombre });
-      }),
+      data: list.map(toUserResponse),
       meta: {
         page,
         limit,
@@ -107,29 +92,11 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.get('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const managers = alias(users, 'managers');
-    const rows = await db
-      .select({
-        user: users,
-        departamentoNombre: departamentos.nombre,
-        managerNombre: managers.nombre,
-        managerApellidos: managers.apellidos,
-      })
-      .from(users)
-      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
-      .leftJoin(managers, eq(users.managerId, managers.id))
-      .where(eq(users.id, id))
-      .limit(1);
-    const row = rows[0];
-    if (!row) {
+    const user = await findUserById(id);
+    if (!user) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-    const managerNombre = [row.managerNombre, row.managerApellidos].filter(Boolean).join(' ').trim() || null;
-    return c.json(toUserResponse({
-      ...row.user,
-      departamentoNombre: row.departamentoNombre,
-      managerNombre,
-    }));
+    return c.json(toUserResponse(user));
   });
 
   router.put('/:id', async (c) => {
@@ -236,31 +203,15 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     }
 
     // Generate a cryptographically secure temporary password
-    const { randomBytes: genBytes } = await import('node:crypto');
-    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lower = 'abcdefghijkmnpqrstuvwxyz';
-    const digits = '23456789';
-    const symbols = '!@#$%&*';
-    const all = upper + lower + digits + symbols;
-    const randomBuffer = genBytes(16);
-    const chars: string[] = new Array(16);
+    const { randomBytes } = await import('node:crypto');
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+    const randomBuffer = randomBytes(16);
+    let tempPassword = '';
     for (let i = 0; i < 16; i++) {
-      chars[i] = all.charAt(randomBuffer[i] % all.length);
+      tempPassword += chars.charAt(randomBuffer[i] % chars.length);
     }
-    // Ensure password policy: insert required character types at random positions
-    const requiredSets = [upper, lower, digits, symbols];
-    const usedPositions: number[] = [];
-    const posBuffer = genBytes(4);
-    for (let i = 0; i < requiredSets.length; i++) {
-      let pos: number;
-      do {
-        pos = posBuffer[i] % 16;
-      } while (usedPositions.includes(pos));
-      usedPositions.push(pos);
-      const setChars = requiredSets[i];
-      chars[pos] = setChars.charAt(genBytes(1)[0] % setChars.length);
-    }
-    const tempPassword = chars.join('');
+    // Ensure it meets the password policy
+    tempPassword = tempPassword.slice(0, 12) + 'Aa1!';
 
     await updateUserById(user.id, {
       passwordHash: await hashPassword(tempPassword),
@@ -271,10 +222,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     });
 
     return c.json({
-      message: 'Contraseña temporal generada. Enviar al usuario por canal seguro (email interno, Slack).',
-      // ⚠️ MEJORA RECOMENDADA: No retornar tempPassword en HTTP response
-      // Considerar enviar por email en vez de incluir en respuesta HTTP para evitar captura en logs.
-      // El frontend actualmente depende de este campo para mostrarlo al admin en UI.
+      message: 'Contraseña temporal generada',
       tempPassword,
     });
   });
@@ -299,13 +247,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       .select({ proyecto: proyectos })
       .from(asignaciones)
       .innerJoin(proyectos, eq(asignaciones.proyectoId, proyectos.id))
-      .where(
-        and(
-          eq(asignaciones.usuarioId, id),
-          isNull(asignaciones.deletedAt),
-          isNull(proyectos.deletedAt)
-        )
-      );
+      .where(eq(asignaciones.usuarioId, id));
     return c.json({ data: rows.map((row) => toProyectoResponse(row.proyecto)) });
   });
 
@@ -314,7 +256,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     const rows = await db
       .select({ dedicacionPorcentaje: asignaciones.dedicacionPorcentaje })
       .from(asignaciones)
-      .where(and(eq(asignaciones.usuarioId, id), isNull(asignaciones.deletedAt)));
+      .where(eq(asignaciones.usuarioId, id));
     const dedicacionTotal = rows.reduce(
       (total, item) => total + toNumber(item.dedicacionPorcentaje, 0),
       0

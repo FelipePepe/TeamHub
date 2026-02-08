@@ -51,10 +51,10 @@ const tareaSchema = z.object({
   titulo: z.string().min(3, 'Mínimo 3 caracteres').max(200, 'Máximo 200 caracteres'),
   descripcion: z.string().optional(),
   categoria: z.enum(['DOCUMENTACION', 'EQUIPAMIENTO', 'ACCESOS', 'FORMACION', 'REUNIONES', 'ADMINISTRATIVO']),
-  responsableTipo: z.enum(['RRHH', 'MANAGER', 'IT', 'EMPLEADO', 'CUSTOM']),
-  diasDesdeInicio: z.coerce.number().int().min(0).max(365).optional(),
-  obligatoria: z.boolean().default(true),
-  requiereEvidencia: z.boolean().default(false),
+  responsable: z.enum(['RRHH', 'MANAGER', 'IT', 'EMPLEADO', 'CUSTOM']),
+  duracionEstimadaDias: z.coerce.number().int().min(0).max(365).optional(),
+  esOpcional: z.boolean().default(false),
+  requiereAprobacion: z.boolean().default(false),
   dependencias: z.array(z.string()).default([]),
 });
 
@@ -101,10 +101,10 @@ export default function EditarPlantillaPage({
       titulo: '',
       descripcion: '',
       categoria: 'DOCUMENTACION',
-      responsableTipo: 'RRHH',
-      diasDesdeInicio: undefined,
-      obligatoria: true,
-      requiereEvidencia: false,
+      responsable: 'RRHH',
+      duracionEstimadaDias: undefined,
+      esOpcional: false,
+      requiereAprobacion: false,
       dependencias: [],
     },
   });
@@ -225,10 +225,10 @@ export default function EditarPlantillaPage({
       titulo: tarea.titulo,
       descripcion: tarea.descripcion,
       categoria: tarea.categoria,
-      responsableTipo: tarea.responsableTipo,
-      diasDesdeInicio: tarea.diasDesdeInicio,
-      obligatoria: tarea.obligatoria ?? true,
-      requiereEvidencia: tarea.requiereEvidencia ?? false,
+      responsable: tarea.responsable,
+      duracionEstimadaDias: tarea.duracionEstimadaDias || 0,
+      esOpcional: tarea.esOpcional,
+      requiereAprobacion: tarea.requiereAprobacion,
       dependencias: tarea.dependencias || [],
     });
     setShowTareaForm(true);
@@ -524,9 +524,9 @@ export default function EditarPlantillaPage({
                           Responsable <span className="text-destructive">*</span>
                         </Label>
                         <Select
-                          value={tareaForm.watch('responsableTipo')}
+                          value={tareaForm.watch('responsable')}
                           onValueChange={(value) =>
-                            tareaForm.setValue('responsableTipo', value as TipoResponsable)
+                            tareaForm.setValue('responsable', value as TipoResponsable)
                           }
                         >
                           <SelectTrigger>
@@ -551,7 +551,7 @@ export default function EditarPlantillaPage({
                         type="number"
                         min="0"
                         max="365"
-                        {...tareaForm.register('diasDesdeInicio')}
+                        {...tareaForm.register('duracionEstimadaDias')}
                         placeholder="0"
                       />
                     </div>
@@ -596,18 +596,18 @@ export default function EditarPlantillaPage({
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...tareaForm.register('obligatoria')}
+                          {...tareaForm.register('esOpcional')}
                           className="rounded"
                         />
-                        <span className="text-sm">Obligatoria</span>
+                        <span className="text-sm">Es Opcional</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          {...tareaForm.register('requiereEvidencia')}
+                          {...tareaForm.register('requiereAprobacion')}
                           className="rounded"
                         />
-                        <span className="text-sm">Requiere Evidencia</span>
+                        <span className="text-sm">Requiere Aprobación</span>
                       </label>
                     </div>
 
@@ -686,16 +686,16 @@ export default function EditarPlantillaPage({
                           {tarea.categoria}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {tarea.responsableTipo}
+                          {tarea.responsable}
                         </Badge>
-                        {tarea.obligatoria === false && (
+                        {tarea.esOpcional && (
                           <Badge variant="outline" className="text-xs">
                             Opcional
                           </Badge>
                         )}
-                        {tarea.requiereEvidencia && (
+                        {tarea.requiereAprobacion && (
                           <Badge variant="outline" className="text-xs">
-                            Req. Evidencia
+                            Req. Aprobación
                           </Badge>
                         )}
                         {tarea.dependencias && tarea.dependencias.length > 0 && (

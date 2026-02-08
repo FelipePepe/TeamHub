@@ -2,8 +2,8 @@
 
 Relacion caso de uso (`use-cases.catalog.ts`) con archivo spec Playwright objetivo para implementacion por bloques.
 
-- Total casos: 31
-- Implementados: 17
+- Total casos: 30
+- Implementados: 16
 - Pendientes: 14
 
 ## Bloques recomendados
@@ -40,7 +40,6 @@ Relacion caso de uso (`use-cases.catalog.ts`) con archivo spec Playwright objeti
 | E2E-PRO-003 | P1 | procesos | negative | Pendiente | C | - | frontend/e2e/procesos.flows.spec.ts |
 | E2E-SEC-001 | P1 | cross-cutting | security | Pendiente | D | - | frontend/e2e/session-resilience.spec.ts |
 | E2E-SEC-002 | P1 | cross-cutting | security | Pendiente | D | - | frontend/e2e/session-resilience.spec.ts |
-| E2E-SEC-003 | P1 | cross-cutting | regression | Implementado | - | frontend/e2e/theme-appearance.spec.ts | frontend/e2e/theme-appearance.spec.ts |
 | E2E-TTR-002 | P1 | timetracking | negative | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |
 | E2E-TTR-003 | P1 | timetracking | negative | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |
 | E2E-TTR-004 | P1 | timetracking | regression | Pendiente | C | - | frontend/e2e/timetracking.flows.spec.ts |

@@ -101,16 +101,17 @@ describe('mfa-service', () => {
     });
 
     it('debe lanzar error para formato inválido', () => {
-      // Formatos que no tienen 3 ni 4 partes separadas por ':'
+      // Formatos que no tienen exactamente 4 partes (salt:iv:authTag:data)
       const invalidFormats = [
-        'no-colons-here',               // 1 parte
-        'only:two',                      // 2 partes
-        'a:b:c:d:e',                     // 5 partes
-        '',                              // vacío
+        'no-colons-here',        // 1 parte
+        'only:two',              // 2 partes
+        'only:three:parts',      // 3 partes
+        'way:too:many:colons:here:now',  // 6 partes
+        '',                      // vacío
       ];
 
       invalidFormats.forEach((invalid) => {
-        expect(() => decryptMfaSecret(invalid)).toThrow();
+        expect(() => decryptMfaSecret(invalid)).toThrow('Invalid encrypted secret format');
       });
     });
 
@@ -119,9 +120,9 @@ describe('mfa-service', () => {
       const encrypted = encryptMfaSecret(originalSecret);
       const parts = encrypted.split(':');
 
-      // Modificar el authTag (parts[2] en formato salt:iv:authTag:data)
-      const tamperedAuthTag = Buffer.from('tamperedtamperedx').toString('base64');
-      const tampered = `${parts[0]}:${parts[1]}:${tamperedAuthTag}:${parts[3]}`;
+      // Modificar el authTag
+      const tamperedAuthTag = Buffer.from('tampered').toString('base64');
+      const tampered = `${parts[0]}:${tamperedAuthTag}:${parts[2]}`;
 
       expect(() => decryptMfaSecret(tampered)).toThrow();
     });

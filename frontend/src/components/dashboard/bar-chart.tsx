@@ -71,10 +71,6 @@ export function BarChart({
       .nice()
       .range([chartHeight, 0]);
 
-    const gridColor = 'hsl(var(--border))';
-    const axisColor = 'hsl(var(--muted-foreground))';
-    const labelColor = 'hsl(var(--foreground))';
-
     // Grid lines
     g.append('g')
       .attr('class', 'grid')
@@ -87,7 +83,7 @@ export function BarChart({
       )
       .call((sel) => sel.select('.domain').remove())
       .call((sel) =>
-        sel.selectAll('line').attr('stroke', gridColor).attr('stroke-dasharray', '2,2')
+        sel.selectAll('line').attr('stroke', '#e2e8f0').attr('stroke-dasharray', '2,2')
       );
 
     // Y axis
@@ -97,7 +93,7 @@ export function BarChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', axisColor)
+          .attr('fill', '#64748b')
           .attr('font-size', '11px')
       );
 
@@ -115,7 +111,7 @@ export function BarChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', axisColor)
+          .attr('fill', '#64748b')
           .attr('font-size', '11px')
           .attr('text-anchor', 'middle')
       );
@@ -181,7 +177,7 @@ export function BarChart({
       .attr('x', (d) => (x(d.id) ?? 0) + x.bandwidth() / 2)
       .attr('y', (d) => y(d.value) - 6)
       .attr('text-anchor', 'middle')
-      .attr('fill', labelColor)
+      .attr('fill', '#64748b')
       .attr('font-size', '11px')
       .attr('font-weight', '500')
       .attr('opacity', 0)
@@ -237,12 +233,12 @@ export function BarChart({
           <svg ref={svgRef} className="w-full" />
           {tooltip.visible && (
             <div
-              className="absolute pointer-events-none z-10 rounded-md border border-border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-lg -translate-x-1/2 -translate-y-full"
+              className="absolute pointer-events-none z-10 rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white shadow-lg -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y }}
               role="tooltip"
             >
               <div className="font-medium">{tooltip.label}</div>
-              <div className="text-muted-foreground">{tooltip.value}</div>
+              <div className="text-slate-300">{tooltip.value}</div>
             </div>
           )}
         </div>

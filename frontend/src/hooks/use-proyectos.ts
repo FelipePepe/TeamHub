@@ -136,7 +136,7 @@ export function useUpdateProyectoEstado() {
       queryClient.invalidateQueries({ queryKey: proyectosKeys.lists() });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar estado del proyecto:', error);
+      console.error('Error al actualizar estado del proyecto:', error);
     },
   });
 }

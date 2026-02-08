@@ -78,9 +78,6 @@ export function LineChart({
       .nice()
       .range([chartHeight, 0]);
 
-    const gridColor = 'hsl(var(--border))';
-    const axisColor = 'hsl(var(--muted-foreground))';
-
     // Grid lines
     g.append('g')
       .attr('class', 'grid')
@@ -93,7 +90,7 @@ export function LineChart({
       )
       .call((sel) => sel.select('.domain').remove())
       .call((sel) =>
-        sel.selectAll('line').attr('stroke', gridColor).attr('stroke-dasharray', '2,2')
+        sel.selectAll('line').attr('stroke', '#e2e8f0').attr('stroke-dasharray', '2,2')
       );
 
     // Y axis
@@ -103,7 +100,7 @@ export function LineChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', axisColor)
+          .attr('fill', '#64748b')
           .attr('font-size', '11px')
       );
 
@@ -124,7 +121,7 @@ export function LineChart({
       .call((sel) =>
         sel
           .selectAll('text')
-          .attr('fill', axisColor)
+          .attr('fill', '#64748b')
           .attr('font-size', '11px')
       );
 
@@ -270,12 +267,12 @@ export function LineChart({
           <svg ref={svgRef} className="w-full" />
           {tooltip.visible && (
             <div
-              className="absolute pointer-events-none z-10 rounded-md border border-border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-lg -translate-x-1/2 -translate-y-full"
+              className="absolute pointer-events-none z-10 rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white shadow-lg -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y }}
               role="tooltip"
             >
               <div className="font-medium">{tooltip.label}</div>
-              <div className="text-muted-foreground">{tooltip.value}</div>
+              <div className="text-slate-300">{tooltip.value}</div>
             </div>
           )}
         </div>

@@ -59,8 +59,6 @@ jobs:
         working-directory: backend
         run: npm run test
         env:
-          # ⚠️ VALORES DE TEST - NO SON SECRETOS REALES
-          # Estos valores solo se usan en CI para tests y son públicos en el repositorio
           NODE_ENV: test
           DATABASE_URL: postgres://test:test@localhost:5432/teamhub_test
           JWT_ACCESS_SECRET: test-secret-key-min-32-characters-long-for-ci
@@ -69,7 +67,6 @@ jobs:
           APP_BASE_URL: http://localhost:3001
           MFA_ENCRYPTION_KEY: test-mfa-encryption-key-min-32-chars-long
           API_HMAC_SECRET: test-api-hmac-secret-key-min-32-chars-long
-          DISABLE_HMAC: true  # Explicitly disable HMAC validation in tests
       - name: Backend build
         if: ${{ hashFiles('backend/package.json') != '' }}
         working-directory: backend

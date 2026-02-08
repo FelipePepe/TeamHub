@@ -2,7 +2,7 @@ import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { and, eq, inArray } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
-import { authMiddleware, requireRoles } from '../../middleware/auth.js';
+import { authMiddleware } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { db } from '../../db/index.js';
 import { plantillasOnboarding, tareasPlantilla } from '../../db/schema/plantillas.js';
@@ -45,7 +45,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ data: plantillas.map(toPlantillaResponse) });
   });
 
-  router.post('/', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.post('/', async (c) => {
     const payload = await parseJson(c, createPlantillaSchema);
     const user = c.get('user') as User;
     const now = new Date();
@@ -81,7 +81,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     });
   });
 
-  router.put('/:id', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.put('/:id', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const payload = await parseJson(c, updatePlantillaSchema);
     const plantilla = await findPlantillaById(id);
@@ -104,7 +104,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toPlantillaResponse(updated));
   });
 
-  router.delete('/:id', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.delete('/:id', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const plantilla = await findPlantillaById(id);
     if (!plantilla) {
@@ -114,7 +114,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ message: 'Plantilla eliminada' });
   });
 
-  router.post('/:id/duplicar', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.post('/:id/duplicar', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const plantilla = await findPlantillaById(id);
     if (!plantilla) {
@@ -173,7 +173,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toPlantillaResponse(duplicated), 201);
   });
 
-  router.post('/:id/tareas', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.post('/:id/tareas', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const plantilla = await findPlantillaById(id);
     if (!plantilla) {
@@ -207,7 +207,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toTareaPlantillaResponse(tarea), 201);
   });
 
-  router.put('/:id/tareas/:tareaId', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.put('/:id/tareas/:tareaId', async (c) => {
     const { id, tareaId } = parseParams(c, tareaIdSchema);
     const tarea = await findTareaById(tareaId);
     if (!tarea) {
@@ -231,7 +231,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toTareaPlantillaResponse(updated));
   });
 
-  router.delete('/:id/tareas/:tareaId', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.delete('/:id/tareas/:tareaId', async (c) => {
     const { id, tareaId } = parseParams(c, tareaIdSchema);
     const tarea = await findTareaById(tareaId);
     if (!tarea) {
@@ -244,7 +244,7 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ message: 'Tarea eliminada' });
   });
 
-  router.put('/:id/tareas/reordenar', requireRoles('ADMIN', 'RRHH'), async (c) => {
+  router.put('/:id/tareas/reordenar', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const payload = await parseJson(c, reorderSchema);
     const tareas = await db

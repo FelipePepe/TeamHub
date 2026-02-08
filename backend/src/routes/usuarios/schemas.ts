@@ -16,7 +16,7 @@ export const listQuerySchema = z.object({
   managerId: uuidSchema.optional(),
   activo: optionalBooleanFromString,
   page: optionalNumberFromString,
-  limit: optionalNumberFromString.pipe(z.number().max(100).optional()),
+  limit: optionalNumberFromString,
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });

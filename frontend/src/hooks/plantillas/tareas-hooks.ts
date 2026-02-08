@@ -52,7 +52,7 @@ export function useCreateTareaPlantilla() {
       });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al crear tarea de plantilla:', error);
+      console.error('Error al crear tarea de plantilla:', error);
     },
   });
 }
@@ -79,7 +79,7 @@ export function useUpdateTareaPlantilla() {
       });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar tarea de plantilla:', error);
+      console.error('Error al actualizar tarea de plantilla:', error);
     },
   });
 }
@@ -107,7 +107,7 @@ export function useDeleteTareaPlantilla() {
       });
     },
     onError: (error: ApiError) => {
-      if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar tarea de plantilla:', error);
+      console.error('Error al eliminar tarea de plantilla:', error);
     },
   });
 }

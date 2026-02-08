@@ -5,8 +5,6 @@ import { defineConfig, devices } from '@playwright/test';
  * Ejecutar con: npm run e2e (o npx playwright test)
  * Requiere frontend en http://localhost:3000 y opcionalmente backend en :3001
  */
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
-
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -15,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL,
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -25,8 +23,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev',
-        url: baseURL,
+        url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
-        timeout: 120000,
       },
 });

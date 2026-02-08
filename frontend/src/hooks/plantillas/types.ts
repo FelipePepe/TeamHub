@@ -25,7 +25,6 @@ export interface Plantilla {
   actualizadoEn: string;
 }
 
-/** Conforme al contrato TareaPlantillaResponse de OpenAPI */
 export interface TareaPlantilla {
   id: string;
   plantillaId: string;
@@ -33,15 +32,14 @@ export interface TareaPlantilla {
   descripcion?: string;
   orden: number;
   categoria: CategoriaTarea;
-  responsableTipo: TipoResponsable;
-  responsableId?: string;
-  diasDesdeInicio?: number;
-  duracionEstimadaHoras?: number;
-  obligatoria?: boolean;
-  requiereEvidencia?: boolean;
-  instrucciones?: string;
-  recursosUrl?: string[];
+  responsable: TipoResponsable;
+  responsablePersonalizadoId?: string;
+  duracionEstimadaDias?: number;
+  esOpcional: boolean;
+  requiereAprobacion: boolean;
   dependencias?: string[];
+  creadoEn: string;
+  actualizadoEn: string;
 }
 
 export interface PlantillaFilters {
@@ -77,20 +75,16 @@ export interface UpdatePlantillaData {
   activo?: boolean;
 }
 
-/** Conforme al contrato CreateTareaPlantillaRequest de OpenAPI */
 export interface CreateTareaPlantillaData {
   titulo: string;
   descripcion?: string;
   orden: number;
   categoria: CategoriaTarea;
-  responsableTipo: TipoResponsable;
-  responsableId?: string;
-  diasDesdeInicio?: number;
-  duracionEstimadaHoras?: number;
-  obligatoria?: boolean;
-  requiereEvidencia?: boolean;
-  instrucciones?: string;
-  recursosUrl?: string[];
+  responsable: TipoResponsable;
+  responsablePersonalizadoId?: string;
+  duracionEstimadaDias?: number;
+  esOpcional?: boolean;
+  requiereAprobacion?: boolean;
   dependencias?: string[];
 }
 
@@ -105,30 +99,23 @@ export interface CreateTareaPlantillaWithAllFields {
   descripcion?: string;
   orden: number;
   categoria: CategoriaTarea;
-  responsableTipo: TipoResponsable;
-  responsableId?: string;
-  diasDesdeInicio?: number;
-  duracionEstimadaHoras?: number;
-  obligatoria?: boolean;
-  requiereEvidencia?: boolean;
-  instrucciones?: string;
-  recursosUrl?: string[];
+  responsable: TipoResponsable;
+  responsablePersonalizadoId?: string;
+  duracionEstimadaDias?: number;
+  esOpcional?: boolean;
+  requiereAprobacion?: boolean;
   dependencias?: string[];
 }
 
-/** Conforme al contrato UpdateTareaPlantillaRequest de OpenAPI */
 export interface UpdateTareaPlantillaData {
   titulo?: string;
   descripcion?: string;
   orden?: number;
   categoria?: CategoriaTarea;
-  responsableTipo?: TipoResponsable;
-  responsableId?: string;
-  diasDesdeInicio?: number;
-  duracionEstimadaHoras?: number;
-  obligatoria?: boolean;
-  requiereEvidencia?: boolean;
-  instrucciones?: string;
-  recursosUrl?: string[];
+  responsable?: TipoResponsable;
+  responsablePersonalizadoId?: string;
+  duracionEstimadaDias?: number;
+  esOpcional?: boolean;
+  requiereAprobacion?: boolean;
   dependencias?: string[];
 }

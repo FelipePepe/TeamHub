@@ -77,7 +77,7 @@ export async function fetchTareasPlantilla(
 }
 
 /**
- * Crea una nueva tarea en una plantilla conforme al contrato CreateTareaPlantillaRequest
+ * Crea una nueva tarea en una plantilla
  */
 export async function createTareaPlantilla(
   plantillaId: string,
@@ -87,7 +87,7 @@ export async function createTareaPlantilla(
 }
 
 /**
- * Actualiza una tarea de plantilla conforme al contrato UpdateTareaPlantillaRequest
+ * Actualiza una tarea de plantilla
  */
 export async function updateTareaPlantilla(
   plantillaId: string,

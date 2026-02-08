@@ -8,9 +8,7 @@ type UserResponseInput = {
   apellidos?: string | null;
   rol: string;
   departamentoId?: string | null;
-  departamentoNombre?: string | null;
   managerId?: string | null;
-  managerNombre?: string | null;
   activo?: boolean;
   deletedAt?: Date | string | null;
 };
@@ -28,12 +26,6 @@ type DepartamentoResponseInput = {
   updatedAt?: Date | string;
 };
 
-/**
- * Transforma un usuario de la base de datos al formato de respuesta API.
- * Incluye `departamentoNombre` cuando se proporciona (resuelto via LEFT JOIN).
- * @param user - Entidad de usuario desde DB o input con campos opcionales
- * @returns Objeto sanitizado conforme al contrato UserResponse de OpenAPI
- */
 export const toUserResponse = (user: UserResponseInput | User) => ({
   id: user.id,
   email: user.email,
@@ -41,9 +33,7 @@ export const toUserResponse = (user: UserResponseInput | User) => ({
   apellidos: user.apellidos ?? undefined,
   rol: user.rol,
   departamentoId: user.departamentoId ?? undefined,
-  departamentoNombre: (user as UserResponseInput).departamentoNombre ?? undefined,
   managerId: user.managerId ?? undefined,
-  managerNombre: (user as UserResponseInput).managerNombre ?? undefined,
   activo: resolveActiveState(user),
 });
 

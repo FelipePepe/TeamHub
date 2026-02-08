@@ -294,9 +294,9 @@ export default function EmpleadosPage() {
                               <p className="font-medium text-slate-900 dark:text-slate-100">
                                 {empleado.nombre} {empleado.apellidos}
                               </p>
-                              {empleado.departamentoId && (
+                              {(empleado.departamentoNombre || empleado.departamentoId) && (
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  Departamento ID: {empleado.departamentoId.slice(0, 8)}...
+                                  {empleado.departamentoNombre ?? `Departamento ID: ${empleado.departamentoId?.slice(0, 8)}...`}
                                 </p>
                               )}
                             </div>

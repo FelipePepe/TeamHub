@@ -321,7 +321,7 @@ describe('TareasRepository', () => {
         titulo: 'Tarea Sin Asignar',
         estado: 'TODO',
         prioridad: 'MEDIUM',
-        orden: '3',
+        orden: '50',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -670,7 +670,7 @@ describe('TareasRepository', () => {
         prioridad: 'MEDIUM',
         horasEstimadas: '12.75',
         horasReales: '13.25',
-        orden: '4',
+        orden: '51',
         createdAt: new Date(),
         updatedAt: new Date(),
       };

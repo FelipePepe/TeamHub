@@ -338,7 +338,9 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - **Correcciones implementadas:**
   - **CRITICAL:** SQL Injection en audit-context (parametrización con `set_config`), timing attack HMAC (uso de `timingSafeEqual`), rutas absolutas hardcodeadas en package.json
   - **HIGH:** Control de roles en Dashboard/Departamentos/Procesos/Plantillas (`requireRoles`), IDOR en Timetracking (verificación de ownership), MFA salt dinámico (16 bytes aleatorios por cifrado), security headers en Next.js, `crypto.getRandomValues` para passwords temporales
-  - **MEDIUM:** HMAC incluye hash del body, paginación limitada a 100, CORS sin wildcard, validación URL en `evidenciaUrl`, password temporal sin sufijo predecible, nuevo mfaToken tras cambio de password, filtrado de campos sensibles en audit log, `console.error` suprimido en producción, mensajes genéricos en login, `.gitignore` con `*.pem/*.key`, `drizzle-orm` movido a dependencies, validación formato JWT expiry, placeholder "change-me" rechazado en producción, PII reemplazada en seeds
+  - **MEDIUM (1ª ronda):** HMAC incluye hash del body, paginación limitada a 100, CORS sin wildcard, validación URL en `evidenciaUrl`, password temporal sin sufijo predecible, nuevo mfaToken tras cambio de password, filtrado de campos sensibles en audit log, `console.error` suprimido en producción, mensajes genéricos en login, `.gitignore` con `*.pem/*.key`, `drizzle-orm` movido a dependencies, validación formato JWT expiry, placeholder "change-me" rechazado en producción, PII reemplazada en seeds
+  - **MEDIUM (2ª ronda - 8 hallazgos):** Rate limiter con maxEntries, limpiar mfaSecret tras MFA exitoso, documentar passwords de seed, validar formato cifrado mfaSecret, ADR-091 sobre jsonwebtoken, permissions en CI, security:[] en OpenAPI, .gitignore completo
+  - **LOW (8 hallazgos):** DISABLE_HMAC flag explícito, documentar trusted-proxy, PORT sin duplicar, swagger-ui-dist en devDependencies, doc SHA en GitHub Actions, doc limitación use-permissions, nota SRI en qrcode, doc mejora tempPassword
 - **Hallazgos diferidos (requieren cambios arquitecturales):**
   - HMAC secret en `NEXT_PUBLIC_*` → requiere BFF/API route
   - JWT en localStorage → migración a httpOnly cookies
@@ -348,10 +350,23 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - Rotación de credenciales en producción
   - Purga de PII del historial git con BFG
 - **Consecuencias:**
-  - Eliminados 3 hallazgos CRITICAL, 7 HIGH y 14 MEDIUM
+  - **TOTAL CORREGIDO:** 3 CRITICAL + 7 HIGH + 22 MEDIUM + 10 LOW = **42 hallazgos**
+  - **DIFERIDOS:** 6 CRITICAL + 7 HIGH + 1 LOW = **14 hallazgos** (requieren cambios arquitecturales o acciones manuales)
   - Mejora significativa en la postura de seguridad de la aplicación
+  - Tests: 226 passed ✅
   - Backward compatibility mantenida en MFA (detección de formato legacy)
-  - Requiere actualizar firma HMAC en frontend para incluir body hash
+
+### ADR-091: Mantenimiento de jsonwebtoken con Monitoreo Activo
+
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado  
+- **Contexto:** jsonwebtoken@9.0.2 depende de paquetes lodash abandonados. Opciones: migrar a `jose` (sin lodash) o mantener con vigilancia activa.
+- **Decisión:** MANTENER jsonwebtoken con monitoreo de CVEs. Razones: (1) madurez/estabilidad, (2) coste de migración alto, (3) sub-dependencias lodash sin CVEs críticos actuales, (4) plan de contingencia documentado.
+- **Consecuencias:**
+  - **Positivas:** Estabilidad, no introducir riesgo de regresión, recursos priorizados a hallazgos mayores
+  - **Negativas:** Deuda técnica, vigilancia requerida
+  - **Mitigación:** Renovate Bot, Snyk/Dependabot, migración a `jose` si CVE ≥ 8.0
+- **Referencia:** docs/adr/091-jsonwebtoken-dependency-mitigation.md
 
 ---
 

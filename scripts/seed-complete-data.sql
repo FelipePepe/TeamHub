@@ -17,7 +17,16 @@ ON CONFLICT (codigo) DO NOTHING;
 -- ============================================
 -- 2. USUARIOS CON DIFERENTES ROLES (12 usuarios)
 -- ============================================
--- Password para todos: Test123!
+-- ⚠️ SEGURIDAD: Password para todos los usuarios de seed: Test123!
+-- 
+-- ⚠️ ACCIÓN OBLIGATORIA: Cambiar TODOS los passwords inmediatamente después
+-- de poblar la base de datos. Estos hashes bcrypt son públicos en el repositorio
+-- y cualquier persona con acceso puede usarlos para autenticarse.
+-- 
+-- Para cambiar passwords en bulk:
+-- UPDATE users SET password_hash = '$2a$10$TU_NUEVO_HASH_AQUI', must_change_password = true
+-- WHERE email LIKE '%@teamhub.com';
+--
 
 -- ADMIN
 INSERT INTO users (id, email, nombre, apellidos, password_hash, rol)
@@ -113,13 +122,13 @@ WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'dev2@teamhub.com');
 INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
   gen_random_uuid(),
-  'felipepepe@gmail.com',
+  'admin@teamhub.example.com',
   'Felipe',
   'Pepe',
   '$2a$10$mNNDB34M4LPm9cYWFQmiNOLgk5Pr6FqO2RQr3dEoJNbPt.S66bmYW',
   'EMPLEADO',
   (SELECT id FROM departamentos WHERE codigo = 'DEV' LIMIT 1)
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'felipepepe@gmail.com');
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@teamhub.example.com');
 
 INSERT INTO users (id, email, nombre, apellidos, password_hash, rol, departamento_id)
 SELECT 
@@ -344,7 +353,7 @@ SELECT
   80,
   32
 FROM users u
-WHERE u.email IN ('dev1@teamhub.com', 'dev2@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev1@teamhub.com', 'dev2@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- MKT-001: 2 marketing
@@ -372,7 +381,7 @@ SELECT
   60,
   24
 FROM users u
-WHERE u.email IN ('dev1@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev1@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- PORTAL-001: 2 desarrolladores
@@ -386,7 +395,7 @@ SELECT
   50,
   20
 FROM users u
-WHERE u.email IN ('dev2@teamhub.com', 'felipepepe@gmail.com')
+WHERE u.email IN ('dev2@teamhub.com', 'admin@teamhub.example.com')
 ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 
 -- SUP-TICKET-001: 2 personas (1 dev + 1 soporte)
@@ -407,11 +416,11 @@ ON CONFLICT (proyecto_id, usuario_id, fecha_inicio) DO NOTHING;
 -- 5. TIMETRACKING (registros variados)
 -- ============================================
 
--- Registros de esta semana para felipepepe@gmail.com en varios proyectos
+-- Registros de esta semana para admin@teamhub.example.com en varios proyectos
 INSERT INTO timetracking (id, usuario_id, proyecto_id, fecha, horas, descripcion, estado, facturable)
 SELECT 
   gen_random_uuid(),
-  (SELECT id FROM users WHERE email = 'felipepepe@gmail.com' LIMIT 1),
+  (SELECT id FROM users WHERE email = 'admin@teamhub.example.com' LIMIT 1),
   p.id,
   CURRENT_DATE - (EXTRACT(DOW FROM CURRENT_DATE)::integer) + offset_days,
   CASE 

@@ -379,6 +379,18 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
   - **Negativas:** Una query adicional (LEFT JOIN) por llamada, impacto mínimo en rendimiento
   - **Lección:** Los tests existentes no verificaban la presencia de `usuarioAsignado` en la respuesta; añadir tests de integración end-to-end para validar contratos completos
 
+### ADR-093: Auditoría de UI — Eliminación de IDs expuestos y corrección de dark mode
+
+- **Fecha:** 2026-02-08
+- **Estado:** Aceptado
+- **Contexto:** Auditoría pantalla por pantalla detectó: (1) IDs crudos (UUID) expuestos al usuario en detalle de empleado y fallbacks de departamento/proyecto; (2) ~100 instancias de colores hardcoded sin dark: variants; (3) gráficas de dashboard con etiquetas de enums crudas (ADMIN, ACTIVO, PENDIENTE).
+- **Decisión:**
+  - Backend: añadir `ROL_LABELS`, `PROYECTO_ESTADO_LABELS`, `TIMETRACKING_ESTADO_LABELS` en constantes dashboard; enriquecer `GET /usuarios/:id` y listado con LEFT JOIN a departamentos + alias managers; añadir LEFT JOIN en `pendientesAprobacion` del manager dashboard
+  - Frontend: reemplazar exposición de IDs por nombres resueltos; migrar ~100 clases de color (`text-slate-*`, `bg-slate-*`, `border-slate-*`) a tokens semánticos (`text-muted-foreground`, `text-foreground`, `bg-muted`, `border-border`)
+- **Consecuencias:**
+  - **Positivas:** Ningún ID visible al usuario en ninguna pantalla; dark mode completamente funcional en todos los dashboards y pantallas
+  - **Negativas:** LEFT JOINs adicionales en endpoints de usuarios (impacto mínimo); se deben mantener los mapas de labels sincronizados con los enums de la DB
+
 ---
 
 ## 4. API y Contratos

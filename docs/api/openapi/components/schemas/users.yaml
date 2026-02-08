@@ -24,6 +24,9 @@ UserResponse:
     managerId:
       type: string
       format: uuid
+    managerNombre:
+      type: string
+      description: Nombre completo del manager asignado (resuelto via JOIN)
     activo:
       type: boolean
 

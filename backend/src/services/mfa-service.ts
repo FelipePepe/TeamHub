@@ -36,29 +36,20 @@ export const encryptMfaSecret = (plainSecret: string): string => {
 
 /**
  * Descifra un secreto MFA cifrado en formato base64.
- * Soporta formato nuevo (salt:iv:authTag:data) y legacy (iv:authTag:data).
+ * Formato: salt:iv:authTag:data (todas las partes en base64).
  * @param encryptedSecret - Secreto cifrado en formato base64.
  * @returns Secreto MFA en texto plano.
  * @throws Error si el formato es inválido o el authTag no valida.
  */
 export const decryptMfaSecret = (encryptedSecret: string): string => {
   const parts = encryptedSecret.split(':');
-  let salt: Buffer;
-  let ivB64: string;
-  let authTagB64: string;
-  let dataB64: string;
 
-  if (parts.length === 4) {
-    // Nuevo formato con salt dinámico
-    [, ivB64, authTagB64, dataB64] = parts;
-    salt = Buffer.from(parts[0], 'base64');
-  } else if (parts.length === 3) {
-    // Legacy formato con salt estático - backward compatible
-    [ivB64, authTagB64, dataB64] = parts;
-    salt = Buffer.from('mfa-salt');
-  } else {
-    throw new Error('Invalid encrypted secret format');
+  if (parts.length !== 4) {
+    throw new Error('Invalid encrypted secret format: expected salt:iv:authTag:data');
   }
+
+  const [saltB64, ivB64, authTagB64, dataB64] = parts;
+  const salt = Buffer.from(saltB64, 'base64');
 
   const key = deriveKey(salt);
   const iv = Buffer.from(ivB64, 'base64');

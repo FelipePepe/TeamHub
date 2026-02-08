@@ -52,13 +52,13 @@ describe('mfa-service', () => {
       expect(encrypted).not.toBe(plainSecret);
     });
 
-    it('debe generar cifrado con formato iv:authTag:data', () => {
+    it('debe generar cifrado con formato salt:iv:authTag:data', () => {
       const plainSecret = 'JBSWY3DPEHPK3PXP';
 
       const encrypted = encryptMfaSecret(plainSecret);
       const parts = encrypted.split(':');
 
-      expect(parts).toHaveLength(3);
+      expect(parts).toHaveLength(4);
       // Cada parte debe ser base64 válido
       parts.forEach((part) => {
         expect(() => Buffer.from(part, 'base64')).not.toThrow();
@@ -101,11 +101,12 @@ describe('mfa-service', () => {
     });
 
     it('debe lanzar error para formato inválido', () => {
-      // Formatos que no tienen exactamente 3 partes separadas por ':'
+      // Formatos que no tienen exactamente 4 partes (salt:iv:authTag:data)
       const invalidFormats = [
         'no-colons-here',        // 1 parte
         'only:two',              // 2 partes
-        'too:many:parts:here',   // 4 partes
+        'only:three:parts',      // 3 partes
+        'way:too:many:colons:here:now',  // 6 partes
         '',                      // vacío
       ];
 

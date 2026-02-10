@@ -1,7 +1,9 @@
 import { tareasOnboarding } from '../../db/schema/procesos.js';
 import { CRITICAL_OVERDUE_DAYS } from './constants.js';
-import { toNumber } from '../../shared/utils/number.js';
 import { TIME_CONSTANTS } from '../../shared/constants/time.js';
+
+// Re-export toNumber from shared module for backward compatibility
+export { toNumber } from '../../shared/utils/number.js';
 
 export const toDateString = (date: Date) => date.toISOString().slice(0, 10);
 

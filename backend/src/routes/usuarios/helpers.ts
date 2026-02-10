@@ -4,7 +4,6 @@ import { z } from 'zod';
 import type { User } from '../../db/schema/users.js';
 import { users } from '../../db/schema/users.js';
 import { listQuerySchema } from './schemas.js';
-import { toNumber } from '../../shared/utils/number.js';
 
 const PRIVILEGED_ROLES: User['rol'][] = ['ADMIN', 'RRHH'];
 

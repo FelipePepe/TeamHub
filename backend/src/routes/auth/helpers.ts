@@ -3,7 +3,6 @@ import { HTTPException } from 'hono/http-exception';
 import type { User } from '../../db/schema/users.js';
 import { config } from '../../config/env.js';
 import { BUSINESS_RULES } from '../../shared/constants/business-rules.js';
-import { TIME_CONSTANTS } from '../../shared/constants/time.js';
 import {
   createUser,
   findActiveUserById,

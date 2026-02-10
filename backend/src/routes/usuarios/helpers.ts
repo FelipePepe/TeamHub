@@ -4,12 +4,7 @@ import { z } from 'zod';
 import type { User } from '../../db/schema/users.js';
 import { users } from '../../db/schema/users.js';
 import { listQuerySchema } from './schemas.js';
-
-export const toNumber = (value: unknown, fallback = 0) => {
-  if (value === null || value === undefined) return fallback;
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
+import { toNumber } from '../../shared/utils/number.js';
 
 const PRIVILEGED_ROLES: User['rol'][] = ['ADMIN', 'RRHH'];
 

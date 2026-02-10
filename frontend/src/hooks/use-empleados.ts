@@ -6,6 +6,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/types';
 import type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
+import { STALE_TIME } from '@/lib/query-config';
 import { empleadosKeys } from './empleados/keys';
 import {
   createEmpleado,
@@ -45,7 +46,7 @@ export function useEmpleados(filters?: EmpleadoFilters) {
   return useQuery({
     queryKey: empleadosKeys.list(filters),
     queryFn: () => fetchEmpleados(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -66,7 +67,7 @@ export function useEmpleado(id: string, enabled = true) {
     queryKey: empleadosKeys.detail(id),
     queryFn: () => fetchEmpleado(id),
     enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 

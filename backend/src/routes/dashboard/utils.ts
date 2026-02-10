@@ -1,5 +1,7 @@
 import { tareasOnboarding } from '../../db/schema/procesos.js';
 import { CRITICAL_OVERDUE_DAYS } from './constants.js';
+import { toNumber } from '../../shared/utils/number.js';
+import { TIME_CONSTANTS } from '../../shared/constants/time.js';
 
 export const toDateString = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -26,12 +28,6 @@ export const getRecentDates = (days: number, now: Date) => {
   return dates;
 };
 
-export const toNumber = (value: unknown, fallback = 0) => {
-  if (value === null || value === undefined) return fallback;
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
 export const formatNombreCompleto = (nombre?: string | null, apellidos?: string | null) =>
   [nombre, apellidos].filter(Boolean).join(' ').trim();
 
@@ -48,7 +44,7 @@ export const buildAlertsFromTareas = (
 ) => {
   return rows.map((tarea) => {
     const limite = tarea.fechaLimite ? new Date(tarea.fechaLimite) : now;
-    const overdueDays = Math.floor((now.getTime() - limite.getTime()) / (1000 * 60 * 60 * 24));
+    const overdueDays = Math.floor((now.getTime() - limite.getTime()) / TIME_CONSTANTS.MS_PER_DAY);
     return {
       id: tarea.id,
       titulo: tarea.titulo,

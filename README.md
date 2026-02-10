@@ -1147,6 +1147,50 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload (solo en
 
 Configuración estricta mediante `CORS_ORIGINS` (lista separada por comas).
 
+### Firmas HMAC
+
+- **Request Signing**: Todas las requests API incluyen firma HMAC-SHA256
+- **Validación**: Backend valida firma antes de procesar request
+- **Secret**: `API_HMAC_SECRET` debe coincidir entre frontend y backend
+- **Payload**: Incluye método HTTP, path y hash del body
+
+### Security Gates (Husky Hooks)
+
+#### Pre-commit
+1. ✅ **Secrets Detection (gitleaks)**: Bloquea commits con API keys, passwords o tokens hardcodeados
+   - Herramienta: gitleaks v8.22.1
+   - Ejecuta: `scripts/bin/gitleaks protect --staged`
+   - Whitelist: `.gitleaksignore`
+
+2. ✅ **Branch Naming Validation**: Verifica nombres GitFlow válidos (feature/*, bugfix/*, etc.)
+
+#### Pre-push
+1. ✅ **Security Audit (npm audit)**: Detecta CVEs conocidos en dependencias
+   - Nivel: high/critical
+   - Bloquea push si hay vulnerabilidades críticas
+
+2. ✅ **Code Quality**: Linting, type-check, tests
+3. ✅ **OpenAPI Validation**: Schema válido según OpenAPI 3.1
+
+#### Setup
+```bash
+# Instalar Husky hooks
+npm run prepare
+
+# Instalar gitleaks
+./scripts/setup-gitleaks.sh
+```
+
+**⚠️ IMPORTANTE:** Nunca usar `--no-verify` en commits/push. Los hooks son quality gates obligatorios.
+
+### Monitoreo de Errores (Sentry)
+
+- **Backend**: `@sentry/node` captura errores no manejados
+- **Frontend**: `@sentry/nextjs` captura errores de React y API
+- **DSN**: Configurado en `SENTRY_DSN` y `SENTRY_ENVIRONMENT`
+- **Plan**: Free tier (5,000 errores/mes)
+- **Skills instalados**: sentry-setup-logging, sentry-react-setup, sentry-fix-issues
+
 ---
 
 ## Testing

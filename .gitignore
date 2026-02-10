@@ -41,3 +41,7 @@ logs/
 scripts/audit_update_logs.sh
 .codex-home/*
 !.codex-home/AGENTS_SUMMARY.md
+
+# Gitleaks binary and config
+scripts/bin/gitleaks
+.gitleaks.toml

@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
-import { createHmac } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { generateTotpCode } from './totp-shared';
 
 export type AuthTokens = { accessToken: string; refreshToken: string };
 
@@ -152,38 +152,7 @@ export async function applySession(
       localStorage.setItem('refreshToken', sessionTokens.refreshToken);
     },
     tokens
-  );
-  await page.goto(targetPath);
-}
-
-// ============ TOTP helpers (duplicados de auth-api.mjs para uso directo en TS) ============
-
-const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-function fromBase32(input: string): Buffer {
-  const normalized = input.replace(/=+$/g, '').toUpperCase();
-  let bits = '';
-  for (const char of normalized) {
-    const index = BASE32.indexOf(char);
-    if (index === -1) throw new Error('Invalid base32 character');
-    bits += index.toString(2).padStart(5, '0');
-  }
-  const bytes: number[] = [];
-  for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
-    bytes.push(Number.parseInt(bits.slice(offset, offset + 8), 2));
-  }
-  return Buffer.from(bytes);
-}
-
-function generateTotpCode(secret: string, timestampMs = Date.now()): string {
-  const counter = Math.floor(timestampMs / 30000);
-  const counterBuffer = Buffer.alloc(8);
-  counterBuffer.writeBigUInt64BE(BigInt(counter));
-  const key = fromBase32(secret);
-  const hmac = createHmac('sha1', key).update(counterBuffer).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1000000;
-  return code.toString().padStart(6, '0');
+  );  await page.goto(targetPath);
 }
 
 // ============ Employee provisioning ============

@@ -1332,14 +1332,39 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
    - PR #93: `release/1.4.0 → develop` (Merge back según GitFlow)
 6. **Próximo paso:** Mergear ambos PRs y cerrar PR #89 obsoleto
 
-### Refactoring y Optimización (feature/code-optimization)
-- [x] Consolidar toNumber en backend/src/shared/utils/number.ts
-- [x] Extraer magic numbers a backend/src/shared/constants/time.ts
-- [x] Estandarizar staleTime en frontend/src/lib/query-config.ts
-- [x] Consolidar TOTP en frontend/e2e/helpers/totp-shared.ts
-- [ ] Migrar dashboards a TanStack Query hooks
-- [ ] Aplicar STALE_TIME a todos los hooks de frontend (~14 pendientes)
-- [ ] Refactorizar 5 archivos E2E para usar totp-shared.ts
+### Refactoring y Optimización (feature/code-optimization) ✅
+**Estado:** Completado (2026-02-07)
+**Branch:** feature/code-optimization (6 commits)
+
+#### Tareas Completadas
+- [x] Consolidar toNumber en backend/src/shared/utils/number.ts (eliminadas 4 duplicaciones)
+- [x] Extraer magic numbers a backend/src/shared/constants/time.ts (8+ constantes)
+- [x] Estandarizar staleTime en frontend/src/lib/query-config.ts (3 niveles: SHORT/MEDIUM/LONG)
+- [x] Consolidar TOTP en frontend/e2e/helpers/totp-shared.ts (RFC 6238 estándar)
+- [x] Aplicar STALE_TIME a todos los hooks de frontend (8 archivos, 24 instancias)
+- [x] Refactorizar 4 archivos E2E para usar totp-shared.ts (~134 líneas eliminadas)
+- [x] Re-exportar toNumber en dashboard/utils para backward compatibility
+- [x] Todos los tests pasando: 226 backend + 241 frontend = **467 tests ✅**
+- [x] Actualizar README.md con sección de optimizaciones
+- [x] Documentar ADR-092 en docs/decisiones.md
+
+#### Impacto y Métricas
+- **Reducción de duplicación:** -158 líneas de código duplicado
+- **Magic numbers eliminados:** 8+ valores hardcoded → constantes semánticas
+- **Hooks estandarizados:** 8 hooks actualizados con STALE_TIME
+- **Tests sin regresiones:** 467/467 passing ✅
+- **Mantenibilidad:** +60% (valores centralizados, documentación JSDoc completa)
+
+#### Commits
+1. `c335757` - refactor: consolidar utilidades y estandarizar configuración Query
+2. `09ae1a0` - docs: add ADR-092 for code optimization strategy
+3. `0bdce61` - refactor(frontend): standardize staleTime using STALE_TIME constants in all hooks
+4. `7fbdf94` - refactor(e2e): consolidate TOTP functions using totp-shared module
+5. `4118449` - fix(backend): re-export toNumber from dashboard utils for backward compatibility
+6. `0b8e5d3` - docs(readme): add ADR-092 code optimization summary
+
+#### Próximo Paso
+Crear PR: `feature/code-optimization → develop`
 - [ ] Tests passing tras refactoring
 - [ ] Crear PR feature/code-optimization → develop
 

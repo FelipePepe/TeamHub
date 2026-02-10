@@ -182,12 +182,19 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
 
     const payload = await parseJson(c, createTareaSchema);
     const now = new Date();
+    // Mapear 'responsable' a 'responsableTipo' para compatibilidad frontend
+    const responsableTipo = payload.responsableTipo || payload.responsable;
+    if (!responsableTipo) {
+      throw new HTTPException(400, {
+        message: 'Se requiere responsableTipo o responsable',
+      });
+    }
     const tarea = await createTareaPlantilla({
       plantillaId: id,
       titulo: payload.titulo,
       descripcion: payload.descripcion,
       categoria: payload.categoria,
-      responsableTipo: payload.responsableTipo,
+      responsableTipo,
       responsableId: payload.responsableId,
       diasDesdeInicio: payload.diasDesdeInicio ?? 0,
       duracionEstimadaHoras: payload.duracionEstimadaHoras?.toString(),
@@ -218,9 +225,12 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     }
 
     const payload = await parseJson(c, updateTareaSchema);
-    const { duracionEstimadaHoras, ...rest } = payload;
+    const { duracionEstimadaHoras, responsable, ...rest } = payload;
+    // Mapear 'responsable' a 'responsableTipo' para compatibilidad frontend
+    const responsableTipo = rest.responsableTipo || responsable;
     const updated = await updateTareaPlantillaById(tareaId, {
       ...rest,
+      ...(responsableTipo && { responsableTipo }),
       duracionEstimadaHoras: duracionEstimadaHoras?.toString(),
       updatedAt: new Date(),
     });

@@ -7,6 +7,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/types';
+import { STALE_TIME } from '@/lib/query-config';
 import { timetrackingKeys } from './timetracking/keys';
 import {
   aprobarMasivo,
@@ -52,7 +53,7 @@ export function useTimeEntries(filters?: TimeEntryFilters) {
   return useQuery({
     queryKey: timetrackingKeys.list(filters),
     queryFn: () => fetchTimeEntries(filters),
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 
@@ -60,7 +61,7 @@ export function useMisRegistros() {
   return useQuery({
     queryKey: timetrackingKeys.misRegistros(),
     queryFn: fetchMisRegistros,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 
@@ -69,7 +70,7 @@ export function useTimeEntriesSemana(fecha: string, enabled = true) {
     queryKey: timetrackingKeys.semana(fecha),
     queryFn: () => fetchSemana(fecha),
     enabled: enabled && !!fecha,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 

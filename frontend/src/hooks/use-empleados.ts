@@ -146,7 +146,7 @@ export function useEmpleadosByDepartamento(departamentoId: string, enabled = tru
     queryKey: empleadosKeys.byDepartamento(departamentoId),
     queryFn: () => fetchEmpleados({ departamentoId, activo: true }).then((res) => res.data),
     enabled: enabled && !!departamentoId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -165,6 +165,6 @@ export function useEmpleadosByManager(managerId: string, enabled = true) {
       return response.data;
     },
     enabled: enabled && !!managerId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }

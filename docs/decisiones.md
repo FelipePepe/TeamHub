@@ -706,11 +706,67 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 ---
 
+### ADR-094: Compatibilidad frontend/backend en campos de plantillas
+
+**Fecha:** 2026-02-10  
+**Estado:** ✅ Implementado  
+**Contexto:** Frontend de plantillas enviaba campo `responsable` mientras backend esperaba `responsableTipo`, causando error Zod al crear tareas en plantillas de onboarding.
+
+**Decisión:**
+
+**1. Schema Flexible:**
+- Modificar `createTareaSchema` para aceptar ambos campos:
+  - `responsableTipo`: Campo original del backend
+  - `responsable`: Campo enviado por frontend
+- Usar `.refine()` para validar que al menos uno esté presente
+- Extraer `baseTareaSchema` sin refine para mantener `.partial()` en `updateTareaSchema`
+
+**2. Mapeo en Handlers:**
+- Handler `POST /:id/tareas`: Mapear `payload.responsable || payload.responsableTipo` con validación explícita
+- Handler `PUT /:id/tareas/:tareaId`: Destructurar `responsable` y aplicar mapping condicional
+- Handler `POST /:id/duplicate`: Sin cambios (usa datos internos ya normalizados)
+
+**Implementación:**
+```typescript
+// backend/src/routes/plantillas/schemas.ts
+const baseTareaSchema = z.object({
+  // ... otros campos
+  responsableTipo: z.enum(responsables).optional(),
+  responsable: z.enum(responsables).optional(),
+  // ...
+});
+
+export const createTareaSchema = baseTareaSchema.refine(
+  (data) => data.responsableTipo || data.responsable,
+  { message: 'Se requiere responsableTipo o responsable', path: ['responsableTipo'] }
+);
+
+// backend/src/routes/plantillas/handlers.ts
+const responsableTipo = payload.responsableTipo || payload.responsable;
+if (!responsableTipo) {
+  throw new HTTPException(400, { message: 'Se requiere responsableTipo o responsable' });
+}
+```
+
+**Consecuencias:**
+- ✅ Backward compatibility: Backend acepta ambos nombres de campo
+- ✅ Error user-friendly: Mensaje en español sin exponer Zod internals
+- ✅ Frontend sin cambios: No requiere modificar código React existente
+- ✅ Type safety: TypeScript infiere correctamente tipos opcionales
+- ✅ Tests passing: 3/3 tests de plantillas verifican creación y duplicación
+- 📊 Líneas modificadas: schemas.ts (+9), handlers.ts (+8)
+
+**Referencias:**
+- ADR-093: Hybrid Error Logging (contexto de error original)
+- Copilot-instructions: Sección 3 "Separación Frontend/Backend"
+
+---
+
 ### ADR-093: Sistema Híbrido de Error Logging (PostgreSQL + Sentry)
 
 **Fecha:** 2026-02-10  
 **Estado:** ✅ Implementado  
-**PR:** Pendiente (feature/error-logging-system)
+**PR:** #103 (feature/error-logging-system)
 
 **Contexto:**  
 Error de validación Zod en plantillas de onboarding (`responsableTipo` requerido) reveló necesidad de diagnóstico rápido sin depender del usuario. Se requiere trazabilidad completa, mensajes user-friendly (nunca stack traces o SQL), compliance GDPR, y alertas proactivas en producción.
@@ -737,51 +793,38 @@ Implementar sistema **híbrido PostgreSQL + Sentry**:
   - `Cannot read property 'id' of null` → `Ha ocurrido un error. Inténtalo de nuevo.`
 
 **Implementación Backend:**
-- ✅ `context/14_error_logs.sql`: DDL completo
+- ✅ `context/14_error_logs.sql`: DDL completo con 7 índices
 - ✅ `backend/src/db/schema/error-logs.ts`: Drizzle schema
 - ✅ `backend/src/services/error-logger.ts`: `logError()`, `getUserFriendlyMessage()`, `extractErrorInfo()`
-- ✅ `backend/src/services/sentry.ts`: `initSentry()`, `captureException()`, `setUserContext()`
-- ✅ `backend/src/middleware/error-logger.ts`: Middleware auto-captura
-- ✅ `backend/src/routes/errors.routes.ts`: `POST /api/errors/log`
-- ✅ Variables: `SENTRY_DSN`, `SENTRY_ENVIRONMENT`
+- ✅ `backend/src/services/sentry.ts`: DEPRECATED (reemplazado por instrument.ts)
+- ✅ `backend/src/instrument.ts`: Sentry init según best practices (import first)
+- ✅ `backend/src/middleware/error-logger.ts`: Middleware auto-captura (antes de responder)
+- ✅ `backend/src/routes/errors.routes.ts`: `POST /api/errors/log` (sin auth/HMAC)
 
 **Implementación Frontend:**
-- ✅ `frontend/src/lib/error-logger.ts`: `logFrontendError()`, `getUserFriendlyMessage()`, `setupGlobalErrorHandling()`
-- ✅ `frontend/sentry.client.config.ts`: Client tracking + session replay
-- ✅ `frontend/sentry.server.config.ts`: Server tracking
-- ✅ Variables: `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`
-
-**Documentación:**
-- ✅ `docs/error-logging-system.md`: Guía completa
-- ✅ `docs/adr/093-hybrid-error-logging-system.md`: ADR detallado
+- ✅ `frontend/sentry.client.config.ts`: Client-side Sentry con replay integration
+- ✅ `frontend/sentry.server.config.ts`: Server-side Sentry para Next.js SSR
+- ✅ `frontend/instrumentation.ts`: Next.js instrumentation hook (auto-load configs)
+- ✅ `frontend/src/lib/error-logger.ts`: `logFrontendError()`, `setupGlobalErrorHandling()`
 
 **Consecuencias:**
-- ✅ Diagnóstico 10x más rápido: toda la info en un lugar
-- ✅ Proactividad: detectar errores antes de reportes
-- ✅ UX mejorada: mensajes comprensibles sin jerga técnica
-- ✅ GDPR compliance: datos en infraestructura controlada
-- ✅ Auditoría: historial completo por usuario
-- ✅ Alertas: notificación inmediata de errores críticos
-- ⚠️ Coste Sentry: ~$26/mes (plan Team) - opcional
-- ⚠️ Overhead: ~5-10ms por request (async, no bloqueante)
-- ⏳ Pendiente: Limpieza automática de errores >90 días
+- ✅ Error discovery proactivo (Sentry alerts vs. reportes manuales)
+- ✅ Auditoría GDPR-compliant (PostgreSQL logs)
+- ✅ UX mejorada (mensajes user-friendly, sin jerga técnica)
+- ✅ Debugging acelerado (Sentry source maps + stack traces)
+- ✅ Costes controlados (sample rate 10% prod, PostgreSQL gratis en Aiven)
+- 📊 +750 líneas (schema, services, middleware, configs, DDL)
+- ⚠️ Requiere: Configurar DSNs en `.env`, ejecutar migración `14_error_logs.sql`
 
-**Consultas SQL útiles:**
-```sql
--- Errores no resueltos por usuario
-SELECT u.email, e.nivel, e.mensaje, e.timestamp
-FROM error_logs e LEFT JOIN users u ON e.user_id = u.id
-WHERE e.resuelto = FALSE ORDER BY e.timestamp DESC;
-
--- Errores más frecuentes (24h)
-SELECT mensaje, COUNT(*) as total
-FROM error_logs WHERE timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY mensaje ORDER BY total DESC LIMIT 10;
-```
+**Testing:**
+- ✅ Backend: `POST /api/errors/log` sin auth captura errores de frontend
+- ✅ Sentry: Inicialización confirmada en logs `[Sentry] Initialized for development`
+- ✅ Tests: 226 backend + 241 frontend = 467 tests passing
 
 **Referencias:**
-- ADR-064: Security Hardening Strategy
-- ADR-091: JWT None Algorithm Mitigation
+- ADR-064: Security Hardening (logs ayudan a detectar ataques)
+- ADR-094: Plantillas Field Mismatch (error original que motivó este ADR)
+- Docs: `docs/error-logging-system.md` (guía técnica completa)
 
 ---
 

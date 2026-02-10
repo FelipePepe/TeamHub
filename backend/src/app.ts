@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import swaggerUiDist from 'swagger-ui-dist';
 import { errorHandler } from './middleware/error-handler.js';
+import { errorLoggerMiddleware } from './middleware/error-logger.js';
 import { requestLogger } from './middleware/request-logger.js';
 import { hmacValidation } from './middleware/hmac-validation.js';
 import { securityHeaders } from './middleware/security-headers.js';
@@ -99,7 +100,8 @@ if (isDebugLoggingEnabled) {
 }
 app.use('/api/*', hmacValidation);
 app.use('/api/*', globalRateLimit);
-app.onError(errorHandler);
+app.use('*', errorLoggerMiddleware); // Log errors to DB + Sentry
+app.onError(errorHandler); // Format error responses
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
 app.get('/openapi.yaml', async (c) => {

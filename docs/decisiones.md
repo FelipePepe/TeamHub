@@ -762,6 +762,72 @@ if (!responsableTipo) {
 
 ---
 
+### ADR-093: Sistema Híbrido de Error Logging (PostgreSQL + Sentry)
+
+**Fecha:** 2026-02-10  
+**Estado:** ✅ Implementado  
+**PR:** #103 (feature/error-logging-system)
+
+**Contexto:**  
+Error de validación Zod en plantillas de onboarding (`responsableTipo` requerido) reveló necesidad de diagnóstico rápido sin depender del usuario. Se requiere trazabilidad completa, mensajes user-friendly (nunca stack traces o SQL), compliance GDPR, y alertas proactivas en producción.
+
+**Decisión:**  
+Implementar sistema **híbrido PostgreSQL + Sentry**:
+
+**1. PostgreSQL (Obligatorio - Auditoría):**
+- Tabla `error_logs`: user_id, origen (FRONTEND/BACKEND), nivel (INFO/WARN/ERROR/FATAL), mensaje, stack_trace, contexto (JSONB), user_agent, ip_address, timestamp, resuelto, notas, sentry_event_id
+- Índices: user_id, origen, nivel, timestamp, resuelto
+- Ventajas: Control total (GDPR), consultas SQL, sin coste, retención indefinida
+
+**2. Sentry (Opcional - Observability):**
+- DSN Backend: `https://b3f0a4c1903bfbfdb8b35b13d3887c35@o430470.ingest.us.sentry.io/4510863332409344`
+- DSN Frontend: `https://1a2a9302807861a8f32cdd2038ea2d84@o430470.ingest.us.sentry.io/4510863325855744`
+- Sample rate: 100% development, 10% production
+- Features: Source maps, session replay, alertas automáticas, agrupación inteligente
+
+**3. Principios UI/UX (CRÍTICO):**
+- ❌ NUNCA mostrar: Stack traces, SQL errors, null pointers, IDs/UUIDs, mensajes técnicos
+- ✅ SIEMPRE mostrar: Mensajes en español, instrucciones claras, opción de soporte
+- Ejemplos:
+  - `ZodError: responsableTipo required` → `Error al guardar. Verifica que todos los campos estén completos.`
+  - `Cannot read property 'id' of null` → `Ha ocurrido un error. Inténtalo de nuevo.`
+
+**Implementación Backend:**
+- ✅ `context/14_error_logs.sql`: DDL completo con 7 índices
+- ✅ `backend/src/db/schema/error-logs.ts`: Drizzle schema
+- ✅ `backend/src/services/error-logger.ts`: `logError()`, `getUserFriendlyMessage()`, `extractErrorInfo()`
+- ✅ `backend/src/services/sentry.ts`: DEPRECATED (reemplazado por instrument.ts)
+- ✅ `backend/src/instrument.ts`: Sentry init según best practices (import first)
+- ✅ `backend/src/middleware/error-logger.ts`: Middleware auto-captura (antes de responder)
+- ✅ `backend/src/routes/errors.routes.ts`: `POST /api/errors/log` (sin auth/HMAC)
+
+**Implementación Frontend:**
+- ✅ `frontend/sentry.client.config.ts`: Client-side Sentry con replay integration
+- ✅ `frontend/sentry.server.config.ts`: Server-side Sentry para Next.js SSR
+- ✅ `frontend/instrumentation.ts`: Next.js instrumentation hook (auto-load configs)
+- ✅ `frontend/src/lib/error-logger.ts`: `logFrontendError()`, `setupGlobalErrorHandling()`
+
+**Consecuencias:**
+- ✅ Error discovery proactivo (Sentry alerts vs. reportes manuales)
+- ✅ Auditoría GDPR-compliant (PostgreSQL logs)
+- ✅ UX mejorada (mensajes user-friendly, sin jerga técnica)
+- ✅ Debugging acelerado (Sentry source maps + stack traces)
+- ✅ Costes controlados (sample rate 10% prod, PostgreSQL gratis en Aiven)
+- 📊 +750 líneas (schema, services, middleware, configs, DDL)
+- ⚠️ Requiere: Configurar DSNs en `.env`, ejecutar migración `14_error_logs.sql`
+
+**Testing:**
+- ✅ Backend: `POST /api/errors/log` sin auth captura errores de frontend
+- ✅ Sentry: Inicialización confirmada en logs `[Sentry] Initialized for development`
+- ✅ Tests: 226 backend + 241 frontend = 467 tests passing
+
+**Referencias:**
+- ADR-064: Security Hardening (logs ayudan a detectar ataques)
+- ADR-094: Plantillas Field Mismatch (error original que motivó este ADR)
+- Docs: `docs/error-logging-system.md` (guía técnica completa)
+
+---
+
 ## 9. Registro de Ejecución
 
 - Fecha: 2026-01-23

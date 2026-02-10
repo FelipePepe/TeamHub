@@ -13,6 +13,7 @@ export * from './procesos.js';
 export * from './proyectos.js';
 export * from './timetracking.js';
 export * from './tareas.js';
+export * from './error-logs.js';
 export * from './audit.js';
 
 // Relations (for Drizzle query builder with relational queries)

@@ -706,6 +706,62 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 ---
 
+### ADR-094: Compatibilidad frontend/backend en campos de plantillas
+
+**Fecha:** 2026-02-10  
+**Estado:** ✅ Implementado  
+**Contexto:** Frontend de plantillas enviaba campo `responsable` mientras backend esperaba `responsableTipo`, causando error Zod al crear tareas en plantillas de onboarding.
+
+**Decisión:**
+
+**1. Schema Flexible:**
+- Modificar `createTareaSchema` para aceptar ambos campos:
+  - `responsableTipo`: Campo original del backend
+  - `responsable`: Campo enviado por frontend
+- Usar `.refine()` para validar que al menos uno esté presente
+- Extraer `baseTareaSchema` sin refine para mantener `.partial()` en `updateTareaSchema`
+
+**2. Mapeo en Handlers:**
+- Handler `POST /:id/tareas`: Mapear `payload.responsable || payload.responsableTipo` con validación explícita
+- Handler `PUT /:id/tareas/:tareaId`: Destructurar `responsable` y aplicar mapping condicional
+- Handler `POST /:id/duplicate`: Sin cambios (usa datos internos ya normalizados)
+
+**Implementación:**
+```typescript
+// backend/src/routes/plantillas/schemas.ts
+const baseTareaSchema = z.object({
+  // ... otros campos
+  responsableTipo: z.enum(responsables).optional(),
+  responsable: z.enum(responsables).optional(),
+  // ...
+});
+
+export const createTareaSchema = baseTareaSchema.refine(
+  (data) => data.responsableTipo || data.responsable,
+  { message: 'Se requiere responsableTipo o responsable', path: ['responsableTipo'] }
+);
+
+// backend/src/routes/plantillas/handlers.ts
+const responsableTipo = payload.responsableTipo || payload.responsable;
+if (!responsableTipo) {
+  throw new HTTPException(400, { message: 'Se requiere responsableTipo o responsable' });
+}
+```
+
+**Consecuencias:**
+- ✅ Backward compatibility: Backend acepta ambos nombres de campo
+- ✅ Error user-friendly: Mensaje en español sin exponer Zod internals
+- ✅ Frontend sin cambios: No requiere modificar código React existente
+- ✅ Type safety: TypeScript infiere correctamente tipos opcionales
+- ✅ Tests passing: 3/3 tests de plantillas verifican creación y duplicación
+- 📊 Líneas modificadas: schemas.ts (+9), handlers.ts (+8)
+
+**Referencias:**
+- ADR-093: Hybrid Error Logging (contexto de error original)
+- Copilot-instructions: Sección 3 "Separación Frontend/Backend"
+
+---
+
 ## 9. Registro de Ejecución
 
 - Fecha: 2026-01-23

@@ -137,8 +137,7 @@ export function LoginForm() {
         router.push('/dashboard');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
-      toast.error(message);
+      toast.error(getLoginErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

@@ -301,14 +301,14 @@ export function LoginForm() {
 
     return (
       <form onSubmit={handleSubmit(onMfaSubmit)} className="space-y-4">
-        <div className="flex items-center gap-2 text-blue-600 mb-4">
+        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-4">
           <ShieldCheck className="h-5 w-5" />
           <span className="font-medium">Configurar autenticación MFA</span>
         </div>
 
         {qrCodeDataUrl ? (
           <>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
               Escanea el código QR con Google Authenticator u otra app compatible.
             </p>
             <div className="flex justify-center mb-4">
@@ -323,14 +323,14 @@ export function LoginForm() {
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
             Ingresa el código en Google Authenticator u otra app compatible.
           </p>
         )}
 
         {mfaSecret && (
-          <div className="bg-slate-100 p-3 rounded text-center mb-4">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-center mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
               {qrCodeDataUrl ? 'O ingresa este código manualmente:' : 'Código para agregar manualmente:'}
             </p>
             <code className="text-sm font-mono select-all text-slate-800 dark:text-slate-100">
@@ -355,7 +355,7 @@ export function LoginForm() {
           )}
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Ingresa el código de 6 dígitos generado por la app para verificar la configuración.
         </p>
 

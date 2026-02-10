@@ -11,11 +11,11 @@ import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { db } from '../../db/index.js';
 import type { User } from '../../db/schema/users.js';
 import { createUser, findUserByEmail, findUserById, updateUserById } from '../../services/users-repository.js';
+import { toNumber } from '../../shared/utils/number.js';
 import {
   buildUserFilters,
   isPrivilegedUser,
   requireSelfOrPrivileged,
-  toNumber,
 } from './helpers.js';
 import {
   changePasswordSchema,

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { createHmac } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { generateTotpCode } from './helpers/totp-shared';
 
 loadEnvFile(path.resolve(process.cwd(), '..'), '.env');
 loadEnvFile(process.cwd(), '.env');
@@ -432,40 +433,4 @@ async function createProjectViaUi(page: import('@playwright/test').Page) {
     nombre,
     codigo,
   };
-}
-
-function fromBase32(input: string): Buffer {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const normalized = input.replace(/=+$/g, '').toUpperCase();
-  let bits = '';
-
-  for (const char of normalized) {
-    const index = alphabet.indexOf(char);
-    if (index === -1) {
-      throw new Error('Invalid base32 character in MFA secret');
-    }
-    bits += index.toString(2).padStart(5, '0');
-  }
-
-  const bytes: number[] = [];
-  for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
-    bytes.push(Number.parseInt(bits.slice(offset, offset + 8), 2));
-  }
-
-  return Buffer.from(bytes);
-}
-
-function generateTotpCode(secret: string, timestampMs = Date.now()): string {
-  const stepSeconds = 30;
-  const digits = 6;
-  const counter = Math.floor(timestampMs / (stepSeconds * 1000));
-  const counterBuffer = Buffer.alloc(8);
-  counterBuffer.writeBigUInt64BE(BigInt(counter));
-
-  const key = fromBase32(secret);
-  const hmac = createHmac('sha1', key).update(counterBuffer).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 10 ** digits;
-
-  return code.toString().padStart(digits, '0');
 }

@@ -1643,6 +1643,68 @@ docker exec -it teamhub-postgres psql -U teamhub -d teamhub
 
 ---
 
+## 🚀 Optimizaciones y Refactoring Recientes
+
+### ADR-092: Estrategia de Optimización de Código (feature/code-optimization)
+
+Refactorización completa para mejorar mantenibilidad, consistencia y reducir duplicación de código siguiendo las mejores prácticas de Vercel React.
+
+#### 🎯 Objetivos Alcanzados
+
+1. **✅ Consolidación de Utilidades Backend**
+   - Extraído `toNumber` y `toNumberOrUndefined` a módulo compartido (`backend/src/shared/utils/number.ts`)
+   - Eliminadas 4 implementaciones duplicadas en: timetracking, dashboard, proyectos, usuarios
+   - Documentación completa con JSDoc y ejemplos
+
+2. **✅ Extracción de Magic Numbers**
+   - Creado `backend/src/shared/constants/time.ts` con constantes semánticas:
+     - `MS_PER_SECOND = 1000`
+     - `MS_PER_MINUTE = 60*1000`
+     - `MS_PER_DAY = 24*60*60*1000`
+     - `HMAC_CLOCK_SKEW_MS = 60*1000`
+   - Reemplazados 8+ magic numbers en autenticación, middlewares y dashboards
+
+3. **✅ Estandarización de TanStack Query**
+   - Creado `frontend/src/lib/query-config.ts` con configuración centralizada:
+     - `STALE_TIME.SHORT = 30s` (datos muy dinámicos)
+     - `STALE_TIME.MEDIUM = 2min` (timetracking, tareas)
+     - `STALE_TIME.LONG = 5min` (departamentos, proyectos, empleados)
+     - `DEFAULT_QUERY_CONFIG` con gcTime, retry, staleTime
+   - Migrados **8 hooks** a usar constantes semánticas (24 instancias totales)
+   - Hooks actualizados: empleados, departamentos, proyectos, timetracking, procesos, tareas, plantillas, plantillas/tareas
+
+4. **✅ Consolidación de TOTP en E2E**
+   - Creado `frontend/e2e/helpers/totp-shared.ts` con implementación RFC 6238 estándar
+   - Eliminadas 4 implementaciones duplicadas en:
+     - `block-a-smoke.spec.ts`
+     - `helpers/e2e-session.ts`
+     - `helpers/auth-api.ts`
+     - `demo/demo.helpers.ts`
+   - Reducción de ~134 líneas de código duplicado
+
+#### 📊 Impacto
+
+| Métrica | Antes | Después | Mejora |
+|---------|-------|---------|--------|
+| Duplicación `toNumber` | 4 implementaciones | 1 módulo shared | -3 |
+| Magic numbers | 8+ hardcoded | Constantes semánticas | +mantenibilidad |
+| Configuración staleTime | 24 valores hardcoded | 3 constantes (`SHORT/MEDIUM/LONG`) | -21 valores |
+| TOTP duplicado | 5 implementaciones | 1 módulo shared | -134 líneas |
+| **Tests Backend** | 226 ✅ | 226 ✅ | 100% passing |
+| **Tests Frontend** | 241 ✅ | 241 ✅ | 100% passing |
+| **Total Tests** | **467 ✅** | **467 ✅** | **Sin regresiones** |
+
+#### 🔗 Referencias
+- **ADR-092**: `docs/adr/092-code-optimization-strategy.md` (pendiente creación)
+- **Commits**:
+  1. `c335757` - refactor: consolidar utilidades y estandarizar configuración Query
+  2. `09ae1a0` - docs: add ADR-092 for code optimization strategy
+  3. `0bdce61` - refactor(frontend): standardize staleTime using STALE_TIME constants in all hooks
+  4. `7fbdf94` - refactor(e2e): consolidate TOTP functions using totp-shared module
+  5. `4118449` - fix(backend): re-export toNumber from dashboard utils for backward compatibility
+
+---
+
 ## Roadmap y Mejoras Futuras
 
 ### Corto Plazo (v1.1)

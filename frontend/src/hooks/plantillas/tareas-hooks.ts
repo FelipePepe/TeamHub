@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/types';
+import { STALE_TIME } from '@/lib/query-config';
 import { plantillasKeys } from './keys';
 import {
   createTareaPlantilla,
@@ -23,7 +24,7 @@ export function useTareasPlantilla(plantillaId: string, enabled = true) {
     queryKey: plantillasKeys.tareas(plantillaId),
     queryFn: () => fetchTareasPlantilla(plantillaId),
     enabled: enabled && !!plantillaId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 

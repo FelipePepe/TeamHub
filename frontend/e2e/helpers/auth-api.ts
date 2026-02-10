@@ -2,46 +2,15 @@
  * Helper E2E: login contra el backend por API (login + MFA setup + verify)
  * y devolver tokens para inyectar en el navegador.
  * Requiere backend en marcha y usuario existente (o bootstrap con E2E_BOOTSTRAP_TOKEN).
- * Carga .env con parser propio (sin dotenv). TOTP con Node crypto (sin otplib) para evitar ESM/CommonJS.
+ * Carga .env con parser propio (sin dotenv). TOTP delegado a totp-shared.
  */
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
-import { createHmac } from 'node:crypto';
-import type { BinaryLike } from 'node:crypto';
+import { generateTotpCode } from './totp-shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TOTP_STEP_SECONDS = 30;
-const TOTP_DIGITS = 6;
-const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-function fromBase32(input: string): Buffer {
-  const normalized = input.replace(/=+$/g, '').toUpperCase();
-  let bits = '';
-  for (const char of normalized) {
-    const index = BASE32.indexOf(char);
-    if (index === -1) throw new Error('Invalid base32 character');
-    bits += index.toString(2).padStart(5, '0');
-  }
-  const bytes: number[] = [];
-  for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
-    bytes.push(Number.parseInt(bits.slice(offset, offset + 8), 2));
-  }
-  return Buffer.from(bytes);
-}
-
-export function generateTotpCode(secret: string, timestampMs = Date.now()): string {
-  const counter = Math.floor(timestampMs / (TOTP_STEP_SECONDS * 1000));
-  const counterBuffer = Buffer.alloc(8);
-  counterBuffer.writeBigUInt64BE(BigInt(counter));
-  const key = fromBase32(secret);
-  const hmac = createHmac('sha1', key as BinaryLike).update(counterBuffer).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 10 ** TOTP_DIGITS;
-  return code.toString().padStart(TOTP_DIGITS, '0');
-}
-
 const frontendRoot = path.resolve(__dirname, '../..');
 const projectRoot = path.resolve(frontendRoot, '..');
 

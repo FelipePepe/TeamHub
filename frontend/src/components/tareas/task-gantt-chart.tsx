@@ -443,14 +443,14 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           {/* Tooltip */}
           {tooltip.tarea && tooltip.visible && (
             <div
-              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
+              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-lg"
               style={{
                 left: tooltip.x + 10,
                 top: tooltip.y + 10,
               }}
             >
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-900">{tooltip.tarea.titulo}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tooltip.tarea.titulo}</p>
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"

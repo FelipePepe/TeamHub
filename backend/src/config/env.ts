@@ -34,6 +34,10 @@ const envSchema = z.object({
   BOOTSTRAP_TOKEN: z.string().min(32).optional(),
   API_HMAC_SECRET: z.string().min(32),
   DISABLE_HMAC: z.coerce.boolean().default(false),  // Explicit flag for disabling HMAC in tests
+  
+  // Sentry Error Tracking (optional)
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().default('development'),
 }).superRefine((data, ctx) => {
   if (data.NODE_ENV === 'production') {
     const secretFields = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'MFA_ENCRYPTION_KEY', 'API_HMAC_SECRET'] as const;

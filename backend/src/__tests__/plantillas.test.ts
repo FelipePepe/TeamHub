@@ -19,7 +19,7 @@ const authHeaders = (cookies: Record<string, string>, method: string, path: stri
   getSignedHeaders(method, path, {}, cookies);
 
 const loginAsAdmin = async () => {
-  const { verifyBody, cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  const { cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
   return { cookies };
 };
 

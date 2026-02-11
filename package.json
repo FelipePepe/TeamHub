@@ -4,11 +4,14 @@
   "scripts": {
     "prepare": "husky install",
     "test:coverage": "cd backend && npx vitest run --coverage && cd ../frontend && npx vitest run --coverage",
-    "sonar": "npm run test:coverage && sonar-scanner",
-    "sonar:scan": "sonar-scanner",
-    "sonar:watch": "sonar-scanner -Dsonar.verbose=true",
-    "sonar:main": "npm run test:coverage && sonar-scanner -Dsonar.projectKey=TeamHub -Dsonar.projectName=TeamHub",
-    "sonar:develop": "npm run test:coverage && sonar-scanner -Dsonar.projectKey=TeamHub-develop -Dsonar.projectName='TeamHub (develop)'",
+    "test:coverage:backend": "cd backend && npx vitest run --coverage",
+    "test:coverage:frontend": "cd frontend && npx vitest run --coverage",
+    "sonar": "npm run test:coverage && npm run sonar:scan",
+    "sonar:scan": "npm run sonar:scan:backend && npm run sonar:scan:frontend",
+    "sonar:scan:backend": "cd backend && sonar-scanner",
+    "sonar:scan:frontend": "cd frontend && sonar-scanner",
+    "sonar:main": "npm run test:coverage && npm run sonar:scan",
+    "sonar:develop": "npm run test:coverage && cd backend && sonar-scanner -Dsonar.projectKey=TeamHub-backend-develop -Dsonar.projectName='TeamHub Backend (develop)' && cd ../frontend && sonar-scanner -Dsonar.projectKey=TeamHub-frontend-develop -Dsonar.projectName='TeamHub Frontend (develop)'",
     "sonar:branch": "bash scripts/sonar-analyze-branch.sh"
   },
   "devDependencies": {

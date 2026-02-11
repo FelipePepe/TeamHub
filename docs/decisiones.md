@@ -1529,19 +1529,19 @@ Crear PR: `feature/code-optimization → develop`
 - Fecha: 2026-02-10
 - Estado: Aceptado
 - Contexto: Se requiere monitoreo de errores en producción para detectar y resolver issues rápidamente.
-- Decision: Integrar Sentry en backend (Node.js) y frontend (Next.js) con endpoints de debug `/debug-sentry`.
+- Decision: Integrar Sentry en backend (Node.js) y frontend (Next.js) usando error handling nativo sin endpoints de debug.
 - Implementación:
   - Backend: `@sentry/node` v10.38.0 en `src/index.ts`
   - Frontend: `@sentry/nextjs` v10.38.0 con configuración automática
-  - Endpoints: GET /debug-sentry (backend) y GET /api/debug-sentry (frontend)
+  - Error handling: Middleware `errorLoggerMiddleware` captura errores automáticamente
   - Variables de entorno: `SENTRY_DSN` y `SENTRY_ENVIRONMENT`
   - Skills instalados: sentry-setup-logging, sentry-react-setup, sentry-fix-issues
 - Consecuencias:
   - ✅ Detección proactiva de errores en producción
   - ✅ Stack traces completos con context
   - ✅ Alertas automáticas cuando ocurren fallos
+  - ✅ No requiere endpoints de debug (error handling nativo)
   - ⚠️ Plan free limitado a 5k eventos/mes
-  - ⚠️ Endpoints de debug deben eliminarse antes de producción
 
 ### ADR-094: Hardening de Security Gates con Husky
 
@@ -1771,6 +1771,7 @@ Crear PR: `feature/code-optimization → develop`
 - ✅ Coverage configurada en backend y frontend con thresholds 80%
 - ✅ Todos los tests pasando: 226 backend + 233 frontend = 459 tests ✓
 - ✅ PR #107 creada con httpOnly cookies + CSRF + SonarQube
+- ✅ Endpoints /debug-sentry: No implementados (Sentry usa error handling nativo sin endpoints de debug)
 - ⏳ Regenerar coverage completa y re-analizar con SonarQube (esperado >50%)
 - ⏳ Mergear PR #107 a develop
 - ⏳ Resolver bugs y code smells detectados por SonarQube (36 bugs, 197 smells)
@@ -1779,4 +1780,3 @@ Crear PR: `feature/code-optimization → develop`
 - Preparar presentación TFM
 - Monitoreo de performance en producción con Sentry
 - Documentación de arquitectura modular en ADRs
-- Eliminar endpoints /debug-sentry antes de despliegue a producción

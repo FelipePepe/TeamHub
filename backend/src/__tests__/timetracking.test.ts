@@ -22,18 +22,18 @@ const DATE_TWO = '2024-01-11';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 const loginAsAdmin = async () => {
-  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
-  return { token: verifyBody.accessToken as string, user: verifyBody.user as { id: string } };
+  const { verifyBody, cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  return { cookies, user: verifyBody.user as { id: string } };
 };
 
-const createProject = async (token: string) => {
+const createProject = async (cookies: Record<string, string>) => {
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/proyectos'),
+    headers: authHeaders(cookies, 'POST', '/api/proyectos'),
     body: JSON.stringify({
       nombre: PROJECT_NAME,
       codigo: PROJECT_CODE,
@@ -56,14 +56,14 @@ beforeEach(async () => {
 
 describe('timetracking resumen', () => {
   it('summarizes hours by project, day, and status', async () => {
-    const { token } = await loginAsAdmin();
-    const project = await createProject(token);
+    const { cookies } = await loginAsAdmin();
+    const project = await createProject(cookies);
     const projectId = project.id as string;
 
     const createRegistro = async (payload: Record<string, unknown>) => {
       const response = await app.request('/api/timetracking', {
         method: 'POST',
-        headers: authHeaders(token, 'POST', '/api/timetracking'),
+        headers: authHeaders(cookies, 'POST', '/api/timetracking'),
         body: JSON.stringify(payload),
       });
       expect(response.status).toBe(201);
@@ -88,13 +88,13 @@ describe('timetracking resumen', () => {
     const approvePath = `/api/timetracking/${registroA.id}/aprobar`;
     const approveResponse = await app.request(approvePath, {
       method: 'PATCH',
-      headers: authHeaders(token, 'PATCH', approvePath),
+      headers: authHeaders(cookies, 'PATCH', approvePath),
       body: JSON.stringify({}),
     });
     expect(approveResponse.status).toBe(200);
 
     const resumenResponse = await app.request('/api/timetracking/resumen', {
-      headers: authHeaders(token, 'GET', '/api/timetracking/resumen'),
+      headers: authHeaders(cookies, 'GET', '/api/timetracking/resumen'),
     });
     expect(resumenResponse.status).toBe(200);
     const resumen = await resumenResponse.json();

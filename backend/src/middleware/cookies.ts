@@ -23,6 +23,7 @@ const getCookieOptions = (maxAge?: number) => ({
 
 /**
  * Establece tokens de autenticación como cookies httpOnly seguras.
+ * También genera y establece un CSRF token para protección CSRF.
  * @param c - Contexto de Hono
  * @param accessToken - JWT access token (15 minutos)
  * @param refreshToken - JWT refresh token (30 días)
@@ -41,6 +42,9 @@ export const setAuthCookies = (
   setCookie(c, COOKIE_REFRESH_TOKEN, refreshToken, {
     ...getCookieOptions(30 * 24 * 60 * 60), // 30 días en segundos
   });
+
+  // CSRF token: 15 minutos (sincronizado con access token)
+  setCsrfToken(c);
 };
 
 /**

@@ -12,6 +12,7 @@ import { requestLogger } from './middleware/request-logger.js';
 import { hmacValidation } from './middleware/hmac-validation.js';
 import { securityHeaders } from './middleware/security-headers.js';
 import { createRateLimiter, getRateLimitIp } from './middleware/rate-limit.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 import { config } from './config/env.js';
 import { apiRoutes } from './routes/index.js';
 import { verifyAccessToken } from './services/auth-service.js';
@@ -100,6 +101,7 @@ if (isDebugLoggingEnabled) {
 }
 app.use('/api/*', hmacValidation);
 app.use('/api/*', globalRateLimit);
+app.use('/api/*', csrfMiddleware); // CSRF protection for state-changing operations
 app.use('*', errorLoggerMiddleware); // Log errors to DB + Sentry
 app.onError(errorHandler); // Format error responses
 

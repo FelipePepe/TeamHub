@@ -82,7 +82,7 @@ export const generateHmacSignature = (method: string, path: string): string => {
 
 /**
  * Genera headers con firma HMAC para requests de test
- * Si se proporcionan cookies, las añade al header Cookie
+ * Si se proporcionan cookies, las añade al header Cookie y extrae CSRF token
  */
 export const getSignedHeaders = (
   method: string,
@@ -98,6 +98,11 @@ export const getSignedHeaders = (
   
   if (cookies && Object.keys(cookies).length > 0) {
     headers['Cookie'] = cookiesToHeader(cookies);
+    
+    // Añadir CSRF token si existe en cookies (requerido para POST/PUT/PATCH/DELETE)
+    if (cookies.csrf_token && method !== 'GET' && method !== 'HEAD') {
+      headers['X-CSRF-Token'] = cookies.csrf_token;
+    }
   }
   
   return headers;

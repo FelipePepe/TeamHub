@@ -44,6 +44,32 @@ export const resetStore = () => {
 export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 /**
+ * Extrae cookies de los headers Set-Cookie de una respuesta
+ */
+export const extractCookies = (response: Response): Record<string, string> => {
+  const setCookieHeaders = response.headers.getSetCookie?.() ?? [];
+  const cookies: Record<string, string> = {};
+  
+  for (const header of setCookieHeaders) {
+    const match = /^([^=]+)=([^;]+)/.exec(header);
+    if (match) {
+      cookies[match[1]] = match[2];
+    }
+  }
+  
+  return cookies;
+};
+
+/**
+ * Convierte un objeto de cookies a string Cookie header
+ */
+export const cookiesToHeader = (cookies: Record<string, string>): string => {
+  return Object.entries(cookies)
+    .map(([name, value]) => `${name}=${value}`)
+    .join('; ');
+};
+
+/**
  * Genera la firma HMAC para autenticar requests en tests
  */
 export const generateHmacSignature = (method: string, path: string): string => {
@@ -56,16 +82,26 @@ export const generateHmacSignature = (method: string, path: string): string => {
 
 /**
  * Genera headers con firma HMAC para requests de test
+ * Si se proporcionan cookies, las añade al header Cookie
  */
 export const getSignedHeaders = (
   method: string,
   path: string,
-  extraHeaders: Record<string, string> = {}
-): Record<string, string> => ({
-  ...JSON_HEADERS,
-  'X-Request-Signature': generateHmacSignature(method, path),
-  ...extraHeaders,
-});
+  extraHeaders: Record<string, string> = {},
+  cookies?: Record<string, string>
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    ...JSON_HEADERS,
+    'X-Request-Signature': generateHmacSignature(method, path),
+    ...extraHeaders,
+  };
+  
+  if (cookies && Object.keys(cookies).length > 0) {
+    headers['Cookie'] = cookiesToHeader(cookies);
+  }
+  
+  return headers;
+};
 
 let dbCache: typeof import('../db/index.js') | null = null;
 let migrationsApplied = false;
@@ -156,6 +192,9 @@ export const loginWithMfa = async (
     body: JSON.stringify({ mfaToken, code }),
   });
   const verifyBody = await verifyResponse.json();
+  
+  // Extraer cookies de la respuesta (tokens ahora están en httpOnly cookies)
+  const cookies = extractCookies(verifyResponse);
 
   return {
     loginResponse,
@@ -164,5 +203,6 @@ export const loginWithMfa = async (
     setupBody,
     verifyResponse,
     verifyBody,
+    cookies, // Cookies con accessToken y refreshToken
   };
 };

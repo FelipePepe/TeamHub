@@ -19,8 +19,8 @@ const USER_PASSWORD = 'ValidPassword1!';
 let app: Hono<HonoEnv>;
 let db: typeof import('../db/index.js').db;
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 const toDateString = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -31,27 +31,27 @@ const addDays = (date: Date, days: number) => {
 };
 
 const loginAs = async (email: string, password: string) => {
-  const { verifyBody } = await loginWithMfa(app, email, password);
+  const { verifyBody, cookies } = await loginWithMfa(app, email, password);
   return {
-    token: verifyBody.accessToken as string,
+    cookies,
     user: verifyBody.user as { id: string },
   };
 };
 
-const createUser = async (token: string, payload: Record<string, unknown>) => {
+const createUser = async (cookies: Record<string, string>, payload: Record<string, unknown>) => {
   const response = await app.request('/api/usuarios', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/usuarios'),
+    headers: authHeaders(cookies, 'POST', '/api/usuarios'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
   return response.json();
 };
 
-const createProject = async (token: string, payload: Record<string, unknown>) => {
+const createProject = async (cookies: Record<string, string>, payload: Record<string, unknown>) => {
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/proyectos'),
+    headers: authHeaders(cookies, 'POST', '/api/proyectos'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
@@ -78,7 +78,7 @@ describe('dashboard metrics', () => {
 
     const admin = await loginAs(ADMIN_EMAIL, ADMIN_PASSWORD);
 
-    const manager = await createUser(admin.token, {
+    const manager = await createUser(admin.cookies, {
       email: 'manager@example.com',
       password: USER_PASSWORD,
       nombre: 'Manager',
@@ -86,7 +86,7 @@ describe('dashboard metrics', () => {
       rol: 'MANAGER',
     });
 
-    const employee = await createUser(admin.token, {
+    const employee = await createUser(admin.cookies, {
       email: 'empleado@example.com',
       password: USER_PASSWORD,
       nombre: 'Empleado',
@@ -98,7 +98,7 @@ describe('dashboard metrics', () => {
     const managerSession = await loginAs('manager@example.com', USER_PASSWORD);
     const employeeSession = await loginAs('empleado@example.com', USER_PASSWORD);
 
-    const project = await createProject(managerSession.token, {
+    const project = await createProject(managerSession.cookies, {
       nombre: 'Proyecto Equipo',
       codigo: 'TEAM',
     });
@@ -106,7 +106,7 @@ describe('dashboard metrics', () => {
     const estadoPath = `/api/proyectos/${project.id}/estado`;
     const estadoResponse = await app.request(estadoPath, {
       method: 'PATCH',
-      headers: authHeaders(managerSession.token, 'PATCH', estadoPath),
+      headers: authHeaders(managerSession.cookies, 'PATCH', estadoPath),
       body: JSON.stringify({ estado: 'ACTIVO' }),
     });
     expect(estadoResponse.status).toBe(200);
@@ -114,7 +114,7 @@ describe('dashboard metrics', () => {
     const assignPath = `/api/proyectos/${project.id}/asignaciones`;
     const assignResponse = await app.request(assignPath, {
       method: 'POST',
-      headers: authHeaders(managerSession.token, 'POST', assignPath),
+      headers: authHeaders(managerSession.cookies, 'POST', assignPath),
       body: JSON.stringify({
         usuarioId: employee.id,
         fechaInicio: today,
@@ -125,7 +125,7 @@ describe('dashboard metrics', () => {
 
     const timeResponse = await app.request('/api/timetracking', {
       method: 'POST',
-      headers: authHeaders(managerSession.token, 'POST', '/api/timetracking'),
+      headers: authHeaders(managerSession.cookies, 'POST', '/api/timetracking'),
       body: JSON.stringify({
         proyectoId: project.id,
         usuarioId: employee.id,
@@ -173,7 +173,7 @@ describe('dashboard metrics', () => {
     });
 
     const adminResponse = await app.request('/api/dashboard/admin', {
-      headers: authHeaders(admin.token, 'GET', '/api/dashboard/admin'),
+      headers: authHeaders(admin.cookies, 'GET', '/api/dashboard/admin'),
     });
     expect(adminResponse.status).toBe(200);
     const adminBody = await adminResponse.json();
@@ -184,7 +184,7 @@ describe('dashboard metrics', () => {
     expect(adminBody.kpis.tareasVencidas).toBe(1);
 
     const rrhhResponse = await app.request('/api/dashboard/rrhh', {
-      headers: authHeaders(admin.token, 'GET', '/api/dashboard/rrhh'),
+      headers: authHeaders(admin.cookies, 'GET', '/api/dashboard/rrhh'),
     });
     expect(rrhhResponse.status).toBe(200);
     const rrhhBody = await rrhhResponse.json();
@@ -192,7 +192,7 @@ describe('dashboard metrics', () => {
     expect(rrhhBody.kpis.tareasVencidas).toBe(1);
 
     const managerResponse = await app.request('/api/dashboard/manager', {
-      headers: authHeaders(managerSession.token, 'GET', '/api/dashboard/manager'),
+      headers: authHeaders(managerSession.cookies, 'GET', '/api/dashboard/manager'),
     });
     expect(managerResponse.status).toBe(200);
     const managerBody = await managerResponse.json();
@@ -201,7 +201,7 @@ describe('dashboard metrics', () => {
     expect(managerBody.kpis.horasPendientesAprobar).toBe(4);
 
     const empleadoResponse = await app.request('/api/dashboard/empleado', {
-      headers: authHeaders(employeeSession.token, 'GET', '/api/dashboard/empleado'),
+      headers: authHeaders(employeeSession.cookies, 'GET', '/api/dashboard/empleado'),
     });
     expect(empleadoResponse.status).toBe(200);
     const empleadoBody = await empleadoResponse.json();

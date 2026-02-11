@@ -15,12 +15,12 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 let app: Hono<HonoEnv>;
 
 const loginAsAdmin = async () => {
-  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
-  return { token: verifyBody.accessToken as string, user: verifyBody.user };
+  const { verifyBody, cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  return { cookies, user: verifyBody.user };
 };
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 beforeAll(async () => {
   applyTestEnv();
@@ -45,7 +45,7 @@ describe('usuarios routes', () => {
   });
 
   it('creates a user and lists results with meta', async () => {
-    const { token } = await loginAsAdmin();
+    const { cookies } = await loginAsAdmin();
 
     const payload = {
       email: 'ana@example.com',
@@ -56,7 +56,7 @@ describe('usuarios routes', () => {
 
     const createResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/usuarios'),
+      headers: authHeaders(cookies, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
@@ -69,7 +69,7 @@ describe('usuarios routes', () => {
     });
 
     const listResponse = await app.request('/api/usuarios', {
-      headers: authHeaders(token, 'GET', '/api/usuarios'),
+      headers: authHeaders(cookies, 'GET', '/api/usuarios'),
     });
     expect(listResponse.status).toBe(200);
     const listBody = await listResponse.json();
@@ -80,7 +80,7 @@ describe('usuarios routes', () => {
   });
 
   it('rejects duplicate user emails', async () => {
-    const { token } = await loginAsAdmin();
+    const { cookies } = await loginAsAdmin();
 
     const payload = {
       email: 'dup@example.com',
@@ -90,14 +90,14 @@ describe('usuarios routes', () => {
 
     const createResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/usuarios'),
+      headers: authHeaders(cookies, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(createResponse.status).toBe(201);
 
     const duplicateResponse = await app.request('/api/usuarios', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/usuarios'),
+      headers: authHeaders(cookies, 'POST', '/api/usuarios'),
       body: JSON.stringify(payload),
     });
     expect(duplicateResponse.status).toBe(400);

@@ -2,7 +2,14 @@
   "name": "teamhub",
   "private": true,
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test:coverage": "cd backend && npx vitest run --coverage && cd ../frontend && npx vitest run --coverage",
+    "sonar": "npm run test:coverage && sonar-scanner",
+    "sonar:scan": "sonar-scanner",
+    "sonar:watch": "sonar-scanner -Dsonar.verbose=true",
+    "sonar:main": "npm run test:coverage && sonar-scanner -Dsonar.projectKey=TeamHub -Dsonar.projectName=TeamHub",
+    "sonar:develop": "npm run test:coverage && sonar-scanner -Dsonar.projectKey=TeamHub-develop -Dsonar.projectName='TeamHub (develop)'",
+    "sonar:branch": "bash scripts/sonar-analyze-branch.sh"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.4",

@@ -8,7 +8,7 @@ export const mfaVerifySchema = z.object({
 });
 
 export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1).optional(), // Opcional - ahora se lee desde cookie
 });
 
 export const logoutSchema = z

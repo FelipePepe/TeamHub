@@ -1,8 +1,10 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { getCookie } from 'hono/cookie';
 import { z } from 'zod';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware } from '../../middleware/auth.js';
+import { setAuthCookies, clearAuthCookies, COOKIE_REFRESH_TOKEN } from '../../middleware/cookies.js';
 import { createRateLimiter, getRateLimitIp } from '../../middleware/rate-limit.js';
 import { parseJson } from '../../validators/parse.js';
 import { loginSchema } from '../../validators/auth.js';
@@ -155,9 +157,10 @@ export const registerAuthRoutes = (router: Hono<HonoEnv>) => {
     const accessToken = createAccessToken(user);
     const refreshToken = await createRefreshToken(user);
 
+    // 🔒 SECURITY: Establecer tokens como httpOnly cookies
+    setAuthCookies(c, accessToken, refreshToken);
+
     return c.json({
-      accessToken,
-      refreshToken,
       user: toUserResponse(user),
       recoveryCodes: [],
     });
@@ -180,10 +183,20 @@ export const registerAuthRoutes = (router: Hono<HonoEnv>) => {
   });
 
   router.post('/refresh', async (c) => {
-    const payload = await parseJson(c, refreshSchema);
+    // Leer refresh token desde cookie (preferido) o desde body (fallback)
+    let refreshTokenValue = getCookie(c, COOKIE_REFRESH_TOKEN);
+    if (!refreshTokenValue) {
+      const payload = await parseJson(c, refreshSchema);
+      refreshTokenValue = payload.refreshToken;
+    }
+
+    if (!refreshTokenValue) {
+      throw new HTTPException(401, { message: 'No autorizado' });
+    }
+
     let tokenPayload: { sub: string };
     try {
-      tokenPayload = await verifyRefreshToken(payload.refreshToken);
+      tokenPayload = await verifyRefreshToken(refreshTokenValue);
     } catch {
       throw new HTTPException(401, { message: 'No autorizado' });
     }
@@ -193,12 +206,15 @@ export const registerAuthRoutes = (router: Hono<HonoEnv>) => {
       throw new HTTPException(401, { message: 'No autorizado' });
     }
 
-    await revokeRefreshToken(payload.refreshToken);
+    await revokeRefreshToken(refreshTokenValue);
 
     const accessToken = createAccessToken(user);
     const refreshToken = await createRefreshToken(user);
 
-    return c.json({ accessToken, refreshToken });
+    // 🔒 SECURITY: Establecer tokens como httpOnly cookies
+    setAuthCookies(c, accessToken, refreshToken);
+
+    return c.json({ success: true });
   });
 
   router.post('/change-password', async (c) => {
@@ -246,11 +262,18 @@ export const registerAuthRoutes = (router: Hono<HonoEnv>) => {
     const payload = await parseJson(c, logoutSchema ?? z.object({}));
     const user = c.get('user') as User;
 
-    if (payload?.refreshToken) {
+    // Revocar refresh token desde cookie o body
+    const refreshTokenFromCookie = getCookie(c, COOKIE_REFRESH_TOKEN);
+    if (refreshTokenFromCookie) {
+      await revokeRefreshToken(refreshTokenFromCookie);
+    } else if (payload?.refreshToken) {
       await revokeRefreshToken(payload.refreshToken);
     } else {
       await revokeAllRefreshTokensForUser(user.id);
     }
+
+    // 🔒 SECURITY: Limpiar cookies de autenticación
+    clearAuthCookies(c);
 
     return c.json({ message: 'Sesión cerrada' });
   });

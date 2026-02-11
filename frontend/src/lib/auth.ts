@@ -1,5 +1,9 @@
+/**
+ * Cliente de autenticación - httpOnly cookies
+ * 🔒 SECURITY: Tokens manejados automáticamente por cookies (httpOnly + Secure + SameSite=Strict)
+ * No almacena tokens en localStorage - inmune a XSS
+ */
 import type {
-  AuthTokens,
   ChangePasswordRequest,
   ChangePasswordResponse,
   LoginCredentials,
@@ -7,56 +11,29 @@ import type {
   MfaSetupResponse,
   MfaVerifyRequest,
   MfaVerifyResponse,
-  TokenPairResponse,
   User,
 } from '@/types';
 import { post, postWithToken, get } from './api';
 
-// Token storage keys
-const ACCESS_TOKEN_KEY = 'accessToken';
-const REFRESH_TOKEN_KEY = 'refreshToken';
-
 // Auth API functions
 export async function login(credentials: LoginCredentials): Promise<LoginResponse> {
-  const response = await post<LoginResponse>('/auth/login', credentials);
-  if (response.accessToken && response.refreshToken) {
-    setStoredTokens({
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-    });
-  }
-  return response;
+  // Cookies establecidas automáticamente por el backend si credenciales válidas
+  return await post<LoginResponse>('/auth/login', credentials);
 }
 
 export async function logout(): Promise<void> {
-  try {
-    await post('/auth/logout');
-  } finally {
-    clearStoredTokens();
-  }
+  // Backend limpia cookies automáticamente
+  await post('/auth/logout');
 }
 
-export async function refreshToken(): Promise<AuthTokens> {
-  const refresh = getStoredTokens()?.refreshToken;
-  if (!refresh) {
-    throw new Error('No refresh token available');
-  }
-
-  const response = await post<TokenPairResponse>('/auth/refresh', {
-    refreshToken: refresh,
-  });
-
-  setStoredTokens(response);
-  return response;
+export async function refreshToken(): Promise<void> {
+  // Backend lee refresh token desde cookie, establece nuevos tokens en cookies
+  await post<{ success: boolean }>('/auth/refresh', {});
 }
 
 export async function verifyMfa(payload: MfaVerifyRequest): Promise<MfaVerifyResponse> {
-  const response = await post<MfaVerifyResponse>('/auth/mfa/verify', payload);
-  setStoredTokens({
-    accessToken: response.accessToken,
-    refreshToken: response.refreshToken,
-  });
-  return response;
+  // Backend establece cookies automáticamente tras verificación MFA
+  return await post<MfaVerifyResponse>('/auth/mfa/verify', payload);
 }
 
 export async function changePassword(payload: ChangePasswordRequest): Promise<ChangePasswordResponse> {
@@ -71,32 +48,36 @@ export async function getMe(): Promise<User> {
   return get<User>('/auth/me');
 }
 
-// Token storage functions
-export function getStoredTokens(): AuthTokens | null {
-  if (typeof window === 'undefined') return null;
-
-  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-
-  if (!accessToken || !refreshToken) return null;
-
-  return { accessToken, refreshToken };
+/**
+ * Verifica si el usuario tiene una sesión activa
+ * @returns true si hay cookies de autenticación (verificación real en backend)
+ */
+export function hasActiveSession(): boolean {
+  if (globalThis.window === undefined) return false;
+  
+  // Verificamos si existe cookie de CSRF (indicador de sesión activa)
+  // Las cookies httpOnly no son accesibles desde JS, pero CSRF no es httpOnly
+  return document.cookie.includes('csrf_token');
 }
 
-export function setStoredTokens(tokens: AuthTokens): void {
-  if (typeof window === 'undefined') return;
+// DEPRECADO - Funciones legacy para migración gradual
+export function getStoredTokens(): null {
+  console.warn('[AUTH] getStoredTokens() está deprecado - tokens ahora en httpOnly cookies');
+  return null;
+}
 
-  localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+export function setStoredTokens(): void {
+  console.warn('[AUTH] setStoredTokens() está deprecado - tokens establecidos automáticamente');
 }
 
 export function clearStoredTokens(): void {
-  if (typeof window === 'undefined') return;
-
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  // Limpiar cualquier token legacy que pueda existir
+  if (globalThis.window === undefined) return;
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
 }
 
 export function hasStoredTokens(): boolean {
-  return getStoredTokens() !== null;
+  console.warn('[AUTH] hasStoredTokens() está deprecado - usa hasActiveSession()');
+  return hasActiveSession();
 }

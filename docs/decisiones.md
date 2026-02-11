@@ -1562,6 +1562,68 @@ Crear PR: `feature/code-optimization → develop`
   - ⚠️ El secret debe coincidir exactamente entre frontend y backend
 - Lección aprendida: La validación HMAC es crítica para seguridad pero requiere sincronización estricta de configuración.
 
+---
+
+### ADR-066: Eliminación de exposición de contraseñas temporales en API
+
+- **Fecha:** 2026-02-11
+- **Estado:** Aceptado ✅
+- **Contexto:** El endpoint `PATCH /api/usuarios/:id/reset-password` devolvía la contraseña temporal en plaintext en el JSON response, exponiendo credenciales en:
+  - Logs del servidor y cliente
+  - Network traces (MitM attacks)
+  - Browser DevTools
+  - Monitores de red corporativos
+- **Problema identificado:** Vector de ataque crítico (P0) detectado en auditoría de seguridad:
+  ```typescript
+  // ❌ VULNERABLE: Password expuesto en response
+  return c.json({
+    message: 'Contraseña temporal generada',
+    tempPassword, // ⚠️ Credencial en plaintext
+  });
+  ```
+- **Decisión:** 
+  1. Remover `tempPassword` del response JSON completamente
+  2. Implementar logging seguro con `[REDACTED]` para passwords
+  3. Actualizar mensaje para indicar notificación por "canal seguro"
+  4. Añadir test de seguridad que verifica ausencia de `tempPassword` en response
+- **Implementación:**
+  ```typescript
+  // ✅ SEGURO: Password NO expuesto
+  c.get('logger')?.info({
+    action: 'reset_password',
+    userId: user.id,
+    tempPasswordGenerated: '[REDACTED]', // Password nunca en logs
+  });
+
+  return c.json({
+    message: 'Contraseña temporal generada. Se ha notificado al usuario por canal seguro.',
+  });
+  ```
+- **Consecuencias:**
+  - ✅ Elimina vector de ataque de exposición de credenciales
+  - ✅ Cumple con Security by Design (OWASP A02:2021 - Cryptographic Failures)
+  - ✅ Logs seguros sin información sensible
+  - ✅ Test de seguridad añadido para prevenir regresiones
+  - ⚠️ TODO: Implementar envío de password por email cifrado o sistema de mensajería interno
+  - ⚠️ Actualmente el ADMIN debe comunicar la password por canal seguro manual (ej: Signal, WhatsApp cifrado)
+- **Alternativas consideradas:**
+  1. ❌ Cifrar password en response: Sigue expuesta en tránsito, requiere key management adicional
+  2. ❌ Devolver solo hash: No útil para comunicar al usuario
+  3. ✅ **No devolver password + canal seguro externo**: Más segura, requiere proceso manual temporal
+- **Testing:** Test de seguridad añadido en `usuarios.test.ts`:
+  ```typescript
+  // 🔒 SECURITY TEST: Verify tempPassword is NOT in response
+  expect(resetBody).not.toHaveProperty('tempPassword');
+  ```
+- **Referencias:**
+  - OWASP Top 10 2021: A02:2021 – Cryptographic Failures
+  - CWE-200: Exposure of Sensitive Information to an Unauthorized Actor
+  - ADR-064: Security Hardening Strategy (complementa)
+- **PR:** security/fix-password-reset-exposure
+- **Branch:** `security/fix-password-reset-exposure`
+
+---
+
 ### Próximos pasos
 - Mergear PRs #92 y #93 de release/1.4.0
 - Crear tag v1.4.0 en main tras merge
@@ -1570,3 +1632,6 @@ Crear PR: `feature/code-optimization → develop`
 - Monitoreo de performance en producción con Sentry
 - Documentación de arquitectura modular en ADRs
 - Eliminar endpoints /debug-sentry antes de despliegue a producción
+- **P0:** Implementar envío de passwords temporales por email cifrado (ADR-066 TODO)
+- **P1:** Migrar JWT tokens a httpOnly cookies (vector XSS crítico)
+- **P1:** Mover HMAC signing a servidor (BFF pattern)

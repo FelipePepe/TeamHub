@@ -104,4 +104,37 @@ describe('usuarios routes', () => {
     const duplicateBody = await duplicateResponse.json();
     expect(duplicateBody).toMatchObject({ error: 'El email ya existe' });
   });
+
+  it('reset-password does not expose tempPassword in response', async () => {
+    const { token } = await loginAsAdmin();
+
+    // Create a test user first
+    const createPayload = {
+      email: 'reset@example.com',
+      password: 'InitialPassword1!',
+      nombre: 'Test User',
+    };
+
+    const createResponse = await app.request('/api/usuarios', {
+      method: 'POST',
+      headers: authHeaders(token, 'POST', '/api/usuarios'),
+      body: JSON.stringify(createPayload),
+    });
+    expect(createResponse.status).toBe(201);
+    const { id } = await createResponse.json();
+
+    // Reset password for the created user
+    const resetResponse = await app.request(`/api/usuarios/${id}/reset-password`, {
+      method: 'PATCH',
+      headers: authHeaders(token, 'PATCH', `/api/usuarios/${id}/reset-password`),
+    });
+
+    expect(resetResponse.status).toBe(200);
+    const resetBody = await resetResponse.json();
+
+    // 🔒 SECURITY TEST: Verify tempPassword is NOT in response
+    expect(resetBody).not.toHaveProperty('tempPassword');
+    expect(resetBody).toHaveProperty('message');
+    expect(resetBody.message).toContain('Contraseña temporal generada');
+  });
 });

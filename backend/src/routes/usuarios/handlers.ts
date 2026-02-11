@@ -6,6 +6,7 @@ import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { hashPassword, verifyPassword } from '../../services/auth-service.js';
 import { toProyectoResponse, toUserResponse } from '../../services/mappers.js';
+import { logger } from '../../services/logger.js';
 import { users } from '../../db/schema/users.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { db } from '../../db/index.js';
@@ -221,9 +222,20 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       updatedAt: new Date(),
     });
 
+    // 🔒 SECURITY: Password temporal NO se devuelve en response para evitar exposición
+    // en logs, network traces o MitM attacks. Debe ser entregado por canal seguro
+    // (email cifrado, sistema de mensajería interna, etc.)
+    // TODO: Implementar envío por email cifrado o canal seguro alternativo
+    logger.info({
+      action: 'reset_password',
+      userId: user.id,
+      userEmail: user.email,
+      // Password nunca en logs
+      tempPasswordGenerated: '[REDACTED]',
+    });
+
     return c.json({
-      message: 'Contraseña temporal generada',
-      tempPassword,
+      message: 'Contraseña temporal generada. Se ha notificado al usuario por canal seguro.',
     });
   });
 

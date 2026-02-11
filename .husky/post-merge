@@ -9,6 +9,7 @@ current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
 # ============================================================================
 # Runs automatically after git pull on develop (post-merge)
 # Generates coverage reports and sends them to local SonarQube
+# Analyzes backend and frontend as separate projects
 # ============================================================================
 
 if [ "$current_branch" != "develop" ]; then
@@ -39,7 +40,7 @@ if ! curl -s --max-time 3 "http://localhost:9000/api/system/status" > /dev/null 
   exit 0
 fi
 
-# Generate coverage - backend
+# --- Backend ---
 echo "🧪 Backend: running tests with coverage..."
 if (cd "$ROOT_DIR/backend" && npx vitest run --coverage 2>&1 | tail -5); then
   echo "✅ Backend coverage generated"
@@ -47,7 +48,14 @@ else
   echo "⚠️  Backend tests had failures (coverage still generated)"
 fi
 
-# Generate coverage - frontend
+echo ""
+echo "📡 Analyzing backend..."
+(cd "$ROOT_DIR/backend" && npx sonar-scanner \
+  -Dsonar.token="$SONAR_TOKEN" \
+  -Dsonar.projectKey=TeamHub-backend-develop \
+  -Dsonar.projectName="TeamHub Backend (develop)" 2>&1 | tail -3)
+
+# --- Frontend ---
 echo ""
 echo "🧪 Frontend: running tests with coverage..."
 if (cd "$ROOT_DIR/frontend" && npx vitest run --coverage 2>&1 | tail -5); then
@@ -56,14 +64,15 @@ else
   echo "⚠️  Frontend tests had failures (coverage still generated)"
 fi
 
-# Run SonarQube analysis for develop project
 echo ""
-echo "📡 Sending analysis to SonarQube (TeamHub-develop)..."
-(cd "$ROOT_DIR" && npx sonar-scanner \
+echo "📡 Analyzing frontend..."
+(cd "$ROOT_DIR/frontend" && npx sonar-scanner \
   -Dsonar.token="$SONAR_TOKEN" \
-  -Dsonar.projectKey=TeamHub-develop \
-  -Dsonar.projectName="TeamHub (develop)" 2>&1 | tail -5)
+  -Dsonar.projectKey=TeamHub-frontend-develop \
+  -Dsonar.projectName="TeamHub Frontend (develop)" 2>&1 | tail -3)
 
 echo ""
 echo "✅ SonarQube analysis complete"
-echo "🌐 Results: http://localhost:9000/dashboard?id=TeamHub-develop"
+echo "🌐 Results:"
+echo "   Backend:  http://localhost:9000/dashboard?id=TeamHub-backend-develop"
+echo "   Frontend: http://localhost:9000/dashboard?id=TeamHub-frontend-develop"

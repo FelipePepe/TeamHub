@@ -185,7 +185,8 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 
 - 📘 [Documentación Completa](docs/README.md)
 - 🏗️ [Arquitectura (SAD)](docs/architecture/sad.md)
-- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 80 decisiones documentadas
+- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 82 decisiones documentadas
+- 🧠 [Análisis del Problema (6 Sombreros)](docs/analisis-6-sombreros.md)
 - 🔧 [Troubleshooting](docs/troubleshooting.md)
 - 📊 [Estado y Progreso](docs/decisiones.md)
 - 🔌 [API Reference](openapi.yaml) + Swagger UI

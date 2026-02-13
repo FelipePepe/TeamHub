@@ -7,7 +7,7 @@ import { ThemeProvider } from './theme-provider';
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {

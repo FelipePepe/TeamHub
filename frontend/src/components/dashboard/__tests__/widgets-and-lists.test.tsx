@@ -49,6 +49,7 @@ describe('ActivityList', () => {
         items={[
           {
             id: 'a-1',
+            tipo: 'manual',
             descripcion: 'Actividad manual',
             operation: 'UPDATE',
             tableName: 'users',

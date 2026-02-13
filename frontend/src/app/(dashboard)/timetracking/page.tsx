@@ -331,16 +331,16 @@ function RegistroHorasModal({
   onCreate,
   isPending,
 }: {
-  proyectos: { id: string; nombre: string; codigo: string }[];
-  onClose: () => void;
-  onCreate: (data: {
+  readonly proyectos: { id: string; nombre: string; codigo: string }[];
+  readonly onClose: () => void;
+  readonly onCreate: (data: {
     proyectoId: string;
     fecha: string;
     horas: number;
     descripcion: string;
     facturable?: boolean;
   }) => Promise<void>;
-  isPending: boolean;
+  readonly isPending: boolean;
 }) {
   const [proyectoId, setProyectoId] = useState('');
   const [fecha, setFecha] = useState(format(new Date(), 'yyyy-MM-dd'));

@@ -376,12 +376,12 @@ function ProyectoCard({
   onDelete,
   getEstadoBadge,
 }: {
-  proyecto: Proyecto;
-  canManage: boolean;
-  onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  getEstadoBadge: (e: ProyectoEstado) => React.ReactNode;
+  readonly proyecto: Proyecto;
+  readonly canManage: boolean;
+  readonly onView: () => void;
+  readonly onEdit: () => void;
+  readonly onDelete: () => void;
+  readonly getEstadoBadge: (e: ProyectoEstado) => React.ReactNode;
 }) {
   const horasConsumidas = proyecto.horasConsumidas ?? 0;
   const horasRestantes =

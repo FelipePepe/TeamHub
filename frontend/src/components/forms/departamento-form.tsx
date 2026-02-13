@@ -103,7 +103,7 @@ export function DepartamentoForm({
 
   const { data: managersData } = useEmpleados({ activo: true, limit: 200 });
   const managers = (managersData?.data ?? []).filter((u) =>
-    RESPONSABLE_ROLES.includes(u.rol as UserRole)
+    RESPONSABLE_ROLES.includes(u.rol)
   );
 
   const {

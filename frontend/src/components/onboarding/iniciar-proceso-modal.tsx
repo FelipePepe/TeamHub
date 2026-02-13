@@ -260,7 +260,7 @@ export function IniciarProcesoModal({
                       setCalendarOpen(false);
                     }
                   }}
-                  initialFocus
+                  autoFocus
                   locale={es}
                 />
               </PopoverContent>

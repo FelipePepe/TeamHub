@@ -115,7 +115,7 @@ export function LineChart({
         d3
           .axisBottom(x)
           .tickValues(tickValues)
-          .tickFormat((d) => formatLabel(d as string))
+          .tickFormat((d) => formatLabel(String(d)))
       )
       .call((sel) => sel.select('.domain').remove())
       .call((sel) =>

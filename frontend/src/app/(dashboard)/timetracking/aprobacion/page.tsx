@@ -249,11 +249,11 @@ function RechazarModal({
   onCancel,
   isPending,
 }: {
-  comentario: string;
-  onComentarioChange: (c: string) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isPending: boolean;
+  readonly comentario: string;
+  readonly onComentarioChange: (c: string) => void;
+  readonly onConfirm: () => void;
+  readonly onCancel: () => void;
+  readonly isPending: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

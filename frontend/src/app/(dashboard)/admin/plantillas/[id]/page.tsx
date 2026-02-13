@@ -68,7 +68,7 @@ type TareaFormData = z.infer<typeof tareaSchema>;
 export default function EditarPlantillaPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  readonly params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
   const router = useRouter();

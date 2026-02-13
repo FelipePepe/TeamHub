@@ -31,8 +31,8 @@ vi.mock('axios', () => {
   };
 });
 
-const signMock = vi.fn(async (_data: string, _secret: string) => 'sig-123');
-vi.mock('../hmac', () => ({ generateRequestSignature: (data: string, secret: string) => signMock(data, secret) }));
+const signMock = vi.fn(async (_method: string, _path: string, _body?: string) => 'sig-123');
+vi.mock('../hmac', () => ({ generateRequestSignature: (method: string, path: string, body?: string) => signMock(method, path, body) }));
 
 describe('lib/api', () => {
   beforeEach(() => {

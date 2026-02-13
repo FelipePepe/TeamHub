@@ -22,7 +22,7 @@ const routerMocks = vi.hoisted(() => ({
 }));
 
 const searchParamsMocks = vi.hoisted(() => ({
-  get: vi.fn(() => null),
+  get: vi.fn<(name: string) => string | null>(() => null),
 }));
 
 vi.mock('next/navigation', () => ({

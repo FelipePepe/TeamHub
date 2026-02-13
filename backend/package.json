@@ -7,7 +7,7 @@
     "dev": "NODE_OPTIONS='--max-old-space-size=512' DOTENV_CONFIG_PATH=./.env NODE_EXTRA_CA_CERTS=./certs/ca.pem tsx watch src/index.ts",
     "build": "tsc",
     "start": "DOTENV_CONFIG_PATH=./.env NODE_EXTRA_CA_CERTS=./certs/ca.pem node dist/index.js",
-    "lint": "eslint .",
+    "lint": "NODE_OPTIONS='--max-old-space-size=512' eslint .",
     "type-check": "tsc --noEmit",
     "test": "node scripts/run-vitest.mjs run",
     "test:watch": "node scripts/run-vitest.mjs",

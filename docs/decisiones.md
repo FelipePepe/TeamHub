@@ -134,6 +134,27 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 - Decision: Crear un checklist de ejecucion en CHECKLIST.md y registrar avances en una seccion de seguimiento en este archivo.
 - Consecuencias: El checklist y el registro deben mantenerse sincronizados tras cada paso completado.
 
+### ADR-082: Análisis del problema con el método de los 6 sombreros
+
+- Fecha: 2026-02-12
+- Estado: Aceptado
+- PR: #101
+- Contexto: Se requiere un análisis estructurado del problema que resuelve TeamHub aplicando el método de los 6 sombreros de Edward de Bono para evaluar el problema desde múltiples perspectivas (hechos, emociones, riesgos, beneficios, creatividad y proceso).
+- Decision: Crear documento `docs/analisis-6-sombreros.md` con análisis exhaustivo que incluya:
+  - **Sombrero Blanco**: Hechos y datos objetivos del problema y la solución
+  - **Sombrero Rojo**: Emociones e intuiciones de stakeholders (RRHH, managers, empleados)
+  - **Sombrero Negro**: Riesgos técnicos, de negocio, producto y legales con planes de mitigación
+  - **Sombrero Amarillo**: Beneficios cuantificables y oportunidades de mercado
+  - **Sombrero Verde**: Ideas innovadoras (gamificación, IA, modelos de negocio alternativos)
+  - **Sombrero Azul**: Plan de acción priorizado, métricas de éxito y gobernanza
+- Consecuencias: 
+  - (+) Validación estructurada del problema y la solución desde múltiples ángulos
+  - (+) Identificación proactiva de riesgos con planes de mitigación concretos
+  - (+) Exploración de oportunidades creativas de diferenciación (gamificación, IA)
+  - (+) Roadmap claro con prioridades (alta/media/baja) y métricas de éxito
+  - (+) Sirve como documento de referencia para decisiones estratégicas futuras
+  - (-) Requiere actualización trimestral o ante señales de alerta críticas
+
 ---
 
 ## 2. Arquitectura y Base de Datos

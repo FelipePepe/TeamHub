@@ -7,6 +7,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { del, get, patch, post, put } from '@/lib/api';
+import { STALE_TIME } from '@/lib/query-config';
 import type { 
   ApiError, 
   Tarea, 
@@ -84,7 +85,7 @@ export function useTareasByProyecto(proyectoId: string, enabled = true) {
     queryKey: tareasKeys.byProyecto(proyectoId),
     queryFn: () => fetchTareasByProyecto(proyectoId),
     enabled: enabled && !!proyectoId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 
@@ -93,7 +94,7 @@ export function useTareasByUsuario(usuarioId: string, enabled = true) {
     queryKey: tareasKeys.byUsuario(usuarioId),
     queryFn: () => fetchTareasByUsuario(usuarioId),
     enabled: enabled && !!usuarioId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 
@@ -102,7 +103,7 @@ export function useTarea(id: string, enabled = true) {
     queryKey: tareasKeys.detail(id),
     queryFn: () => fetchTarea(id),
     enabled: enabled && !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 

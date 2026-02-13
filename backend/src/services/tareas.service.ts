@@ -16,6 +16,95 @@ import {
  */
 export class TareasService {
   /**
+   * Obtiene una tarea por id y falla si no existe.
+   * @param id Identificador de la tarea.
+   * @returns Tarea encontrada.
+   * @throws {HTTPException} Si la tarea no existe.
+   */
+  private async getRequiredTarea(id: string): Promise<Tarea> {
+    const tarea = await tareasRepository.findById(id);
+    if (!tarea) {
+      throw new HTTPException(404, { message: 'Tarea no encontrada' });
+    }
+    return tarea;
+  }
+
+  /**
+   * Valida que el usuario asignado exista cuando viene informado.
+   * @param usuarioId Identificador del usuario asignado.
+   * @param notFoundMessage Mensaje para error 404.
+   * @throws {HTTPException} Si se recibe id y el usuario no existe o está inactivo.
+   */
+  private async assertAssignedUserExists(
+    usuarioId: string | null | undefined,
+    notFoundMessage: string
+  ): Promise<void> {
+    if (!usuarioId) {
+      return;
+    }
+
+    const usuario = await findActiveUserById(usuarioId);
+    if (!usuario) {
+      throw new HTTPException(404, { message: notFoundMessage });
+    }
+  }
+
+  /**
+   * Valida coherencia de dependencia entre tareas.
+   * @param dependeDe Id de la tarea dependencia.
+   * @param proyectoId Id del proyecto que debe compartir.
+   * @param selfId Id de la tarea actual para prevenir autociclos.
+   * @throws {HTTPException} Si la dependencia no existe, pertenece a otro proyecto o crea ciclo directo.
+   */
+  private async assertDependenciaValida(
+    dependeDe: string | null | undefined,
+    proyectoId: string,
+    selfId?: string
+  ): Promise<void> {
+    if (!dependeDe) {
+      return;
+    }
+
+    const tareaDependencia = await tareasRepository.findById(dependeDe);
+    if (!tareaDependencia) {
+      throw new HTTPException(404, { message: 'Tarea de dependencia no encontrada' });
+    }
+
+    if (tareaDependencia.proyectoId !== proyectoId) {
+      throw new HTTPException(400, {
+        message: 'La tarea de dependencia debe pertenecer al mismo proyecto',
+      });
+    }
+
+    if (selfId && dependeDe === selfId) {
+      throw new HTTPException(400, {
+        message: 'Una tarea no puede depender de sí misma',
+      });
+    }
+  }
+
+  /**
+   * Valida rango de fechas solo cuando ambas están informadas.
+   * @param fechaInicio Fecha de inicio opcional.
+   * @param fechaFin Fecha de fin opcional.
+   * @throws {HTTPException} Si fecha fin es anterior a fecha inicio.
+   */
+  private assertDateRange(fechaInicio?: string | null, fechaFin?: string | null): void {
+    if (!fechaInicio || !fechaFin) {
+      return;
+    }
+
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+
+    if (fin < inicio) {
+      throw new HTTPException(400, {
+        message: 'La fecha de fin debe ser posterior a la fecha de inicio',
+      });
+    }
+  }
+
+  /**
    * Listar tareas de un proyecto
    */
   async listByProyecto(proyectoId: string, _user: User): Promise<Tarea[]> {
@@ -50,11 +139,7 @@ export class TareasService {
    * Obtener detalle de una tarea
    */
   async getById(id: string, _user: User): Promise<Tarea> {
-    const tarea = await tareasRepository.findById(id);
-    if (!tarea) {
-      throw new HTTPException(404, { message: 'Tarea no encontrada' });
-    }
-    return tarea;
+    return this.getRequiredTarea(id);
   }
 
   /**
@@ -87,37 +172,13 @@ export class TareasService {
     }
 
     // Verificar que el usuario asignado existe (si se proporciona)
-    if (data.usuarioAsignadoId) {
-      const usuario = await findActiveUserById(data.usuarioAsignadoId);
-      if (!usuario) {
-        throw new HTTPException(404, { message: 'Usuario asignado no encontrado' });
-      }
-    }
+    await this.assertAssignedUserExists(data.usuarioAsignadoId, 'Usuario asignado no encontrado');
 
     // Verificar que la tarea de la que depende existe (si se proporciona)
-    if (data.dependeDe) {
-      const tareaDependencia = await tareasRepository.findById(data.dependeDe);
-      if (!tareaDependencia) {
-        throw new HTTPException(404, { message: 'Tarea de dependencia no encontrada' });
-      }
-      // Verificar que la dependencia es del mismo proyecto
-      if (tareaDependencia.proyectoId !== proyectoId) {
-        throw new HTTPException(400, {
-          message: 'La tarea de dependencia debe pertenecer al mismo proyecto',
-        });
-      }
-    }
+    await this.assertDependenciaValida(data.dependeDe, proyectoId);
 
     // Validar fechas
-    if (data.fechaInicio && data.fechaFin) {
-      const inicio = new Date(data.fechaInicio);
-      const fin = new Date(data.fechaFin);
-      if (fin < inicio) {
-        throw new HTTPException(400, {
-          message: 'La fecha de fin debe ser posterior a la fecha de inicio',
-        });
-      }
-    }
+    this.assertDateRange(data.fechaInicio, data.fechaFin);
 
     const now = new Date();
     const nuevaTarea: NuevaTarea = {
@@ -146,47 +207,16 @@ export class TareasService {
     // Verificar permisos: ADMIN, RRHH, MANAGER
     assertPrivileged(user);
 
-    const tarea = await tareasRepository.findById(id);
-    if (!tarea) {
-      throw new HTTPException(404, { message: 'Tarea no encontrada' });
-    }
+    const tarea = await this.getRequiredTarea(id);
 
     // Verificar que el usuario asignado existe (si se proporciona)
-    if (data.usuarioAsignadoId) {
-      const usuario = await findActiveUserById(data.usuarioAsignadoId);
-      if (!usuario) {
-        throw new HTTPException(404, { message: 'Usuario asignado no encontrado' });
-      }
-    }
+    await this.assertAssignedUserExists(data.usuarioAsignadoId, 'Usuario asignado no encontrado');
 
     // Verificar que la tarea de la que depende existe (si se proporciona)
-    if (data.dependeDe) {
-      const tareaDependencia = await tareasRepository.findById(data.dependeDe);
-      if (!tareaDependencia) {
-        throw new HTTPException(404, { message: 'Tarea de dependencia no encontrada' });
-      }
-      // Verificar que la dependencia es del mismo proyecto
-      if (tareaDependencia.proyectoId !== tarea.proyectoId) {
-        throw new HTTPException(400, {
-          message: 'La tarea de dependencia debe pertenecer al mismo proyecto',
-        });
-      }
-      // Prevenir dependencias circulares
-      if (data.dependeDe === id) {
-        throw new HTTPException(400, {
-          message: 'Una tarea no puede depender de sí misma',
-        });
-      }
-    }
+    await this.assertDependenciaValida(data.dependeDe, tarea.proyectoId, id);
 
     // Validar fechas
-    const fechaInicio = data.fechaInicio ? new Date(data.fechaInicio) : null;
-    const fechaFin = data.fechaFin ? new Date(data.fechaFin) : null;
-    if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
-      throw new HTTPException(400, {
-        message: 'La fecha de fin debe ser posterior a la fecha de inicio',
-      });
-    }
+    this.assertDateRange(data.fechaInicio, data.fechaFin);
 
     const updates = buildUpdatePayload(data);
 
@@ -205,10 +235,7 @@ export class TareasService {
     // Verificar permisos: ADMIN, RRHH, MANAGER
     assertPrivileged(user);
 
-    const tarea = await tareasRepository.findById(id);
-    if (!tarea) {
-      throw new HTTPException(404, { message: 'Tarea no encontrada' });
-    }
+    await this.getRequiredTarea(id);
 
     // Verificar si hay tareas dependientes
     const dependientes = await tareasRepository.findDependientes(id);
@@ -230,10 +257,7 @@ export class TareasService {
   async updateEstado(id: string, estado: EstadoTarea, user: User): Promise<Tarea> {
     // Verificar permisos: ADMIN, RRHH, MANAGER pueden cambiar cualquier estado
     // Los usuarios asignados pueden cambiar su propia tarea
-    const tarea = await tareasRepository.findById(id);
-    if (!tarea) {
-      throw new HTTPException(404, { message: 'Tarea no encontrada' });
-    }
+    const tarea = await this.getRequiredTarea(id);
 
     if (
       !['ADMIN', 'RRHH', 'MANAGER'].includes(user.rol) &&
@@ -260,18 +284,10 @@ export class TareasService {
     // Verificar permisos: ADMIN, RRHH, MANAGER
     assertPrivileged(user);
 
-    const tarea = await tareasRepository.findById(id);
-    if (!tarea) {
-      throw new HTTPException(404, { message: 'Tarea no encontrada' });
-    }
+    await this.getRequiredTarea(id);
 
     // Verificar que el nuevo usuario existe (si se proporciona)
-    if (usuarioId) {
-      const usuario = await findActiveUserById(usuarioId);
-      if (!usuario) {
-        throw new HTTPException(404, { message: 'Usuario no encontrado' });
-      }
-    }
+    await this.assertAssignedUserExists(usuarioId, 'Usuario no encontrado');
 
     const updated = await tareasRepository.reasignar(id, usuarioId);
     if (!updated) {

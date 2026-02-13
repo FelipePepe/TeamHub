@@ -7,17 +7,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { ChartDataPoint } from '@/types/dashboard';
 
 interface BarChartProps {
-  title: string;
-  description?: string;
-  data: ChartDataPoint[];
-  isLoading?: boolean;
-  height?: number;
+  readonly title: string;
+  readonly description?: string;
+  readonly data: ChartDataPoint[];
+  readonly isLoading?: boolean;
+  readonly height?: number;
 }
 
 const COLORS = [
   '#3b82f6', '#22c55e', '#f59e0b', '#a855f7',
   '#ec4899', '#06b6d4', '#f97316', '#6366f1',
 ];
+const LOADING_BAR_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4'] as const;
 
 /**
  * Renderiza un gráfico de barras con estilos accesibles y tooltips.
@@ -197,8 +198,8 @@ export function BarChart({
         </CardHeader>
         <CardContent>
           <div className="flex items-end gap-2" style={{ height }}>
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="flex-1" style={{ height: `${Math.random() * 60 + 20}%` }} />
+            {LOADING_BAR_KEYS.map((key) => (
+              <Skeleton key={key} className="flex-1" style={{ height: `${Math.random() * 60 + 20}%` }} />
             ))}
           </div>
         </CardContent>

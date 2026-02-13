@@ -1,24 +1,34 @@
 import { HTTPException } from 'hono/http-exception';
 import type { MiddlewareHandler } from 'hono';
+import { getCookie } from 'hono/cookie';
 import { verifyAccessToken } from '../services/auth-service.js';
 import type { User } from '../db/schema/users.js';
 import { findActiveUserById } from '../services/users-repository.js';
+import { COOKIE_ACCESS_TOKEN } from './cookies.js';
 
 /**
  * Middleware de autenticación JWT.
- * Verifica el token Bearer, busca el usuario activo en DB y lo inyecta en el contexto.
- * Diferencia errores de autenticación (401) de errores internos como fallos de DB (500)
- * para evitar que timeouts de conexión se enmascaren como tokens inválidos.
+ * Lee el token desde httpOnly cookie (preferido) o header Authorization (fallback para tests/APIs externas).
+ * Verifica el token, busca el usuario activo en DB y lo inyecta en el contexto.
  * @throws {HTTPException} 401 si el token es inválido o el usuario no existe
  * @throws {HTTPException} 500 si hay un error interno (ej: DB no disponible)
  */
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  // Intentar leer token desde cookie (httpOnly)
+  let token = getCookie(c, COOKIE_ACCESS_TOKEN);
+  
+  // Fallback: leer desde header Authorization (para tests y APIs externas)
+  if (!token) {
+    const authHeader = c.req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '').trim();
+    }
+  }
+
+  if (!token) {
     throw new HTTPException(401, { message: 'No autorizado' });
   }
 
-  const token = authHeader.replace('Bearer ', '').trim();
   try {
     const payload = verifyAccessToken(token);
     const user = await findActiveUserById(payload.sub);
@@ -28,7 +38,8 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
     c.set('user', user as User);
   } catch (err) {
     if (err instanceof HTTPException) throw err;
-    throw new HTTPException(500, { message: 'Error interno del servidor' });
+    // Token inválido/expirado también devuelve 401 (no 500)
+    throw new HTTPException(401, { message: 'No autorizado' });
   }
 
   await next();

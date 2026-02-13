@@ -5,6 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/types';
+import { STALE_TIME } from '@/lib/query-config';
 import { procesosKeys } from './procesos/keys';
 import {
   cancelarProceso,
@@ -49,6 +50,15 @@ export type {
   UpdateTareaData,
 } from './procesos/types';
 
+/**
+ * Detecta el formato legacy de completar tarea con campos sueltos.
+ */
+function isLegacyCompletarParams(
+  params: CompletarTareaMutationParams | CompletarTareaWithAllFields
+): params is CompletarTareaWithAllFields {
+  return 'notas' in params || 'evidenciaUrl' in params;
+}
+
 // ============================================================================
 // Hooks - Procesos
 // ============================================================================
@@ -63,7 +73,7 @@ export function useProcesos(filters?: ProcesoFilters) {
   return useQuery({
     queryKey: procesosKeys.list(filters),
     queryFn: () => fetchProcesos(filters),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -75,7 +85,7 @@ export function useProceso(id: string, enabled = true) {
     queryKey: procesosKeys.detail(id),
     queryFn: () => fetchProceso(id),
     enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -87,7 +97,7 @@ export function useProcesosByEmpleado(empleadoId: string, enabled = true) {
     queryKey: procesosKeys.empleado(empleadoId),
     queryFn: () => fetchProcesosByEmpleado(empleadoId),
     enabled: enabled && !!empleadoId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -98,7 +108,7 @@ export function useEstadisticasProcesos() {
   return useQuery({
     queryKey: procesosKeys.estadisticas(),
     queryFn: fetchEstadisticas,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -109,7 +119,7 @@ export function useMisTareas() {
   return useQuery({
     queryKey: procesosKeys.misTareas(),
     queryFn: fetchMisTareas,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME.MEDIUM,
   });
 }
 
@@ -225,7 +235,7 @@ export function useTareasProceso(procesoId: string, enabled = true) {
     queryKey: procesosKeys.tareas(procesoId),
     queryFn: () => fetchTareasProceso(procesoId),
     enabled: enabled && !!procesoId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -273,8 +283,15 @@ export function useCompletarTarea() {
       if ('data' in params) {
         return completarTarea(params.procesoId, params.tareaId, params.data ?? {});
       }
-      const p = params as CompletarTareaWithAllFields;
-      return completarTarea(p.procesoId, p.tareaId, { notas: p.notas, evidenciaUrl: p.evidenciaUrl });
+
+      if (isLegacyCompletarParams(params)) {
+        return completarTarea(params.procesoId, params.tareaId, {
+          notas: params.notas,
+          evidenciaUrl: params.evidenciaUrl,
+        });
+      }
+
+      return completarTarea(params.procesoId, params.tareaId, {});
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

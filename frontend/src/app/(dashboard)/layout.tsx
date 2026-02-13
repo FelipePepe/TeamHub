@@ -9,7 +9,7 @@ import { VersionDisplay } from '@/components/layout/version-display';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

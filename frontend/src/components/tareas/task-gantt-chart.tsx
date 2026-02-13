@@ -18,9 +18,9 @@ import {
 } from '@/lib/gantt-utils';
 
 interface TaskGanttChartProps {
-  tareas: Tarea[];
-  onTaskClick?: (tarea: Tarea) => void;
-  isLoading?: boolean;
+  readonly tareas: Tarea[];
+  readonly onTaskClick?: (tarea: Tarea) => void;
+  readonly isLoading?: boolean;
 }
 
 interface TooltipState {
@@ -28,6 +28,20 @@ interface TooltipState {
   x: number;
   y: number;
   tarea: Tarea | null;
+}
+
+interface PreparedTaskRow {
+  tarea: Tarea;
+  rowY: number;
+  barY: number;
+  isEven: boolean;
+}
+
+interface PreparedSwimlane {
+  key: string;
+  name: string;
+  headerY: number;
+  tasks: PreparedTaskRow[];
 }
 
 const ESTADO_COLORS: Record<EstadoTarea, string> = {
@@ -45,6 +59,7 @@ const ESTADO_LABELS: Record<EstadoTarea, string> = {
   DONE: 'Completada',
   BLOCKED: 'Bloqueada',
 };
+const LOADING_GANTT_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChartProps) {
   const [zoom, setZoom] = useState<GanttZoomLevel>('quarter');
@@ -165,12 +180,43 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
     }
   };
 
-  // Calcular altura total
-  let totalRows = 0;
-  swimlanes.forEach((lane) => {
-    totalRows += 1; // Header del swimlane
-    totalRows += lane.tareas.length;
-  });
+  const preparedSwimlanes = useMemo<PreparedSwimlane[]>(() => {
+    let currentY = config.headerHeight;
+    const lanes: PreparedSwimlane[] = [];
+
+    for (const lane of swimlanes) {
+      const headerY = currentY;
+      const taskRows: PreparedTaskRow[] = [];
+
+      currentY += config.rowHeight;
+      for (const [index, tarea] of lane.tareas.entries()) {
+        const rowY = currentY;
+        const barY = rowY + (config.rowHeight - config.barHeight) / 2;
+
+        taskRows.push({
+          tarea,
+          rowY,
+          barY,
+          isEven: index % 2 === 0,
+        });
+
+        currentY += config.rowHeight;
+      }
+
+      lanes.push({
+        key: lane.key,
+        name: lane.name,
+        headerY,
+        tasks: taskRows,
+      });
+    }
+
+    return lanes;
+  }, [config.barHeight, config.headerHeight, config.rowHeight, swimlanes]);
+
+  const totalRows = swimlanes.reduce((sum, lane) => sum + 1 + lane.tareas.length, 0);
+  const todayX = timeScale(new Date()) + labelWidth;
+  const showTodayLine = todayX >= labelWidth && todayX <= chartWidth;
 
   const totalHeight = config.headerHeight + totalRows * config.rowHeight + config.padding * 2;
 
@@ -183,8 +229,8 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
         <CardContent>
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+            {LOADING_GANTT_ROW_KEYS.map((key) => (
+              <Skeleton key={key} className="h-12 w-full" />
             ))}
           </div>
         </CardContent>
@@ -222,11 +268,11 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           <svg width={chartWidth} height={totalHeight} className="min-w-full">
             {/* Grid de fondo */}
             <g>
-              {headerIntervals.map((interval, i) => {
+              {headerIntervals.map((interval) => {
                 const x = timeScale(interval.date) + labelWidth;
                 return (
                   <line
-                    key={i}
+                    key={`grid-${interval.date.toISOString()}-${interval.label}`}
                     x1={x}
                     y1={config.headerHeight}
                     x2={x}
@@ -263,11 +309,11 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
               >
                 Tarea / Asignado a
               </text>
-              {headerIntervals.map((interval, i) => {
+              {headerIntervals.map((interval) => {
                 const x = timeScale(interval.date) + labelWidth;
                 return (
                   <text
-                    key={i}
+                    key={`header-${interval.date.toISOString()}-${interval.label}`}
                     x={x + 4}
                     y={config.headerHeight / 2}
                     dominantBaseline="middle"
@@ -281,150 +327,131 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
 
             {/* Línea "Hoy" */}
             <g>
-              {(() => {
-                const todayX = timeScale(new Date()) + labelWidth;
-                if (todayX >= labelWidth && todayX <= chartWidth) {
-                  return (
-                    <>
-                      <line
-                        x1={todayX}
-                        y1={config.headerHeight}
-                        x2={todayX}
-                        y2={totalHeight}
-                        stroke="#ef4444"
-                        strokeWidth={2}
-                        strokeDasharray="4,4"
-                      />
-                      <text
-                        x={todayX}
-                        y={config.headerHeight - 4}
-                        textAnchor="middle"
-                        className="fill-red-500 text-[10px]"
-                      >
-                        Hoy
-                      </text>
-                    </>
-                  );
-                }
-                return null;
-              })()}
+              {showTodayLine && (
+                <>
+                  <line
+                    x1={todayX}
+                    y1={config.headerHeight}
+                    x2={todayX}
+                    y2={totalHeight}
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeDasharray="4,4"
+                  />
+                  <text
+                    x={todayX}
+                    y={config.headerHeight - 4}
+                    textAnchor="middle"
+                    className="fill-red-500 text-[10px]"
+                  >
+                    Hoy
+                  </text>
+                </>
+              )}
             </g>
 
             {/* Swimlanes */}
-            {(() => {
-              let currentY = config.headerHeight;
-              return swimlanes.map((lane) => {
-                return (
-                  <g key={lane.key}>
-                    {/* Header del swimlane */}
-                    <rect
-                      x={0}
-                      y={currentY}
-                      width={chartWidth}
-                      height={config.rowHeight}
-                      fill="#f1f5f9"
-                    />
-                    <line
-                      x1={0}
-                      y1={currentY + config.rowHeight}
-                      x2={chartWidth}
-                      y2={currentY + config.rowHeight}
-                      stroke="#cbd5e1"
-                      strokeWidth={1}
-                    />
-                    <text
-                      x={config.padding}
-                      y={currentY + config.rowHeight / 2}
-                      dominantBaseline="middle"
-                      className="fill-slate-900 text-sm font-semibold"
-                    >
-                      {lane.name}
-                    </text>
+            {preparedSwimlanes.map((lane) => (
+              <g key={lane.key}>
+                {/* Header del swimlane */}
+                <rect
+                  x={0}
+                  y={lane.headerY}
+                  width={chartWidth}
+                  height={config.rowHeight}
+                  fill="#f1f5f9"
+                />
+                <line
+                  x1={0}
+                  y1={lane.headerY + config.rowHeight}
+                  x2={chartWidth}
+                  y2={lane.headerY + config.rowHeight}
+                  stroke="#cbd5e1"
+                  strokeWidth={1}
+                />
+                <text
+                  x={config.padding}
+                  y={lane.headerY + config.rowHeight / 2}
+                  dominantBaseline="middle"
+                  className="fill-slate-900 text-sm font-semibold"
+                >
+                  {lane.name}
+                </text>
 
-                    {/* Tareas del swimlane */}
-                    {lane.tareas.map((tarea, tareaIndex) => {
-                      currentY += config.rowHeight;
-                      const rowY = currentY;
-                      const barY = rowY + (config.rowHeight - config.barHeight) / 2;
+                {/* Tareas del swimlane */}
+                {lane.tasks.map((row) => {
+                  const bar = calculateBarPosition(
+                    new Date(row.tarea.fechaInicio!),
+                    new Date(row.tarea.fechaFin!),
+                    timeScale
+                  );
 
-                      const bar = calculateBarPosition(
-                        new Date(tarea.fechaInicio!),
-                        new Date(tarea.fechaFin!),
-                        timeScale
-                      );
+                  return (
+                    <g key={row.tarea.id}>
+                      <rect
+                        x={0}
+                        y={row.rowY}
+                        width={chartWidth}
+                        height={config.rowHeight}
+                        fill={row.isEven ? '#ffffff' : '#f8fafc'}
+                      />
+                      <line
+                        x1={0}
+                        y1={row.rowY + config.rowHeight}
+                        x2={chartWidth}
+                        y2={row.rowY + config.rowHeight}
+                        stroke="#e2e8f0"
+                        strokeWidth={1}
+                      />
 
-                      return (
-                        <g key={tarea.id}>
+                      {/* Label de la tarea */}
+                      <text
+                        x={config.padding}
+                        y={row.rowY + config.rowHeight / 2}
+                        dominantBaseline="middle"
+                        className="fill-slate-900 text-xs"
+                      >
+                        {row.tarea.titulo.length > 28
+                          ? row.tarea.titulo.slice(0, 28) + '...'
+                          : row.tarea.titulo}
+                      </text>
+
+                      {/* Barra de la tarea */}
+                      {bar.visible && (
+                        <g
+                          onMouseEnter={(e) => handleMouseEnter(e, row.tarea)}
+                          onMouseLeave={handleMouseLeave}
+                          onClick={() => handleTaskClick(row.tarea)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           <rect
-                            x={0}
-                            y={rowY}
-                            width={chartWidth}
-                            height={config.rowHeight}
-                            fill={tareaIndex % 2 === 0 ? '#ffffff' : '#f8fafc'}
+                            x={bar.x + labelWidth}
+                            y={row.barY}
+                            width={bar.width}
+                            height={config.barHeight}
+                            rx={4}
+                            fill={ESTADO_COLORS[row.tarea.estado]}
+                            opacity={0.85}
                           />
-                          <line
-                            x1={0}
-                            y1={rowY + config.rowHeight}
-                            x2={chartWidth}
-                            y2={rowY + config.rowHeight}
-                            stroke="#e2e8f0"
-                            strokeWidth={1}
-                          />
-
-                          {/* Label de la tarea */}
-                          <text
-                            x={config.padding}
-                            y={rowY + config.rowHeight / 2}
-                            dominantBaseline="middle"
-                            className="fill-slate-900 text-xs"
-                          >
-                            {tarea.titulo.length > 28
-                              ? tarea.titulo.slice(0, 28) + '...'
-                              : tarea.titulo}
-                          </text>
-
-                          {/* Barra de la tarea */}
-                          {bar.visible && (
-                            <g
-                              onMouseEnter={(e) => handleMouseEnter(e, tarea)}
-                              onMouseLeave={handleMouseLeave}
-                              onClick={() => handleTaskClick(tarea)}
-                              style={{ cursor: 'pointer' }}
+                          {bar.width > 40 && (
+                            <text
+                              x={bar.x + labelWidth + bar.width / 2}
+                              y={row.barY + config.barHeight / 2}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              className="fill-white text-xs font-medium"
+                              style={{ pointerEvents: 'none' }}
                             >
-                              <rect
-                                x={bar.x + labelWidth}
-                                y={barY}
-                                width={bar.width}
-                                height={config.barHeight}
-                                rx={4}
-                                fill={ESTADO_COLORS[tarea.estado]}
-                                opacity={0.85}
-                              />
-                              {bar.width > 40 && (
-                                <text
-                                  x={bar.x + labelWidth + bar.width / 2}
-                                  y={barY + config.barHeight / 2}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                  className="fill-white text-xs font-medium"
-                                  style={{ pointerEvents: 'none' }}
-                                >
-                                  {ESTADO_LABELS[tarea.estado]}
-                                </text>
-                              )}
-                            </g>
+                              {ESTADO_LABELS[row.tarea.estado]}
+                            </text>
                           )}
                         </g>
-                      );
-                    })}
-                    {(() => {
-                      currentY += config.rowHeight;
-                      return null;
-                    })()}
-                  </g>
-                );
-              });
-            })()}
+                      )}
+                    </g>
+                  );
+                })}
+              </g>
+            ))}
           </svg>
 
           {/* Leyenda */}
@@ -443,14 +470,14 @@ export function TaskGanttChart({ tareas, onTaskClick, isLoading }: TaskGanttChar
           {/* Tooltip */}
           {tooltip.tarea && tooltip.visible && (
             <div
-              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
+              className="pointer-events-none absolute z-50 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-lg"
               style={{
                 left: tooltip.x + 10,
                 top: tooltip.y + 10,
               }}
             >
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-900">{tooltip.tarea.titulo}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{tooltip.tarea.titulo}</p>
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"

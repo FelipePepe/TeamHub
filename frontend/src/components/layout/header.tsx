@@ -8,7 +8,7 @@ import { MobileSidebar } from './mobile-sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 interface HeaderProps {
-  title?: string;
+  readonly title?: string;
 }
 
 export function Header({ title }: HeaderProps) {

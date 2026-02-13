@@ -15,12 +15,12 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 const loginAsAdmin = async () => {
-  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
-  return { token: verifyBody.accessToken as string };
+  const { cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  return { cookies };
 };
 
 beforeAll(async () => {
@@ -46,7 +46,7 @@ describe('plantillas routes', () => {
   });
 
   it('creates plantilla with tareas and returns detail', async () => {
-    const { token } = await loginAsAdmin();
+    const { cookies } = await loginAsAdmin();
     const plantillaPayload = {
       nombre: 'Onboarding Dev',
       descripcion: 'Plantilla base',
@@ -54,7 +54,7 @@ describe('plantillas routes', () => {
 
     const createResponse = await app.request('/api/plantillas', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/plantillas'),
+      headers: authHeaders(cookies, 'POST', '/api/plantillas'),
       body: JSON.stringify(plantillaPayload),
     });
     expect(createResponse.status).toBe(201);
@@ -70,13 +70,13 @@ describe('plantillas routes', () => {
 
     const tareaResponse = await app.request(`/api/plantillas/${created.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/tareas`),
+      headers: authHeaders(cookies, 'POST', `/api/plantillas/${created.id}/tareas`),
       body: JSON.stringify(tareaPayload),
     });
     expect(tareaResponse.status).toBe(201);
 
     const detailResponse = await app.request(`/api/plantillas/${created.id}`, {
-      headers: authHeaders(token, 'GET', `/api/plantillas/${created.id}`),
+      headers: authHeaders(cookies, 'GET', `/api/plantillas/${created.id}`),
     });
     expect(detailResponse.status).toBe(200);
     const detail = await detailResponse.json();
@@ -85,7 +85,7 @@ describe('plantillas routes', () => {
   });
 
   it('duplicates plantilla with tareas', async () => {
-    const { token } = await loginAsAdmin();
+    const { cookies } = await loginAsAdmin();
     const plantillaPayload = {
       nombre: 'Onboarding QA',
       descripcion: 'QA base',
@@ -93,14 +93,14 @@ describe('plantillas routes', () => {
 
     const createResponse = await app.request('/api/plantillas', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/plantillas'),
+      headers: authHeaders(cookies, 'POST', '/api/plantillas'),
       body: JSON.stringify(plantillaPayload),
     });
     const created = await createResponse.json();
 
     await app.request(`/api/plantillas/${created.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/tareas`),
+      headers: authHeaders(cookies, 'POST', `/api/plantillas/${created.id}/tareas`),
       body: JSON.stringify({
         titulo: 'Alta en herramientas',
         categoria: 'ACCESOS',
@@ -111,14 +111,14 @@ describe('plantillas routes', () => {
 
     const duplicateResponse = await app.request(`/api/plantillas/${created.id}/duplicar`, {
       method: 'POST',
-      headers: authHeaders(token, 'POST', `/api/plantillas/${created.id}/duplicar`),
+      headers: authHeaders(cookies, 'POST', `/api/plantillas/${created.id}/duplicar`),
     });
     expect(duplicateResponse.status).toBe(201);
     const duplicated = await duplicateResponse.json();
     expect(duplicated.nombre).toContain('(copy)');
 
     const detailResponse = await app.request(`/api/plantillas/${duplicated.id}`, {
-      headers: authHeaders(token, 'GET', `/api/plantillas/${duplicated.id}`),
+      headers: authHeaders(cookies, 'GET', `/api/plantillas/${duplicated.id}`),
     });
     const detail = await detailResponse.json();
     expect(detail.tareas).toHaveLength(1);

@@ -35,9 +35,15 @@ temp/
 # LLM Collaboration context
 .llm-context/
 .claude/
+.mcp.json
 
 postgres avnadmin AVNS.txt
 logs/
 scripts/audit_update_logs.sh
 .codex-home/*
 !.codex-home/AGENTS_SUMMARY.md
+
+# Gitleaks binary and config
+scripts/bin/gitleaks
+.gitleaks.toml
+.scannerwork/

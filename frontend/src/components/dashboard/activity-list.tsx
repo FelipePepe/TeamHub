@@ -32,6 +32,7 @@ const OPERATION_LABELS: Record<string, string> = {
   UPDATE: 'Actualizó',
   DELETE: 'Eliminó',
 };
+const LOADING_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3'] as const;
 
 /**
  * Devuelve un label legible para la tabla afectada.
@@ -88,11 +89,11 @@ const formatJson = (value?: Record<string, unknown> | null) => {
 };
 
 interface ActivityListProps {
-  title: string;
-  description?: string;
-  items: ActivityItem[];
-  isLoading?: boolean;
-  emptyMessage?: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly items: ActivityItem[];
+  readonly isLoading?: boolean;
+  readonly emptyMessage?: string;
 }
 
 /**
@@ -121,8 +122,8 @@ export function ActivityList({
           <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-start gap-3">
+          {LOADING_ROW_KEYS.map((key) => (
+            <div key={key} className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
               <div className="flex-1 space-y-1">
                 <Skeleton className="h-4 w-3/4" />
@@ -258,11 +259,11 @@ export function ActivityList({
 }
 
 interface AlertListProps {
-  title: string;
-  description?: string;
-  items: AlertItem[];
-  isLoading?: boolean;
-  emptyMessage?: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly items: AlertItem[];
+  readonly isLoading?: boolean;
+  readonly emptyMessage?: string;
 }
 
 const priorityStyles = {
@@ -292,8 +293,8 @@ export function AlertList({
           <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-start gap-3 p-3 border rounded-lg">
+          {LOADING_ROW_KEYS.map((key) => (
+            <div key={key} className="flex items-start gap-3 p-3 border rounded-lg">
               <Skeleton className="h-5 w-5" />
               <div className="flex-1 space-y-1">
                 <Skeleton className="h-4 w-3/4" />

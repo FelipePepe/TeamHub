@@ -9,6 +9,7 @@ import {
   migrateTestDatabase,
   findUserByEmail,
   getSignedHeaders,
+  extractCookies,
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -28,7 +29,7 @@ beforeEach(async () => {
 
 describe('auth routes', () => {
   it('bootstraps the first user on login', async () => {
-    const { loginResponse, loginBody, verifyBody } = await loginWithMfa(
+    const { loginResponse, loginBody, verifyBody, cookies } = await loginWithMfa(
       app,
       ADMIN_EMAIL,
       ADMIN_PASSWORD
@@ -39,9 +40,9 @@ describe('auth routes', () => {
       mfaSetupRequired: true,
       mfaToken: expect.any(String),
     });
+    
+    // Tokens ahora están en cookies httpOnly, NO en JSON response
     expect(verifyBody).toMatchObject({
-      accessToken: expect.any(String),
-      refreshToken: expect.any(String),
       user: {
         email: ADMIN_EMAIL,
         nombre: 'Admin',
@@ -49,6 +50,13 @@ describe('auth routes', () => {
         activo: true,
       },
     });
+    
+    // Verificar que las cookies fueron establecidas
+    expect(cookies).toHaveProperty('access_token');
+    expect(cookies).toHaveProperty('refresh_token');
+    expect(cookies.access_token).toBeTruthy();
+    expect(cookies.refresh_token).toBeTruthy();
+    
     const storedUser = await findUserByEmail(ADMIN_EMAIL);
     expect(storedUser).toBeTruthy();
   });
@@ -65,24 +73,28 @@ describe('auth routes', () => {
 
   it('revokes refresh tokens after use', async () => {
     const loginResult = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
-    const refreshToken = loginResult.verifyBody.refreshToken as string;
+    const { cookies } = loginResult;
 
+    // Primera vez: refresh debe funcionar (cookies enviadas automáticamente)
     const refreshResponse = await app.request('/api/auth/refresh', {
       method: 'POST',
-      headers: getSignedHeaders('POST', '/api/auth/refresh'),
-      body: JSON.stringify({ refreshToken }),
+      headers: getSignedHeaders('POST', '/api/auth/refresh', {}, cookies),
     });
     expect(refreshResponse.status).toBe(200);
     const refreshed = await refreshResponse.json();
     expect(refreshed).toMatchObject({
-      accessToken: expect.any(String),
-      refreshToken: expect.any(String),
+      success: true,
     });
+    
+    // Extraer nuevas cookies del refresh
+    const newCookies = extractCookies(refreshResponse);
+    expect(newCookies).toHaveProperty('access_token');
+    expect(newCookies).toHaveProperty('refresh_token');
 
+    // Segunda vez con el refresh token viejo: debe fallar (revocado)
     const reuseResponse = await app.request('/api/auth/refresh', {
       method: 'POST',
-      headers: getSignedHeaders('POST', '/api/auth/refresh'),
-      body: JSON.stringify({ refreshToken }),
+      headers: getSignedHeaders('POST', '/api/auth/refresh', {}, cookies),
     });
     expect(reuseResponse.status).toBe(401);
   });

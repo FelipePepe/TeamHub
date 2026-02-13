@@ -9,14 +9,14 @@ import type { ProyectoEstado } from '@/hooks/use-proyectos';
 import { formatDuration } from '@/lib/gantt-utils';
 
 interface GanttTooltipProps {
-  nombre: string;
-  codigo: string;
-  estado: ProyectoEstado;
-  fechaInicio: Date;
-  fechaFin: Date;
-  progreso: number;
-  position: { x: number; y: number };
-  visible: boolean;
+  readonly nombre: string;
+  readonly codigo: string;
+  readonly estado: ProyectoEstado;
+  readonly fechaInicio: Date;
+  readonly fechaFin: Date;
+  readonly progreso: number;
+  readonly position: { readonly x: number; readonly y: number };
+  readonly visible: boolean;
 }
 
 export function GanttTooltip({

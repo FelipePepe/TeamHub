@@ -6,16 +6,16 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KpiCardProps {
-  title: string;
-  value: number | string;
-  icon: LucideIcon;
-  description?: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
+  readonly title: string;
+  readonly value: number | string;
+  readonly icon: LucideIcon;
+  readonly description?: string;
+  readonly trend?: {
+    readonly value: number;
+    readonly isPositive: boolean;
   };
-  variant?: 'default' | 'success' | 'warning' | 'danger';
-  isLoading?: boolean;
+  readonly variant?: 'default' | 'success' | 'warning' | 'danger';
+  readonly isLoading?: boolean;
 }
 
 const variantStyles = {

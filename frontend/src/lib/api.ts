@@ -1,8 +1,26 @@
+/**
+ * Cliente HTTP con interceptores HMAC + httpOnly cookies
+ * 🔒 SECURITY: 
+ * - Tokens enviados automáticamente vía cookies (httpOnly + Secure + SameSite=Strict)
+ * - HMAC signature en cada request (previene replay attacks)
+ * - CSRF token en headers para requests que mutan estado
+ */
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '@/types';
 import { generateRequestSignature } from './hmac';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+/**
+ * Obtiene el token CSRF desde las cookies del navegador
+ * @returns CSRF token o null si no existe
+ */
+function getCsrfToken(): string | null {
+  if (globalThis.window === undefined) return null;
+  const csrfRegex = /csrf_token=([^;]+)/;
+  const match = csrfRegex.exec(document.cookie);
+  return match ? match[1] : null;
+}
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -11,71 +29,73 @@ const api: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true, // 🔒 SECURITY: Envía cookies httpOnly automáticamente
 });
 
-// Request interceptor: add auth token and HMAC signature
+// Request interceptor: add HMAC signature and CSRF token
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    if (globalThis.window === undefined) return config;
 
-      // Añadir firma HMAC (incluye body hash)
-      const method = config.method?.toUpperCase() || 'GET';
-      const path = `/api${config.url || ''}`;
-      const body = config.data != null ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
-      const signature = await generateRequestSignature(method, path, body);
+    // CSRF token para requests que mutan estado (POST/PUT/PATCH/DELETE)
+    const method = config.method?.toUpperCase() || 'GET';
+    if (method !== 'GET' && method !== 'HEAD') {
+      const csrfToken = getCsrfToken();
+      if (csrfToken && config.headers) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+
+    // Firma HMAC (incluye hash del body)
+    const path = `/api${config.url || ''}`;
+    let body: string;
+    if (config.data === null || config.data === undefined) {
+      body = '';
+    } else if (typeof config.data === 'string') {
+      body = config.data;
+    } else {
+      body = JSON.stringify(config.data);
+    }
+    const signature = await generateRequestSignature(method, path, body);
+    if (config.headers) {
       config.headers['X-Request-Signature'] = signature;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: handle errors and token refresh
+// Response interceptor: handle errors (tokens auto-refresh via cookies)
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 and attempt token refresh
+    // Handle 401: intentar refresh automático (cookies enviadas automáticamente)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          const refreshPath = '/api/auth/refresh';
-          const refreshBody = JSON.stringify({ refreshToken });
-          const signature = await generateRequestSignature('POST', refreshPath, refreshBody);
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          }, {
-            headers: {
-              'X-Request-Signature': signature,
-            },
-          });
+        // Backend lee refresh token desde cookie, establece nuevos tokens en cookies
+        const refreshPath = '/api/auth/refresh';
+        const signature = await generateRequestSignature('POST', refreshPath, '');
+        await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
+          headers: {
+            'X-Request-Signature': signature,
+          },
+          withCredentials: true, // Envía cookies automáticamente
+        });
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
-
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          }
-          return api(originalRequest);
-        }
+        // Reintentar request original (con nuevas cookies establecidas)
+        return api(originalRequest);
       } catch {
-        // Refresh failed, clear tokens but don't redirect.
-        // Let the error propagate so the calling component can show it.
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        // Refresh falló - cookies inválidas o expiradas
+        // No hacer nada - el error se propaga al componente para mostrar mensaje
       }
     }
 
-    return Promise.reject(error);
+    throw error;
   }
 );
 

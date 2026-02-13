@@ -18,6 +18,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json', 'lcov'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.spec.{ts,tsx}',
+        'src/**/__tests__/**',
+        'src/components/ui/**',
+      ],
+      all: true,
+      reportOnFailure: true,
       thresholds: {
         'src/hooks/**': { statements: 80, lines: 80, branches: 80, functions: 80 },
         'src/app/(dashboard)/admin/departamentos/**': { statements: 80, lines: 80, branches: 80, functions: 80 },

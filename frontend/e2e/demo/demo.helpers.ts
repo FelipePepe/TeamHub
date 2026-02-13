@@ -1,5 +1,4 @@
 import { Page } from '@playwright/test';
-import { createHmac } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -7,6 +6,9 @@ import path from 'node:path';
  * Helpers para demos visuales realistas de TeamHub.
  * Simula el comportamiento de un usuario real.
  */
+
+// Re-export generateTotpCode from shared module
+export { generateTotpCode } from '../helpers/totp-shared';
 
 // Cargar variables de entorno
 function loadEnvFile(filePath: string): void {
@@ -139,37 +141,6 @@ export async function navigateTo(page: Page, menuText: string) {
   await menuItem.waitFor({ state: 'visible', timeout: 10000 });
   await moveAndClick(page, `nav a:has-text("${menuText}")`);
   await waitForLoad(page);
-}
-
-// ============ TOTP ============
-
-const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-function fromBase32(input: string): Buffer {
-  const normalized = input.replace(/=+$/g, '').toUpperCase();
-  let bits = '';
-  for (const char of normalized) {
-    const index = BASE32.indexOf(char);
-    if (index === -1) throw new Error('Invalid base32 character');
-    bits += index.toString(2).padStart(5, '0');
-  }
-  const bytes: number[] = [];
-  for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
-    bytes.push(Number.parseInt(bits.slice(offset, offset + 8), 2));
-  }
-  return Buffer.from(bytes);
-}
-
-/** Generar código TOTP */
-export function generateTotpCode(secret: string, timestampMs = Date.now()): string {
-  const counter = Math.floor(timestampMs / 30000);
-  const counterBuffer = Buffer.alloc(8);
-  counterBuffer.writeBigUInt64BE(BigInt(counter));
-  const key = fromBase32(secret);
-  const hmac = createHmac('sha1', key).update(counterBuffer).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1000000;
-  return code.toString().padStart(6, '0');
 }
 
 // ============ DATOS DE DEMO ============

@@ -1,0 +1,78 @@
+#!/bin/sh
+set -e
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# ============================================================================
+# SonarQube Analysis - only on develop branch
+# ============================================================================
+# Runs automatically after git pull on develop (post-merge)
+# Generates coverage reports and sends them to local SonarQube
+# Analyzes backend and frontend as separate projects
+# ============================================================================
+
+if [ "$current_branch" != "develop" ]; then
+  exit 0
+fi
+
+echo ""
+echo "📊 SonarQube: Generating coverage reports and analyzing develop..."
+echo ""
+
+# Load SonarQube credentials
+if [ ! -f "$ROOT_DIR/.env.sonar" ]; then
+  echo "⚠️  Skipping SonarQube: .env.sonar not found"
+  echo "   Copy .env.sonar.example to .env.sonar and configure your token"
+  exit 0
+fi
+
+export $(grep -v '^#' "$ROOT_DIR/.env.sonar" | grep -v '^\s*$' | xargs)
+
+if [ -z "$SONAR_TOKEN" ]; then
+  echo "⚠️  Skipping SonarQube: SONAR_TOKEN not set in .env.sonar"
+  exit 0
+fi
+
+# Check if SonarQube is reachable
+if ! curl -s --max-time 3 "http://localhost:9000/api/system/status" > /dev/null 2>&1; then
+  echo "⚠️  Skipping SonarQube: server not reachable at localhost:9000"
+  exit 0
+fi
+
+# --- Backend ---
+echo "🧪 Backend: running tests with coverage..."
+if (cd "$ROOT_DIR/backend" && npx vitest run --coverage 2>&1 | tail -5); then
+  echo "✅ Backend coverage generated"
+else
+  echo "⚠️  Backend tests had failures (coverage still generated)"
+fi
+
+echo ""
+echo "📡 Analyzing backend..."
+(cd "$ROOT_DIR/backend" && npx sonar-scanner \
+  -Dsonar.token="$SONAR_TOKEN" \
+  -Dsonar.projectKey=TeamHub-backend-develop \
+  -Dsonar.projectName="TeamHub Backend (develop)" 2>&1 | tail -3)
+
+# --- Frontend ---
+echo ""
+echo "🧪 Frontend: running tests with coverage..."
+if (cd "$ROOT_DIR/frontend" && npx vitest run --coverage 2>&1 | tail -5); then
+  echo "✅ Frontend coverage generated"
+else
+  echo "⚠️  Frontend tests had failures (coverage still generated)"
+fi
+
+echo ""
+echo "📡 Analyzing frontend..."
+(cd "$ROOT_DIR/frontend" && npx sonar-scanner \
+  -Dsonar.token="$SONAR_TOKEN" \
+  -Dsonar.projectKey=TeamHub-frontend-develop \
+  -Dsonar.projectName="TeamHub Frontend (develop)" 2>&1 | tail -3)
+
+echo ""
+echo "✅ SonarQube analysis complete"
+echo "🌐 Results:"
+echo "   Backend:  http://localhost:9000/dashboard?id=TeamHub-backend-develop"
+echo "   Frontend: http://localhost:9000/dashboard?id=TeamHub-frontend-develop"

@@ -33,4 +33,29 @@ if ! echo "$current_branch" | grep -qE "$valid_patterns"; then
   exit 1
 fi
 
+# ============================================================================
+# Secrets Detection (gitleaks)
+# ============================================================================
+# Detects hardcoded secrets (API keys, passwords, tokens)
+# ============================================================================
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+GITLEAKS_BIN="$ROOT_DIR/scripts/bin/gitleaks"
+
+echo "🔒 Checking for secrets..."
+if [ -x "$GITLEAKS_BIN" ]; then
+  if ! "$GITLEAKS_BIN" protect --staged --verbose; then
+    echo ""
+    echo "❌ ERROR: Secrets detected in staged files"
+    echo ""
+    echo "Please remove secrets and use environment variables instead."
+    echo "Review .env.example for proper configuration."
+    echo ""
+    exit 1
+  fi
+  echo "✅ No secrets detected"
+else
+  echo "⚠️  Warning: gitleaks not found at $GITLEAKS_BIN, skipping secrets detection"
+fi
+
 exit 0

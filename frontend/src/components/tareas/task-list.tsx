@@ -50,9 +50,9 @@ import { toast } from 'sonner';
 import type { Tarea, EstadoTarea, PrioridadTarea } from '@/types';
 
 interface TaskListProps {
-  proyectoId: string;
-  tareas: Tarea[];
-  isLoading?: boolean;
+  readonly proyectoId: string;
+  readonly tareas: Tarea[];
+  readonly isLoading?: boolean;
 }
 
 const ESTADO_COLORS: Record<EstadoTarea, string> = {
@@ -84,6 +84,7 @@ const PRIORIDAD_LABELS: Record<PrioridadTarea, string> = {
   HIGH: 'Alta',
   URGENT: 'Urgente',
 };
+const LOADING_TASK_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
   const [showFormModal, setShowFormModal] = useState(false);
@@ -119,7 +120,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
       if (tarea.usuarioAsignado) {
         map.set(tarea.usuarioAsignado.id, {
           id: tarea.usuarioAsignado.id,
-          nombre: `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos || ''}`,
+          nombre: `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos ?? ''}`,
         });
       }
     });
@@ -234,8 +235,8 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
         <CardContent>
           {isLoading ? (
             <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 w-full animate-pulse rounded bg-slate-100" />
+              {LOADING_TASK_ROW_KEYS.map((key) => (
+                <div key={key} className="h-12 w-full animate-pulse rounded bg-slate-100" />
               ))}
             </div>
           ) : tareasFiltradas.length === 0 ? (
@@ -276,7 +277,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                       </TableCell>
                       <TableCell>
                         {tarea.usuarioAsignado
-                          ? `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos || ''}`
+                          ? `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos ?? ''}`
                           : 'Sin asignar'}
                       </TableCell>
                       <TableCell>
@@ -416,11 +417,11 @@ function ReasignarModal({
   onReasignar,
   onClose,
 }: {
-  tareaId: string;
-  tarea?: Tarea;
-  empleados: { id: string; nombre: string; apellidos?: string }[];
-  onReasignar: (tareaId: string, usuarioId: string) => void;
-  onClose: () => void;
+  readonly tareaId: string;
+  readonly tarea?: Tarea;
+  readonly empleados: { id: string; nombre: string; apellidos?: string }[];
+  readonly onReasignar: (tareaId: string, usuarioId: string) => void;
+  readonly onClose: () => void;
 }) {
   const [usuarioId, setUsuarioId] = useState('');
 
@@ -443,7 +444,7 @@ function ReasignarModal({
               <SelectContent>
                 {empleados.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {emp.nombre} {emp.apellidos || ''}
+                    {emp.nombre} {emp.apellidos ?? ''}
                   </SelectItem>
                 ))}
               </SelectContent>

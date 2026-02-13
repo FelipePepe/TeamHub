@@ -5,12 +5,6 @@ import type { User } from '../../db/schema/users.js';
 import { users } from '../../db/schema/users.js';
 import { listQuerySchema } from './schemas.js';
 
-export const toNumber = (value: unknown, fallback = 0) => {
-  if (value === null || value === undefined) return fallback;
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
 const PRIVILEGED_ROLES: User['rol'][] = ['ADMIN', 'RRHH'];
 
 export const isPrivilegedUser = (user: User) => PRIVILEGED_ROLES.includes(user.rol);

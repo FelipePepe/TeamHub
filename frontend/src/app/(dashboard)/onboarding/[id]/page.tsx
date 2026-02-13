@@ -37,7 +37,7 @@ import { toast } from 'sonner';
 export default function ProcesoDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  readonly params: Promise<{ id: string }>;
 }) {
   const resolvedParams = use(params);
   const router = useRouter();

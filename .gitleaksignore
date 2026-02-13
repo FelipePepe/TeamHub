@@ -1,0 +1,22 @@
+{
+  "allowlist": {
+    "description": "Allowed patterns that should not trigger secret detection",
+    "regexes": [
+      "example\\.com",
+      "your-.*-here",
+      "change-me",
+      "NEXT_PUBLIC_",
+      "test-.*-key"
+    ],
+    "paths": [
+      ".env.example",
+      ".env.local",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/test-utils/**",
+      "**/__tests__/**",
+      "**/test-fixtures/**"
+    ]
+  },
+  "rules": []
+}

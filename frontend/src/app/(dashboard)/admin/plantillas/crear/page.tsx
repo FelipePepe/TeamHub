@@ -57,6 +57,19 @@ interface TareaLocal extends TareaFormData {
   orden: number;
 }
 
+/**
+ * Elimina una tarea y reindexa el orden/dependencias de forma atómica.
+ */
+function removeTareaAndReindex(tareas: TareaLocal[], id: string): TareaLocal[] {
+  return tareas
+    .filter((tarea) => tarea.id !== id)
+    .map((tarea, idx) => ({
+      ...tarea,
+      orden: idx + 1,
+      dependencias: tarea.dependencias.filter((depId) => depId !== id),
+    }));
+}
+
 // ============================================================================
 // Main Component
 // ============================================================================
@@ -150,18 +163,7 @@ export default function CrearPlantillaPage() {
   };
 
   const handleDeleteTarea = (id: string) => {
-    setTareas((prev) => {
-      const filtered = prev.filter((t) => t.id !== id);
-      // Reorder
-      return filtered.map((t, idx) => ({ ...t, orden: idx + 1 }));
-    });
-    // Remove dependencies
-    setTareas((prev) =>
-      prev.map((t) => ({
-        ...t,
-        dependencias: t.dependencias.filter((depId) => depId !== id),
-      }))
-    );
+    setTareas((prev) => removeTareaAndReindex(prev, id));
   };
 
   const handleMoveTarea = (id: string, direction: 'up' | 'down') => {

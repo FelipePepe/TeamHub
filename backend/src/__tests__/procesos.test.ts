@@ -17,23 +17,23 @@ const EMPLOYEE_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 const loginAsAdmin = async () => {
-  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
-  return { token: verifyBody.accessToken as string };
+  const { cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  return { cookies };
 };
 
 const loginAsEmployee = async () => {
-  const { verifyBody } = await loginWithMfa(app, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD);
-  return { token: verifyBody.accessToken as string };
+  const { cookies } = await loginWithMfa(app, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD);
+  return { cookies };
 };
 
-const createEmployee = async (token: string) => {
+const createEmployee = async (cookies: Record<string, string>) => {
   const response = await app.request('/api/usuarios', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/usuarios'),
+    headers: authHeaders(cookies, 'POST', '/api/usuarios'),
     body: JSON.stringify({
       email: EMPLOYEE_EMAIL,
       password: EMPLOYEE_PASSWORD,
@@ -46,10 +46,10 @@ const createEmployee = async (token: string) => {
   return body.id as string;
 };
 
-const createPlantillaWithTasks = async (token: string) => {
+const createPlantillaWithTasks = async (cookies: Record<string, string>) => {
   const plantillaResponse = await app.request('/api/plantillas', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/plantillas'),
+    headers: authHeaders(cookies, 'POST', '/api/plantillas'),
     body: JSON.stringify({ nombre: 'Plantilla Base' }),
   });
   expect(plantillaResponse.status).toBe(201);
@@ -63,7 +63,7 @@ const createPlantillaWithTasks = async (token: string) => {
   for (const payload of tareaPayloads) {
     const tareaResponse = await app.request(`/api/plantillas/${plantilla.id}/tareas`, {
       method: 'POST',
-      headers: authHeaders(token, 'POST', `/api/plantillas/${plantilla.id}/tareas`),
+      headers: authHeaders(cookies, 'POST', `/api/plantillas/${plantilla.id}/tareas`),
       body: JSON.stringify(payload),
     });
     expect(tareaResponse.status).toBe(201);
@@ -85,13 +85,13 @@ beforeEach(async () => {
 
 describe('procesos routes', () => {
   it('creates proceso with tareas from plantilla', async () => {
-    const { token } = await loginAsAdmin();
-    const empleadoId = await createEmployee(token);
-    const plantillaId = await createPlantillaWithTasks(token);
+    const { cookies } = await loginAsAdmin();
+    const empleadoId = await createEmployee(cookies);
+    const plantillaId = await createPlantillaWithTasks(cookies);
 
     const createResponse = await app.request('/api/procesos', {
       method: 'POST',
-      headers: authHeaders(token, 'POST', '/api/procesos'),
+      headers: authHeaders(cookies, 'POST', '/api/procesos'),
       body: JSON.stringify({
         empleadoId,
         plantillaId,
@@ -102,7 +102,7 @@ describe('procesos routes', () => {
     const proceso = await createResponse.json();
 
     const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
-      headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
+      headers: authHeaders(cookies, 'GET', `/api/procesos/${proceso.id}`),
     });
     expect(detailResponse.status).toBe(200);
     const detail = await detailResponse.json();
@@ -112,13 +112,13 @@ describe('procesos routes', () => {
   it(
     'allows completing a tarea in proceso',
     async () => {
-      const { token } = await loginAsAdmin();
-      const empleadoId = await createEmployee(token);
-      const plantillaId = await createPlantillaWithTasks(token);
+      const { cookies } = await loginAsAdmin();
+      const empleadoId = await createEmployee(cookies);
+      const plantillaId = await createPlantillaWithTasks(cookies);
 
       const createResponse = await app.request('/api/procesos', {
         method: 'POST',
-        headers: authHeaders(token, 'POST', '/api/procesos'),
+        headers: authHeaders(cookies, 'POST', '/api/procesos'),
         body: JSON.stringify({
           empleadoId,
           plantillaId,
@@ -128,16 +128,16 @@ describe('procesos routes', () => {
       const proceso = await createResponse.json();
 
       const detailResponse = await app.request(`/api/procesos/${proceso.id}`, {
-        headers: authHeaders(token, 'GET', `/api/procesos/${proceso.id}`),
+        headers: authHeaders(cookies, 'GET', `/api/procesos/${proceso.id}`),
       });
       const detail = await detailResponse.json();
       const tareaId = detail.tareas[0].id as string;
 
-      const { token: empleadoToken } = await loginAsEmployee();
+      const { cookies: empleadoCookies } = await loginAsEmployee();
       const completePath = `/api/procesos/${proceso.id}/tareas/${tareaId}/completar`;
       const completeResponse = await app.request(completePath, {
         method: 'PATCH',
-        headers: authHeaders(empleadoToken, 'PATCH', completePath),
+        headers: authHeaders(empleadoCookies, 'PATCH', completePath),
         body: JSON.stringify({ notas: 'Completada' }),
       });
       expect(completeResponse.status).toBe(200);

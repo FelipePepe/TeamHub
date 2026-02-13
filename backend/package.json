@@ -1,13 +1,13 @@
 {
   "name": "backend",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=512' DOTENV_CONFIG_PATH=./.env NODE_EXTRA_CA_CERTS=./certs/ca.pem tsx watch src/index.ts",
     "build": "tsc",
     "start": "DOTENV_CONFIG_PATH=./.env NODE_EXTRA_CA_CERTS=./certs/ca.pem node dist/index.js",
-    "lint": "eslint .",
+    "lint": "NODE_OPTIONS='--max-old-space-size=512' eslint .",
     "type-check": "tsc --noEmit",
     "test": "node scripts/run-vitest.mjs run",
     "test:watch": "node scripts/run-vitest.mjs",
@@ -22,14 +22,15 @@
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.2",
+    "@sentry/node": "^10.38.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.36.4",
     "hono": "^4.6.16",
     "jsonwebtoken": "^9.0.2",
     "otpauth": "^9.4.1",
     "pg": "^8.13.1",
     "pino": "^9.6.0",
-    "drizzle-orm": "^0.36.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -39,7 +40,7 @@
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.10",
     "@types/swagger-ui-dist": "^3.30.6",
-    "@vitest/coverage-v8": "^3.0.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "drizzle-kit": "^1.0.0-beta.9",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",

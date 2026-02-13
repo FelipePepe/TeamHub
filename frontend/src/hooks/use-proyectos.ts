@@ -5,6 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/types';
+import { STALE_TIME } from '@/lib/query-config';
 import { proyectosKeys } from './proyectos/keys';
 import {
   createAsignacion,
@@ -51,7 +52,7 @@ export function useProyectos(filters?: ProyectoFilters) {
   return useQuery({
     queryKey: proyectosKeys.list(filters),
     queryFn: () => fetchProyectos(filters),
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -59,7 +60,7 @@ export function useMisProyectos() {
   return useQuery({
     queryKey: proyectosKeys.misProyectos(),
     queryFn: fetchMisProyectos,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -68,7 +69,7 @@ export function useProyecto(id: string, enabled = true) {
     queryKey: proyectosKeys.detail(id),
     queryFn: () => fetchProyecto(id),
     enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -77,7 +78,7 @@ export function useProyectoStats(id: string, enabled = true) {
     queryKey: proyectosKeys.stats(id),
     queryFn: () => fetchProyectoStats(id),
     enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -146,7 +147,7 @@ export function useAsignaciones(proyectoId: string, enabled = true) {
     queryKey: proyectosKeys.asignaciones(proyectoId),
     queryFn: () => fetchAsignaciones(proyectoId),
     enabled: enabled && !!proyectoId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 

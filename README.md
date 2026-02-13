@@ -185,8 +185,7 @@ TeamHub centraliza toda esta información proporcionando visibilidad en tiempo r
 
 - 📘 [Documentación Completa](docs/README.md)
 - 🏗️ [Arquitectura (SAD)](docs/architecture/sad.md)
-- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 82 decisiones documentadas
-- 🧠 [Análisis del Problema (6 Sombreros)](docs/analisis-6-sombreros.md)
+- 🎯 [Decisiones Arquitecturales (ADRs)](docs/adr/README.md) - 80 decisiones documentadas
 - 🔧 [Troubleshooting](docs/troubleshooting.md)
 - 📊 [Estado y Progreso](docs/decisiones.md)
 - 🔌 [API Reference](openapi.yaml) + Swagger UI
@@ -1148,6 +1147,50 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload (solo en
 
 Configuración estricta mediante `CORS_ORIGINS` (lista separada por comas).
 
+### Firmas HMAC
+
+- **Request Signing**: Todas las requests API incluyen firma HMAC-SHA256
+- **Validación**: Backend valida firma antes de procesar request
+- **Secret**: `API_HMAC_SECRET` debe coincidir entre frontend y backend
+- **Payload**: Incluye método HTTP, path y hash del body
+
+### Security Gates (Husky Hooks)
+
+#### Pre-commit
+1. ✅ **Secrets Detection (gitleaks)**: Bloquea commits con API keys, passwords o tokens hardcodeados
+   - Herramienta: gitleaks v8.22.1
+   - Ejecuta: `scripts/bin/gitleaks protect --staged`
+   - Whitelist: `.gitleaksignore`
+
+2. ✅ **Branch Naming Validation**: Verifica nombres GitFlow válidos (feature/*, bugfix/*, etc.)
+
+#### Pre-push
+1. ✅ **Security Audit (npm audit)**: Detecta CVEs conocidos en dependencias
+   - Nivel: high/critical
+   - Bloquea push si hay vulnerabilidades críticas
+
+2. ✅ **Code Quality**: Linting, type-check, tests
+3. ✅ **OpenAPI Validation**: Schema válido según OpenAPI 3.1
+
+#### Setup
+```bash
+# Instalar Husky hooks
+npm run prepare
+
+# Instalar gitleaks
+./scripts/setup-gitleaks.sh
+```
+
+**⚠️ IMPORTANTE:** Nunca usar `--no-verify` en commits/push. Los hooks son quality gates obligatorios.
+
+### Monitoreo de Errores (Sentry)
+
+- **Backend**: `@sentry/node` captura errores no manejados
+- **Frontend**: `@sentry/nextjs` captura errores de React y API
+- **DSN**: Configurado en `SENTRY_DSN` y `SENTRY_ENVIRONMENT`
+- **Plan**: Free tier (5,000 errores/mes)
+- **Skills instalados**: sentry-setup-logging, sentry-react-setup, sentry-fix-issues
+
 ---
 
 ## Testing
@@ -1641,6 +1684,68 @@ npm run db:studio
 # (si usas Docker)
 docker exec -it teamhub-postgres psql -U teamhub -d teamhub
 ```
+
+---
+
+## 🚀 Optimizaciones y Refactoring Recientes
+
+### ADR-092: Estrategia de Optimización de Código (feature/code-optimization)
+
+Refactorización completa para mejorar mantenibilidad, consistencia y reducir duplicación de código siguiendo las mejores prácticas de Vercel React.
+
+#### 🎯 Objetivos Alcanzados
+
+1. **✅ Consolidación de Utilidades Backend**
+   - Extraído `toNumber` y `toNumberOrUndefined` a módulo compartido (`backend/src/shared/utils/number.ts`)
+   - Eliminadas 4 implementaciones duplicadas en: timetracking, dashboard, proyectos, usuarios
+   - Documentación completa con JSDoc y ejemplos
+
+2. **✅ Extracción de Magic Numbers**
+   - Creado `backend/src/shared/constants/time.ts` con constantes semánticas:
+     - `MS_PER_SECOND = 1000`
+     - `MS_PER_MINUTE = 60*1000`
+     - `MS_PER_DAY = 24*60*60*1000`
+     - `HMAC_CLOCK_SKEW_MS = 60*1000`
+   - Reemplazados 8+ magic numbers en autenticación, middlewares y dashboards
+
+3. **✅ Estandarización de TanStack Query**
+   - Creado `frontend/src/lib/query-config.ts` con configuración centralizada:
+     - `STALE_TIME.SHORT = 30s` (datos muy dinámicos)
+     - `STALE_TIME.MEDIUM = 2min` (timetracking, tareas)
+     - `STALE_TIME.LONG = 5min` (departamentos, proyectos, empleados)
+     - `DEFAULT_QUERY_CONFIG` con gcTime, retry, staleTime
+   - Migrados **8 hooks** a usar constantes semánticas (24 instancias totales)
+   - Hooks actualizados: empleados, departamentos, proyectos, timetracking, procesos, tareas, plantillas, plantillas/tareas
+
+4. **✅ Consolidación de TOTP en E2E**
+   - Creado `frontend/e2e/helpers/totp-shared.ts` con implementación RFC 6238 estándar
+   - Eliminadas 4 implementaciones duplicadas en:
+     - `block-a-smoke.spec.ts`
+     - `helpers/e2e-session.ts`
+     - `helpers/auth-api.ts`
+     - `demo/demo.helpers.ts`
+   - Reducción de ~134 líneas de código duplicado
+
+#### 📊 Impacto
+
+| Métrica | Antes | Después | Mejora |
+|---------|-------|---------|--------|
+| Duplicación `toNumber` | 4 implementaciones | 1 módulo shared | -3 |
+| Magic numbers | 8+ hardcoded | Constantes semánticas | +mantenibilidad |
+| Configuración staleTime | 24 valores hardcoded | 3 constantes (`SHORT/MEDIUM/LONG`) | -21 valores |
+| TOTP duplicado | 5 implementaciones | 1 módulo shared | -134 líneas |
+| **Tests Backend** | 226 ✅ | 226 ✅ | 100% passing |
+| **Tests Frontend** | 241 ✅ | 241 ✅ | 100% passing |
+| **Total Tests** | **467 ✅** | **467 ✅** | **Sin regresiones** |
+
+#### 🔗 Referencias
+- **ADR-092**: `docs/adr/092-code-optimization-strategy.md` (pendiente creación)
+- **Commits**:
+  1. `c335757` - refactor: consolidar utilidades y estandarizar configuración Query
+  2. `09ae1a0` - docs: add ADR-092 for code optimization strategy
+  3. `0bdce61` - refactor(frontend): standardize staleTime using STALE_TIME constants in all hooks
+  4. `7fbdf94` - refactor(e2e): consolidate TOTP functions using totp-shared module
+  5. `4118449` - fix(backend): re-export toNumber from dashboard utils for backward compatibility
 
 ---
 

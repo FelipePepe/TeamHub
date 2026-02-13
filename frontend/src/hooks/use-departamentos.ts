@@ -5,6 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { del, get, post, put } from '@/lib/api';
+import { STALE_TIME } from '@/lib/query-config';
 import type {
   ApiError,
   Departamento,
@@ -113,7 +114,7 @@ export function useDepartamentos(filters?: DepartamentoFilters) {
   return useQuery({
     queryKey: departamentosKeys.list(filters),
     queryFn: () => fetchDepartamentos(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: STALE_TIME.LONG,
   });
 }
 
@@ -134,7 +135,7 @@ export function useDepartamento(id: string, enabled = true) {
     queryKey: departamentosKeys.detail(id),
     queryFn: () => fetchDepartamento(id),
     enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.LONG,
   });
 }
 

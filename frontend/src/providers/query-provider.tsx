@@ -2,9 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { DEFAULT_QUERY_CONFIG } from '@/lib/query-config';
 
 interface QueryProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
@@ -12,11 +13,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            retry: 1,
-            refetchOnWindowFocus: false,
-          },
+          queries: DEFAULT_QUERY_CONFIG,
         },
       })
   );

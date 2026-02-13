@@ -67,6 +67,14 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
         disabled && 'cursor-not-allowed opacity-50'
       )}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
     >
       {isEditing ? (
         <input

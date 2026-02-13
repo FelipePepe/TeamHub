@@ -41,6 +41,26 @@ import { IniciarProcesoModal } from '@/components/onboarding/iniciar-proceso-mod
 import { toast } from 'sonner';
 
 const FILTRO_TODOS_VALUE = '__todos__';
+const SKELETON_CARD_KEYS = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5'] as const;
+
+/**
+ * Construye el texto descriptivo de resultados para el listado de procesos.
+ */
+function getProcesosDescription(count: number): string {
+  if (count === 0) {
+    return 'No hay procesos';
+  }
+
+  const pluralSuffix = count === 1 ? '' : 's';
+  return `${count} proceso${pluralSuffix} encontrado${pluralSuffix}`;
+}
+
+/**
+ * Determina si existen filtros activos en el listado de procesos.
+ */
+function hasActiveProcesoFilters(search: string, filters: ProcesoFilters): boolean {
+  return Boolean(search || filters.estado || filters.empleadoId || filters.departamentoId);
+}
 
 /**
  * Página de listado de procesos de onboarding
@@ -48,7 +68,7 @@ const FILTRO_TODOS_VALUE = '__todos__';
  */
 export default function ProcesosPage() {
   const router = useRouter();
-  const { canCreateOnboarding, canViewAllOnboardings } = usePermissions();
+  const { canCreateOnboarding } = usePermissions();
   const [filters, setFilters] = useState<ProcesoFilters>({});
   const [search, setSearch] = useState('');
   const [showIniciarModal, setShowIniciarModal] = useState(false);
@@ -63,25 +83,7 @@ export default function ProcesosPage() {
   const procesos = procesosData?.data ?? [];
   const departamentos = departamentosData?.data ?? [];
   const empleados = empleadosData?.data ?? [];
-
-  // Verificar permisos - cualquier usuario puede ver su onboarding
-  // Solo ADMIN/RRHH pueden ver todos
-  const canView = canViewAllOnboardings || true; // Todos pueden ver al menos sus propios procesos
-  
-  if (!canView) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acceso denegado</CardTitle>
-            <CardDescription>
-              No tienes permisos para acceder a esta página
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  const hasFiltersApplied = hasActiveProcesoFilters(search, filters);
 
   // Filtrar procesos localmente por nombre de empleado
   const filteredProcesos = procesos.filter((proceso) =>
@@ -291,16 +293,14 @@ export default function ProcesosPage() {
         <CardHeader>
           <CardTitle>Listado de procesos</CardTitle>
           <CardDescription>
-            {filteredProcesos.length > 0
-              ? `${filteredProcesos.length} proceso${filteredProcesos.length !== 1 ? 's' : ''} encontrado${filteredProcesos.length !== 1 ? 's' : ''}`
-              : 'No hay procesos'}
+            {getProcesosDescription(filteredProcesos.length)}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
+              {SKELETON_CARD_KEYS.map((key) => (
+                <div key={key} className="flex items-center gap-4">
                   <Skeleton className="h-16 w-16 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
@@ -325,15 +325,12 @@ export default function ProcesosPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                {search || filters.estado || filters.empleadoId || filters.departamentoId
+                {hasFiltersApplied
                   ? 'No se encontraron procesos con los filtros seleccionados'
                   : 'No hay procesos iniciados. Inicia tu primer proceso de onboarding.'}
               </p>
               {canCreateOnboarding &&
-                !search &&
-                !filters.estado &&
-                !filters.empleadoId &&
-                !filters.departamentoId && (
+                !hasFiltersApplied && (
                   <Button
                     onClick={() => setShowIniciarModal(true)}
                     className="mt-4"
@@ -356,6 +353,14 @@ export default function ProcesosPage() {
                     key={proceso.id}
                     className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => router.push(`/onboarding/${proceso.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(`/onboarding/${proceso.id}`);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
@@ -389,10 +394,7 @@ export default function ProcesosPage() {
 
                       {/* Acciones */}
                       {mostrarAcciones && (
-                        <div
-                          className="flex gap-2 pt-4 border-t"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <div className="flex gap-2 pt-4 border-t">
                           <Button
                             variant="outline"
                             size="sm"
@@ -410,6 +412,7 @@ export default function ProcesosPage() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label={`Pausar proceso de ${proceso.empleadoNombre || 'empleado'}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handlePausar(proceso.id, proceso.empleadoNombre || '');
@@ -424,6 +427,7 @@ export default function ProcesosPage() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label={`Reanudar proceso de ${proceso.empleadoNombre || 'empleado'}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleReanudar(proceso.id, proceso.empleadoNombre || '');
@@ -437,6 +441,7 @@ export default function ProcesosPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={`Cancelar proceso de ${proceso.empleadoNombre || 'empleado'}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleCancelar(proceso.id, proceso.empleadoNombre || '');

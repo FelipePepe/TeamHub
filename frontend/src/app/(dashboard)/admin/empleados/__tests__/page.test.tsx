@@ -29,6 +29,7 @@ const mockUseUpdateEmpleado = vi.fn();
 const mockUseDepartamentos = vi.fn();
 const mockUsePermissions = vi.fn();
 const mockUseRouter = vi.fn();
+const routerPushMock = vi.fn();
 
 const mockUseEmpleado = vi.fn();
 vi.mock('@/hooks/use-empleados', () => ({
@@ -53,11 +54,24 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
+vi.mock('@/components/forms/empleado-form', () => ({
+  EmpleadoForm: ({
+    open,
+    empleado,
+  }: {
+    open: boolean;
+    empleado?: { id?: string };
+  }) =>
+    open ? <div data-testid="empleado-form-mock">EmpleadoForm {empleado?.id ?? 'nuevo'}</div> : null,
+}));
+
+const toastMocks = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+}));
+
 vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
+  toast: toastMocks,
 }));
 
 // Helper para crear QueryClient de test
@@ -103,8 +117,9 @@ describe('EmpleadosPage', () => {
       canManageUsers: true,
     });
     mockUseRouter.mockReturnValue({
-      push: vi.fn(),
+      push: routerPushMock,
     });
+    routerPushMock.mockReset();
     mockUseDeleteEmpleado.mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue(undefined),
     });
@@ -121,6 +136,8 @@ describe('EmpleadosPage', () => {
     });
     mockUseEmpleado.mockReturnValue({ data: undefined });
     mockSearchParams.get.mockReturnValue(null);
+    toastMocks.success.mockReset();
+    toastMocks.error.mockReset();
   });
 
   it('debe mostrar mensaje de acceso denegado si no tiene permisos', () => {
@@ -241,6 +258,124 @@ describe('EmpleadosPage', () => {
         btn.textContent?.includes('Crear empleado')
       );
       expect(crearButton).toBeInTheDocument();
+    });
+  });
+
+  it('debe mostrar estado de error', async () => {
+    mockUseEmpleados.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error('boom'),
+    });
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    expect(screen.getByText(/error al cargar empleados/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument();
+  });
+
+  it('debe navegar a detalle al pulsar ver', async () => {
+    const user = userEvent.setup();
+    mockUseEmpleados.mockReturnValue({
+      data: {
+        data: mockEmpleados,
+        meta: { page: 1, limit: 20, total: 2 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    await user.click(screen.getAllByTitle('Ver detalle')[0]);
+
+    expect(routerPushMock).toHaveBeenCalledWith('/admin/empleados/1');
+  });
+
+  it('debe abrir modal en modo editar', async () => {
+    const user = userEvent.setup();
+    mockUseEmpleados.mockReturnValue({
+      data: {
+        data: mockEmpleados,
+        meta: { page: 1, limit: 20, total: 2 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    await user.click(screen.getAllByTitle('Editar')[0]);
+
+    expect(screen.getByTestId('empleado-form-mock')).toBeInTheDocument();
+    expect(screen.getByText(/empleadoform 1/i)).toBeInTheDocument();
+  });
+
+  it('debe eliminar empleado al confirmar', async () => {
+    const user = userEvent.setup();
+    const mutateAsync = vi.fn().mockResolvedValue(undefined);
+    mockUseDeleteEmpleado.mockReturnValue({ mutateAsync });
+    vi.stubGlobal('confirm', vi.fn(() => true));
+
+    mockUseEmpleados.mockReturnValue({
+      data: {
+        data: mockEmpleados,
+        meta: { page: 1, limit: 20, total: 2 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    await user.click(screen.getAllByTitle('Eliminar')[0]);
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith('1');
+      expect(toastMocks.success).toHaveBeenCalled();
+    });
+  });
+
+  it('no debe eliminar empleado si se cancela confirmación', async () => {
+    const user = userEvent.setup();
+    const mutateAsync = vi.fn().mockResolvedValue(undefined);
+    mockUseDeleteEmpleado.mockReturnValue({ mutateAsync });
+    vi.stubGlobal('confirm', vi.fn(() => false));
+
+    mockUseEmpleados.mockReturnValue({
+      data: {
+        data: mockEmpleados,
+        meta: { page: 1, limit: 20, total: 2 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    await user.click(screen.getAllByTitle('Eliminar')[0]);
+
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('debe avanzar de página al pulsar siguiente', async () => {
+    const user = userEvent.setup();
+    mockUseEmpleados.mockImplementation((filters?: { page?: number; limit?: number }) => ({
+      data: {
+        data: mockEmpleados,
+        meta: { page: filters?.page ?? 1, limit: filters?.limit ?? 20, total: 50 },
+      },
+      isLoading: false,
+      error: null,
+    }));
+
+    render(<EmpleadosPage />, { wrapper: createWrapper() });
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+
+    await waitFor(() => {
+      const lastCall = mockUseEmpleados.mock.calls.at(-1)?.[0] as { page?: number };
+      expect(lastCall.page).toBe(2);
     });
   });
 });

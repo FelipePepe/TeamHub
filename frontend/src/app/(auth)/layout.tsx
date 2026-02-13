@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface AuthLayoutProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {

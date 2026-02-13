@@ -7,12 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { TimeSeriesPoint } from '@/types/dashboard';
 
 interface LineChartProps {
-  title: string;
-  description?: string;
-  data: TimeSeriesPoint[];
-  isLoading?: boolean;
-  height?: number;
-  formatLabel?: (fecha: string) => string;
+  readonly title: string;
+  readonly description?: string;
+  readonly data: TimeSeriesPoint[];
+  readonly isLoading?: boolean;
+  readonly height?: number;
+  readonly formatLabel?: (fecha: string) => string;
 }
 
 /**

@@ -49,6 +49,14 @@ const ESTADOS: { value: ProyectoEstado; label: string }[] = [
   { value: 'CANCELADO', label: 'Cancelado' },
 ];
 const ESTADO_TODOS_VALUE = '__todos__';
+const LOADING_PROYECTO_KEYS = [
+  'loading-1',
+  'loading-2',
+  'loading-3',
+  'loading-4',
+  'loading-5',
+  'loading-6',
+] as const;
 
 /**
  * Página de listado de proyectos con filtros, vistas y modal de creación.
@@ -232,8 +240,8 @@ export default function ProyectosPage() {
         <CardContent>
           {isLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-32" />
+              {LOADING_PROYECTO_KEYS.map((key) => (
+                <Skeleton key={key} className="h-32" />
               ))}
             </div>
           ) : error ? (

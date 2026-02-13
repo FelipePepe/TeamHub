@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TimesheetCellProps {
-  value: number;
-  onChange: (value: number) => void;
-  disabled?: boolean;
-  isWeekend?: boolean;
+  readonly value: number;
+  readonly onChange: (value: number) => void;
+  readonly disabled?: boolean;
+  readonly isWeekend?: boolean;
 }
 
 export function TimesheetCell({ value, onChange, disabled = false, isWeekend = false }: TimesheetCellProps) {

@@ -18,6 +18,8 @@ import { MiOnboardingWidget } from '@/components/onboarding/mi-onboarding-widget
 import { getEmpleadoDashboard } from '@/lib/dashboard';
 import type { EmpleadoDashboardData } from '@/types/dashboard';
 
+const LOADING_PROJECT_KEYS = ['loading-1', 'loading-2', 'loading-3'] as const;
+
 /**
  * Renderiza el dashboard del empleado con KPIs, acciones rápidas y módulos clave.
  * @returns Vista completa del dashboard para el rol EMPLEADO.
@@ -123,8 +125,8 @@ export function EmpleadoDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
+                {LOADING_PROJECT_KEYS.map((key) => (
+                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.misProyectos.length === 0 ? (

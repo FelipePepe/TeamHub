@@ -1766,17 +1766,170 @@ Crear PR: `feature/code-optimization → develop`
   - OWASP ASVS 3.2.2: "Cookies are configured with the HttpOnly flag"
   - OWASP ASVS 3.2.3: "Cookies are configured with the Secure flag"
 
+### ADR-100: Incremento de cobertura frontend en módulo de plantillas
+
+- Fecha: 2026-02-13
+- Estado: Aceptado
+- Contexto: El objetivo de calidad exige subir la cobertura total de la aplicación hacia 90%; el cuello de botella principal está en frontend.
+- Decisión: Implementar un primer lote de tests de alto impacto en páginas de plantillas:
+  - `frontend/src/app/(dashboard)/admin/plantillas/page.tsx`
+  - `frontend/src/app/(dashboard)/admin/plantillas/crear/page.tsx`
+- Implementación:
+  - Nuevos tests en:
+    - `frontend/src/app/(dashboard)/admin/plantillas/__tests__/page.test.tsx`
+    - `frontend/src/app/(dashboard)/admin/plantillas/__tests__/crear-page.test.tsx`
+  - Cobertura de escenarios:
+    - permisos (acceso denegado)
+    - estados de carga/error/vacío
+    - acciones de usuario (crear, duplicar, eliminar)
+    - creación de plantilla con tareas, error por validación y fallo de mutación
+- Resultado:
+  - Frontend: **22.90% -> 29.27%** de líneas en esta iteración.
+  - Suite frontend: **247 tests pasando** (20 archivos).
+- Consecuencias:
+  - ✅ Se reduce deuda de cobertura en páginas grandes críticas.
+  - ✅ Se establece patrón reutilizable para siguientes lotes (`proyectos`, `onboarding`, `timetracking`).
+  - ⚠️ Aún lejos del 90% global; se requiere plan incremental por dominios UI de alto volumen.
+- Referencias:
+  - ADR-070: Estrategia de coverage 100/80/0
+  - ADR-096 y ADR-097: SonarQube + generación de reportes coverage
+
+### ADR-101: Segundo incremento de cobertura frontend en proyectos, onboarding y timetracking
+
+- Fecha: 2026-02-13
+- Estado: Aceptado
+- Contexto: Tras el primer lote en plantillas (ADR-100), aún existe una brecha amplia para alcanzar 90% global.
+- Decisión: Implementar un segundo bloque de tests sobre páginas de alto volumen y alta deuda:
+  - `frontend/src/app/(dashboard)/proyectos/page.tsx`
+  - `frontend/src/app/(dashboard)/onboarding/page.tsx`
+  - `frontend/src/app/(dashboard)/timetracking/page.tsx`
+- Implementación:
+  - Nuevos tests en:
+    - `frontend/src/app/(dashboard)/proyectos/__tests__/page.test.tsx`
+    - `frontend/src/app/(dashboard)/onboarding/__tests__/page.test.tsx`
+    - `frontend/src/app/(dashboard)/timetracking/__tests__/page.test.tsx`
+  - Cobertura de escenarios:
+    - estados de carga/error/vacío
+    - filtros y acciones de usuario
+    - aperturas de modales y operaciones principales (eliminar, pausar, reanudar, cancelar)
+    - validaciones básicas de formulario en modal de registro de horas
+- Resultado:
+  - Frontend: **29.27% -> 37.03%** de líneas.
+  - Cobertura combinada app (frontend+backend): **44.11% -> 49.62%**.
+  - Suite frontend: **269 tests pasando**.
+- Consecuencias:
+  - ✅ Se acelera el avance de cobertura total con foco en páginas de mayor impacto.
+  - ✅ Se consolidan patrones de test reutilizables para continuar con `[id]` de `proyectos`, `onboarding` y `plantillas`.
+  - ⚠️ El objetivo 90% global sigue lejos y requiere más iteraciones por módulos aún en 0%.
+- Referencias:
+  - ADR-100: Primer lote de incremento frontend
+  - ADR-070: Estrategia de coverage 100/80/0
+  - ADR-096 y ADR-097: Integración de coverage con SonarQube
+
+### ADR-102: Tercer incremento de cobertura frontend en componentes transversales
+
+- Fecha: 2026-02-13
+- Estado: Aceptado
+- Contexto: El mayor volumen restante sin cobertura estaba concentrado en `frontend/src/components/*`, especialmente en `tareas` y `timetracking`.
+- Decisión: Implementar un tercer lote de tests unitarios/integración ligera para componentes de alto impacto:
+  - `layout`: header, sidebar, mobile sidebar, user-nav, version-display
+  - `dashboard`: listas, KPI y dashboards por rol
+  - `onboarding`: iniciar-proceso-modal y mi-onboarding-widget
+  - `tareas`: task-form-modal y task-list
+  - `timetracking`: week-navigation, timesheet-cell, timesheet-grid, copy-week-dialog, gantt-tooltip, gantt-zoom-controls, gantt-chart
+- Implementación:
+  - Nuevos tests en:
+    - `frontend/src/components/layout/__tests__/header.test.tsx`
+    - `frontend/src/components/layout/__tests__/navigation-and-user.test.tsx`
+    - `frontend/src/components/dashboard/__tests__/widgets-and-lists.test.tsx`
+    - `frontend/src/components/dashboard/__tests__/role-dashboards.test.tsx`
+    - `frontend/src/components/onboarding/__tests__/iniciar-proceso-modal.test.tsx`
+    - `frontend/src/components/onboarding/__tests__/mi-onboarding-widget.test.tsx`
+    - `frontend/src/components/tareas/__tests__/task-form-modal.test.tsx`
+    - `frontend/src/components/tareas/__tests__/task-list.test.tsx`
+    - `frontend/src/components/timetracking/__tests__/core-components.test.tsx`
+    - `frontend/src/components/timetracking/__tests__/gantt-chart.test.tsx`
+    - `frontend/src/components/__tests__/theme-toggle.test.tsx`
+- Resultado:
+  - Frontend: **37.03% -> 66.62%** de líneas.
+  - Backend (revalidado): **80.30%** de líneas.
+  - Cobertura combinada app (frontend + backend): **49.62% -> 70.60%**.
+  - Suite total pasando:
+    - Frontend: **318 tests**
+    - Backend: **618 tests**
+- Consecuencias:
+  - ✅ Componentes críticos dejan de estar en 0% de cobertura.
+  - ✅ Se incrementa la confianza en flujos de UI con mayor interacción (modales, filtros, reasignaciones, tablas).
+  - ⚠️ El objetivo del 90% global aún requiere cubrir páginas `app/**/[id]`, `mis-tareas` y componentes restantes como `task-gantt-chart`.
+- Referencias:
+  - ADR-100 y ADR-101: incrementos previos de cobertura frontend
+  - ADR-070: Estrategia de coverage 100/80/0
+  - ADR-096 y ADR-097: quality gates con SonarQube
+
+### ADR-103: Refactor de reglas críticas SonarQube con enfoque Six Thinking Hats
+
+- Fecha: 2026-02-13
+- Estado: Aceptado
+- Contexto: SonarQube reportó reglas críticas/major de complejidad, anidación y accesibilidad en backend y frontend.
+- Decisión: Aplicar un refactor guiado por práctica de 6 sombreros:
+  - `Blanco`: priorizar evidencia del reporte (`S3776`, `S2004`, `S1082`).
+  - `Rojo`: mantener UX actual, evitando cambios funcionales disruptivos.
+  - `Negro`: reducir riesgo de regresión con refactors locales y validación por lint/type-check.
+  - `Amarillo`: mejorar mantenibilidad extrayendo helpers reutilizables.
+  - `Verde`: reemplazar estructuras anidadas por datos precomputados (Gantt) y controles semánticos.
+  - `Azul`: ejecutar cambios en lotes por severidad y cerrar con verificación técnica.
+- Implementación:
+  - Backend:
+    - `backend/src/services/tareas.service.ts`: extracción de validaciones a métodos privados (`getRequiredTarea`, `assertAssignedUserExists`, `assertDependenciaValida`, `assertDateRange`) para bajar complejidad cognitiva.
+  - Frontend:
+    - `frontend/src/components/tareas/task-gantt-chart.tsx`: eliminación de IIFEs/anidación profunda con preprocesado de swimlanes y render plano.
+    - `frontend/src/app/(dashboard)/admin/plantillas/page.tsx`: simplificación de ternarios/condiciones y keys estables para skeletons.
+    - `frontend/src/app/(dashboard)/onboarding/page.tsx`: simplificación de condiciones, teclas de activación en card clickable y limpieza de lógica muerta.
+    - `frontend/src/app/(dashboard)/admin/plantillas/crear/page.tsx`: eliminación de nesting en borrado/reindexado de tareas.
+    - `frontend/src/components/onboarding/mi-onboarding-widget.tsx` y `frontend/src/components/layout/user-nav.tsx`: controles clicables migrados a `button` semántico.
+- Resultado:
+  - ✅ Se implementaron fixes directos sobre reglas críticas reportadas de complejidad/anidación y bugs de accesibilidad.
+  - ✅ Frontend lint sin errores (warnings preexistentes fuera del alcance).
+  - ⚠️ Backend lint/type-check presentan errores preexistentes en tests no relacionados con este refactor.
+- Consecuencias:
+  - ✅ Menor deuda técnica en módulos con mayor densidad de issues SonarQube.
+  - ✅ Base más preparada para reducir el volumen restante de `MAJOR/MINOR`.
+  - ⚠️ Queda pendiente completar el barrido de reglas masivas (`S6759`, `S4325`, `S1874`) en iteraciones posteriores.
+- Referencias:
+  - `docs/SONARQUBE_RULES_ANALYSIS.md`
+  - `docs/SONARQUBE_ISSUES_REPORT.md`
+
+### ADR-104: Segundo lote de reglas SonarQube (MAJOR/MINOR) en frontend
+
+- Fecha: 2026-02-13
+- Estado: Aceptado
+- Contexto: Tras cerrar reglas críticas (ADR-103), persistían reglas recurrentes en frontend relacionadas con keys inestables, nullish coalescing y ternarios anidados.
+- Decisión: Ejecutar un lote incremental sobre reglas de alta frecuencia (`S6479`, `S7723`, `S6582`, `S3358`) sin alterar contratos API ni comportamiento de negocio.
+- Implementación:
+  - Reemplazo de `key` por índice en listas de loading por claves estables en páginas/componentes de dashboard, proyectos, timetracking, empleados, departamentos y vistas Gantt.
+  - Migración de expresiones `||` a `??` en campos opcionales numéricos/string donde `0`/vacío son valores válidos de dominio.
+  - Eliminación de ternario anidado en `timetracking/page.tsx` con helper explícito para variant de estado.
+  - Homogeneización de keys de intervalos temporales en Gantt usando `date.toISOString()` + label.
+- Resultado:
+  - ✅ Eliminadas las ocurrencias de `key={index|i|idx}` en código productivo (`frontend/src/**` excluyendo tests).
+  - ✅ Lint frontend sin errores tras el lote (solo warnings preexistentes en tests).
+  - ✅ Scan SonarQube backend/frontend ejecutado con éxito y reportes subidos.
+- Consecuencias:
+  - ✅ Menor inestabilidad de render en React y mejor legibilidad para mantenimiento.
+  - ✅ Reducción de deuda MAJOR/MINOR de forma transversal y repetible.
+  - ⚠️ Quedan reglas MINOR masivas pendientes (p.ej. `S6759`, `S4325`, `S1874`) para siguientes iteraciones.
+- Referencias:
+  - `docs/SONARQUBE_RULES_ANALYSIS.md`
+  - `docs/SONARQUBE_ISSUES_REPORT.md`
+
 ### Próximos pasos
-- ✅ SonarQube configurado y ejecutando análisis (ADR-096, ADR-097)
-- ✅ Coverage configurada en backend y frontend con thresholds 80%
-- ✅ Todos los tests pasando: 226 backend + 233 frontend = 459 tests ✓
-- ✅ PR #107 creada con httpOnly cookies + CSRF + SonarQube
-- ✅ Endpoints /debug-sentry: No implementados (Sentry usa error handling nativo sin endpoints de debug)
-- ⏳ Regenerar coverage completa y re-analizar con SonarQube (esperado >50%)
-- ⏳ Mergear PR #107 a develop
-- ⏳ Resolver bugs y code smells detectados por SonarQube (36 bugs, 197 smells)
-- ⏳ Revisar Security Hotspots en SonarQube (3 pendientes)
-- Continuar con tests E2E adicionales
-- Preparar presentación TFM
-- Monitoreo de performance en producción con Sentry
-- Documentación de arquitectura modular en ADRs
+- [x] SonarQube configurado y ejecutando análisis (ADR-096, ADR-097)
+- [x] Coverage configurada en backend y frontend con thresholds 80%
+- [x] Lote inicial de cobertura frontend en plantillas implementado (ADR-100)
+- [x] Segundo lote de cobertura frontend en proyectos/onboarding/timetracking (ADR-101)
+- [x] Tercer lote de cobertura frontend en componentes transversales (ADR-102)
+- [ ] Regenerar coverage completa y re-analizar con SonarQube
+- [ ] Incrementar cobertura frontend en páginas con 0%: `app/(dashboard)/**/[id]`, `mis-tareas`, `perfil`
+- [ ] Alcanzar 90% de cobertura global en aplicación (backend + frontend)
+- [ ] Resolver bugs y code smells detectados por SonarQube (críticos + lote MAJOR/MINOR inicial en ADR-103/ADR-104)
+- [ ] Revisar Security Hotspots pendientes

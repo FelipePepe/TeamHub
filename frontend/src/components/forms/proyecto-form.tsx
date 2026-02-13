@@ -55,10 +55,24 @@ const PRIORIDADES: { value: ProyectoPrioridad; label: string }[] = [
 
 const PRIORIDAD_NONE = '__none__';
 
+/**
+ * Extrae un mensaje de error de API sin type assertions.
+ */
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'error' in error) {
+    const maybeError = error.error;
+    if (typeof maybeError === 'string' && maybeError.length > 0) {
+      return maybeError;
+    }
+  }
+
+  return fallback;
+}
+
 interface ProyectoFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly onSuccess?: () => void;
 }
 
 /**
@@ -130,10 +144,7 @@ export function ProyectoForm({ open, onOpenChange, onSuccess }: ProyectoFormProp
       onOpenChange(false);
       onSuccess?.();
     } catch (err: unknown) {
-      const msg =
-        err && typeof err === 'object' && 'error' in err
-          ? (err as { error: string }).error
-          : 'Error al crear proyecto';
+      const msg = getApiErrorMessage(err, 'Error al crear proyecto');
       toast.error(msg);
     }
   };

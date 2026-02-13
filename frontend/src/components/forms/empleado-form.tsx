@@ -100,19 +100,19 @@ interface EmpleadoFormProps {
   /**
    * Si está abierto el modal
    */
-  open: boolean;
+  readonly open: boolean;
   /**
    * Callback para cerrar el modal
    */
-  onOpenChange: (open: boolean) => void;
+  readonly onOpenChange: (open: boolean) => void;
   /**
    * Empleado a editar (opcional - si no se pasa, es modo crear)
    */
-  empleado?: User;
+  readonly empleado?: User;
   /**
    * Callback que se ejecuta después de crear/actualizar con éxito
    */
-  onSuccess?: () => void;
+  readonly onSuccess?: () => void;
 }
 
 // ============================================================================

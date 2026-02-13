@@ -39,6 +39,20 @@ import type { CreateDepartamentoData, UpdateDepartamentoData, UserRole } from '@
 const RESPONSABLE_ROLES: UserRole[] = ['ADMIN', 'RRHH', 'MANAGER'];
 const NONE_SENTINEL = '__none__';
 
+/**
+ * Extrae un mensaje de error de API sin type assertions.
+ */
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'error' in error) {
+    const maybeError = error.error;
+    if (typeof maybeError === 'string' && maybeError.length > 0) {
+      return maybeError;
+    }
+  }
+
+  return fallback;
+}
+
 const departamentoSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre es demasiado largo'),
   codigo: z
@@ -58,10 +72,10 @@ const departamentoSchema = z.object({
 type DepartamentoFormData = z.infer<typeof departamentoSchema>;
 
 interface DepartamentoFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  departamentoId?: string | null;
-  onSuccess?: () => void;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly departamentoId?: string | null;
+  readonly onSuccess?: () => void;
 }
 
 /**
@@ -179,10 +193,7 @@ export function DepartamentoForm({
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
-      const errorMessage =
-        error && typeof error === 'object' && 'error' in error
-          ? (error as { error: string }).error
-          : 'Error al guardar el departamento';
+      const errorMessage = getApiErrorMessage(error, 'Error al guardar el departamento');
 
       toast.error(errorMessage);
       console.error('Error al guardar departamento:', error);

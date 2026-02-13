@@ -160,23 +160,25 @@ export function MiOnboardingWidget() {
             <h4 className="text-sm font-medium mb-3">Próximas tareas</h4>
             <ul className="space-y-2">
               {tareasPendientes.map((tarea) => (
-                <li
-                  key={tarea.id}
-                  className="flex items-start gap-2 p-2 rounded-md hover:bg-muted transition-colors cursor-pointer"
-                  onClick={() => router.push(`/onboarding/${proceso.id}`)}
-                >
-                  <Circle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{tarea.titulo}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {tarea.categoria}
-                    </p>
-                  </div>
-                  {tarea.prioridad === 'URGENTE' && (
-                    <Badge variant="outline" className="text-xs bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                      Urgente
-                    </Badge>
-                  )}
+                <li key={tarea.id}>
+                  <button
+                    type="button"
+                    className="flex w-full items-start gap-2 rounded-md p-2 text-left transition-colors hover:bg-muted"
+                    onClick={() => router.push(`/onboarding/${proceso.id}`)}
+                  >
+                    <Circle className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{tarea.titulo}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {tarea.categoria}
+                      </p>
+                    </div>
+                    {tarea.prioridad === 'URGENTE' && (
+                      <Badge variant="outline" className="text-xs bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                        Urgente
+                      </Badge>
+                    )}
+                  </button>
                 </li>
               ))}
             </ul>

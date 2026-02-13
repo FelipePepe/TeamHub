@@ -58,10 +58,10 @@ type IniciarProcesoFormData = z.infer<typeof iniciarProcesoSchema>;
 // ============================================================================
 
 interface IniciarProcesoModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  empleadoIdPrefill?: string;
-  onSuccess?: (procesoId: string) => void;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly empleadoIdPrefill?: string;
+  readonly onSuccess?: (procesoId: string) => void;
 }
 
 // ============================================================================

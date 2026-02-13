@@ -35,6 +35,26 @@ import { usePermissions } from '@/hooks/use-permissions';
 import { toast } from 'sonner';
 
 const FILTRO_TODOS_VALUE = '__todos__';
+const SKELETON_ROW_KEYS = ['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4', 'skeleton-5'] as const;
+
+/**
+ * Construye el texto descriptivo de resultados para el listado de plantillas.
+ */
+function getPlantillasDescription(count: number): string {
+  if (count === 0) {
+    return 'No hay plantillas';
+  }
+
+  const pluralSuffix = count === 1 ? '' : 's';
+  return `${count} plantilla${pluralSuffix} encontrada${pluralSuffix}`;
+}
+
+/**
+ * Indica si hay filtros activos en el listado.
+ */
+function hasActivePlantillaFilters(search: string, filters: PlantillaFilters): boolean {
+  return Boolean(search || filters.departamentoId || filters.activo !== undefined);
+}
 
 /**
  * Página de listado de plantillas de onboarding para administradores y RRHH
@@ -81,6 +101,7 @@ export default function PlantillasPage() {
   const filteredPlantillas = plantillas.filter((plantilla) =>
     plantilla.nombre.toLowerCase().includes(search.toLowerCase())
   );
+  const hasFiltersApplied = hasActivePlantillaFilters(search, filters);
 
   // Manejar filtros
   const handleFilterChange = (key: keyof PlantillaFilters, value: unknown) => {
@@ -226,16 +247,14 @@ export default function PlantillasPage() {
         <CardHeader>
           <CardTitle>Listado de plantillas</CardTitle>
           <CardDescription>
-            {filteredPlantillas.length > 0
-              ? `${filteredPlantillas.length} plantilla${filteredPlantillas.length !== 1 ? 's' : ''} encontrada${filteredPlantillas.length !== 1 ? 's' : ''}`
-              : 'No hay plantillas'}
+            {getPlantillasDescription(filteredPlantillas.length)}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
+              {SKELETON_ROW_KEYS.map((key) => (
+                <div key={key} className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <Skeleton className="h-4 flex-1" />
                   <Skeleton className="h-4 w-24" />
@@ -259,11 +278,11 @@ export default function PlantillasPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="mb-4 h-12 w-12 text-slate-400" />
               <p className="text-sm text-slate-500">
-                {search || filters.departamentoId || filters.activo !== undefined
+                {hasFiltersApplied
                   ? 'No se encontraron plantillas con los filtros seleccionados'
                   : 'No hay plantillas creadas. Crea tu primera plantilla para comenzar.'}
               </p>
-              {!search && !filters.departamentoId && filters.activo === undefined && (
+              {!hasFiltersApplied && (
                 <Button
                   onClick={() => router.push('/admin/plantillas/crear')}
                   className="mt-4"

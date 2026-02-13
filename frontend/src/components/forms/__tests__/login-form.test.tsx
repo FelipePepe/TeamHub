@@ -7,6 +7,8 @@ import { LoginForm } from '../login-form';
 const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
   verifyMfa: vi.fn(),
+  changePassword: vi.fn(),
+  setupMfa: vi.fn(),
 }));
 
 const routerMocks = vi.hoisted(() => ({
@@ -22,6 +24,8 @@ vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
     login: authMocks.login,
     verifyMfa: authMocks.verifyMfa,
+    changePassword: authMocks.changePassword,
+    setupMfa: authMocks.setupMfa,
   }),
 }));
 
@@ -42,6 +46,8 @@ describe('LoginForm MFA flow', () => {
   beforeEach(() => {
     authMocks.login.mockReset();
     authMocks.verifyMfa.mockReset();
+    authMocks.changePassword.mockReset();
+    authMocks.setupMfa.mockReset();
     routerMocks.push.mockReset();
     toastMocks.success.mockReset();
     toastMocks.error.mockReset();
@@ -69,5 +75,73 @@ describe('LoginForm MFA flow', () => {
 
     expect(authMocks.verifyMfa).toHaveBeenCalledWith('mfa-token', '123456');
     expect(routerMocks.push).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('shows friendly error message on 401 login', async () => {
+    const user = userEvent.setup();
+    authMocks.login.mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 401 },
+    });
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/contraseña/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /iniciar sesión/i }));
+
+    expect(toastMocks.error).toHaveBeenCalledWith('Usuario y/o contraseña incorrectos');
+  });
+
+  it('shows generic error when token is missing', async () => {
+    const user = userEvent.setup();
+    authMocks.login.mockResolvedValue({});
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/contraseña/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /iniciar sesión/i }));
+
+    expect(toastMocks.error).toHaveBeenCalledWith('Error al iniciar sesión');
+  });
+
+  it('validates MFA code format before submit', async () => {
+    const user = userEvent.setup();
+    authMocks.login.mockResolvedValue({
+      mfaRequired: true,
+      mfaToken: 'mfa-token',
+    });
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/contraseña/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /iniciar sesión/i }));
+
+    await user.type(await screen.findByLabelText(/código mfa/i), '12');
+    await user.click(screen.getByRole('button', { name: /verificar código/i }));
+
+    expect(await screen.findByText(/código mfa inválido/i)).toBeInTheDocument();
+    expect(authMocks.verifyMfa).not.toHaveBeenCalled();
+  });
+
+  it('allows cancel in change-password step and returns to login', async () => {
+    const user = userEvent.setup();
+    authMocks.login.mockResolvedValue({
+      mfaToken: 'mfa-token',
+      passwordChangeRequired: true,
+    });
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/contraseña/i), 'Password123!');
+    await user.click(screen.getByRole('button', { name: /iniciar sesión/i }));
+
+    expect(await screen.findByText(/cambio de contraseña requerido/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /cancelar/i }));
+
+    expect(await screen.findByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument();
   });
 });

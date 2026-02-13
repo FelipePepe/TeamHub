@@ -6,9 +6,9 @@ import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, isThisWeek } from '
 import { es } from 'date-fns/locale';
 
 interface WeekNavigationProps {
-  currentDate: Date;
-  onDateChange: (date: Date) => void;
-  onCopyWeek?: () => void;
+  readonly currentDate: Date;
+  readonly onDateChange: (date: Date) => void;
+  readonly onCopyWeek?: () => void;
 }
 
 export function WeekNavigation({ currentDate, onDateChange, onCopyWeek }: WeekNavigationProps) {

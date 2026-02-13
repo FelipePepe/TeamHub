@@ -33,6 +33,7 @@ import type { EmpleadoFilters } from '@/types';
 import type { User } from '@/types';
 
 const FILTRO_TODOS_VALUE = '__todos__';
+const LOADING_EMPLEADO_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 /**
  * Página de listado de empleados para administradores y RRHH
@@ -226,8 +227,8 @@ export default function EmpleadosPage() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
+              {LOADING_EMPLEADO_KEYS.map((key) => (
+                <div key={key} className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <Skeleton className="h-4 flex-1" />
                   <Skeleton className="h-4 w-24" />

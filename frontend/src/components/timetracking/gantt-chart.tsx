@@ -21,8 +21,8 @@ import {
 import type { ProyectoEstado } from '@/hooks/use-proyectos';
 
 interface GanttChartProps {
-  proyectos: GanttProyecto[];
-  isLoading: boolean;
+  readonly proyectos: GanttProyecto[];
+  readonly isLoading: boolean;
 }
 
 interface TooltipState {
@@ -31,6 +31,8 @@ interface TooltipState {
   y: number;
   proyecto: GanttProyecto | null;
 }
+
+const LOADING_PROJECT_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
   const [zoom, setZoom] = useState<GanttZoomLevel>('quarter');
@@ -118,8 +120,8 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
         <CardContent>
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+            {LOADING_PROJECT_ROW_KEYS.map((key) => (
+              <Skeleton key={key} className="h-12 w-full" />
             ))}
           </div>
         </CardContent>
@@ -151,11 +153,11 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
             >
                   {/* Background grid */}
                   <g>
-                    {headerIntervals.map((interval, i) => {
+                    {headerIntervals.map((interval) => {
                       const x = timeScale(interval.date) + labelWidth;
                       return (
                         <line
-                          key={i}
+                          key={`grid-${interval.date.toISOString()}-${interval.label}`}
                           x1={x}
                           y1={config.headerHeight}
                           x2={x}
@@ -194,11 +196,11 @@ export function GanttChart({ proyectos, isLoading }: GanttChartProps) {
                       Proyecto
                     </text>
                     {/* Time intervals */}
-                    {headerIntervals.map((interval, i) => {
+                    {headerIntervals.map((interval) => {
                       const x = timeScale(interval.date) + labelWidth;
                       return (
                         <text
-                          key={i}
+                          key={`header-${interval.date.toISOString()}-${interval.label}`}
                           x={x + 4}
                           y={config.headerHeight / 2}
                           dominantBaseline="middle"

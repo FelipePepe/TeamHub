@@ -35,7 +35,7 @@ export interface BadgeProps
  * @param props - Props HTML y variante visual.
  * @returns Badge con estilos según variante.
  */
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, ...props }: Readonly<BadgeProps>) {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props} />
   );

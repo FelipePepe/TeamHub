@@ -14,11 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 
 interface CopyWeekDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentDate: Date;
-  onConfirm: () => void;
-  isPending: boolean;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly currentDate: Date;
+  readonly onConfirm: () => void;
+  readonly isPending: boolean;
 }
 
 export function CopyWeekDialog({

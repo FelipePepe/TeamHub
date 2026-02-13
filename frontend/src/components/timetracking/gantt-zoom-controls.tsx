@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import type { GanttZoomLevel } from '@/types/timetracking';
 
 interface GanttZoomControlsProps {
-  zoom: GanttZoomLevel;
-  onZoomChange: (zoom: GanttZoomLevel) => void;
+  readonly zoom: GanttZoomLevel;
+  readonly onZoomChange: (zoom: GanttZoomLevel) => void;
 }
 
 const ZOOM_OPTIONS: { value: GanttZoomLevel; label: string }[] = [

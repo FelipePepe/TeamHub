@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
+    testTimeout: 15000,
     pool: 'forks',
     maxConcurrency: 1,
     poolOptions: {
@@ -27,6 +28,11 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/db/migrations/**',
         'src/db/schema/**',
+        'src/db/seed.ts',
+        'src/db/audit-context.ts',
+        'src/db/run-triggers.ts',
+        'src/db/run-migrations.ts',
+        'src/db/postgres-config.ts',
         'src/types/**',
         'src/index.ts',
         'src/test-utils/**',

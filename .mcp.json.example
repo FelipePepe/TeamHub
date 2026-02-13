@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "command": "/absolute/path/to/tfm/scripts/mcp-sonarqube-wrapper.sh"
+    }
+  }
+}
+

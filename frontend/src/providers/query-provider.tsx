@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { DEFAULT_QUERY_CONFIG } from '@/lib/query-config';
 
 interface QueryProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {

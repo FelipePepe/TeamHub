@@ -14,6 +14,8 @@ import { KpiCard, BarChart, LineChart, AlertList } from '@/components/dashboard'
 import { getRRHHDashboard } from '@/lib/dashboard';
 import type { RRHHDashboardData } from '@/types/dashboard';
 
+const LOADING_ONBOARDING_KEYS = ['loading-1', 'loading-2', 'loading-3'] as const;
+
 /**
  * Renderiza el dashboard para RRHH con KPIs, gráficos y alertas.
  * @returns Vista completa del dashboard para el rol RRHH.
@@ -99,8 +101,8 @@ export function RRHHDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
+                {LOADING_ONBOARDING_KEYS.map((key) => (
+                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.onboardingsEnCurso.length === 0 ? (

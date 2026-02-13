@@ -26,7 +26,7 @@ import { es } from 'date-fns/locale';
  * Componente interno que muestra el detalle del empleado
  * Separado para facilitar testing
  */
-export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
+export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: string }>) {
   const router = useRouter();
   const { canManageUsers } = usePermissions();
   const { data: empleado, isLoading, error } = useEmpleado(empleadoId);
@@ -251,7 +251,7 @@ export function EmpleadoDetailContent({ empleadoId }: { empleadoId: string }) {
 export default function EmpleadoDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  readonly params: Promise<{ id: string }>;
 }) {
   const resolvedParams = use(params);
   return <EmpleadoDetailContent empleadoId={resolvedParams.id} />;

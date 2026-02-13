@@ -57,11 +57,11 @@ const tareaFormSchema = z
 type TareaFormData = z.infer<typeof tareaFormSchema>;
 
 interface TaskFormModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  proyectoId: string;
-  tarea?: Tarea;
-  onSuccess?: () => void;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly proyectoId: string;
+  readonly tarea?: Tarea;
+  readonly onSuccess?: () => void;
 }
 
 const PRIORIDADES: { value: PrioridadTarea; label: string; color: string }[] = [

@@ -67,7 +67,7 @@ const ESTADOS: { value: ProyectoEstado; label: string }[] = [
 export default function ProyectoDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  readonly params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
   const router = useRouter();
@@ -303,7 +303,10 @@ export default function ProyectoDetailPage({
   );
 }
 
-function AsignacionActions({ proyectoId, asigId }: { proyectoId: string; asigId: string }) {
+function AsignacionActions({
+  proyectoId,
+  asigId,
+}: Readonly<{ proyectoId: string; asigId: string }>) {
   const deleteAsignacion = useDeleteAsignacion(proyectoId);
 
   const handleDelete = async () => {
@@ -327,8 +330,8 @@ function AddAsignacionButton({
   proyectoId,
   empleados,
 }: {
-  proyectoId: string;
-  empleados: { id: string; nombre: string; apellidos?: string; email: string }[];
+  readonly proyectoId: string;
+  readonly empleados: { id: string; nombre: string; apellidos?: string; email: string }[];
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -367,9 +370,9 @@ function AddAsignacionModal({
   empleados,
   onClose,
 }: {
-  proyectoId: string;
-  empleados: { id: string; nombre: string; apellidos?: string; email: string }[];
-  onClose: () => void;
+  readonly proyectoId: string;
+  readonly empleados: { id: string; nombre: string; apellidos?: string; email: string }[];
+  readonly onClose: () => void;
 }) {
   const [usuarioId, setUsuarioId] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');

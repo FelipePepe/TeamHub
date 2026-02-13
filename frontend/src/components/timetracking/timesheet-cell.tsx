@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TimesheetCellProps {
-  value: number;
-  onChange: (value: number) => void;
-  disabled?: boolean;
-  isWeekend?: boolean;
+  readonly value: number;
+  readonly onChange: (value: number) => void;
+  readonly disabled?: boolean;
+  readonly isWeekend?: boolean;
 }
 
 export function TimesheetCell({ value, onChange, disabled = false, isWeekend = false }: TimesheetCellProps) {
@@ -67,6 +67,14 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
         disabled && 'cursor-not-allowed opacity-50'
       )}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
     >
       {isEditing ? (
         <input

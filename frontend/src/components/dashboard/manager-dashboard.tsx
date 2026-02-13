@@ -15,6 +15,8 @@ import { KpiCard, BarChart, LineChart } from '@/components/dashboard';
 import { getManagerDashboard } from '@/lib/dashboard';
 import type { ManagerDashboardData } from '@/types/dashboard';
 
+const LOADING_TEAM_KEYS = ['loading-1', 'loading-2', 'loading-3'] as const;
+
 export function ManagerDashboard() {
   const [data, setData] = useState<ManagerDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,8 +95,8 @@ export function ManagerDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
+                {LOADING_TEAM_KEYS.map((key) => (
+                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.equipoOcupacion.length === 0 ? (
@@ -148,8 +150,8 @@ export function ManagerDashboard() {
           <CardContent>
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse h-12 bg-muted rounded" />
+                {LOADING_TEAM_KEYS.map((key) => (
+                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
                 ))}
               </div>
             ) : data?.sections.pendientesAprobacion.length === 0 ? (

@@ -41,9 +41,11 @@ export function UserNav() {
       {/* Dropdown */}
       {isOpen && (
         <>
-          <div
+          <button
+            type="button"
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
+            aria-label="Cerrar menú"
           />
           <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg">
             {/* User info */}

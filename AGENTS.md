@@ -180,5 +180,47 @@ Al resumir cambios para perfiles no técnicos:
 *   **Prohibido el Jargon:** No hables de "re-renders" o "hooks"; habla de "velocidad", "fiabilidad" e "impacto en conversión".
 *   **Enfoque en ROI:** Traduce mejoras técnicas en beneficios de negocio (ej: "reducción del tiempo de carga en un 20%").
 
+## 9. Análisis de Decisiones: Técnica de los 6 Sombreros
+
+Cuando se discutan decisiones técnicas, de arquitectura, de producto o de proceso, aplica la técnica de los **6 Sombreros de Edward de Bono** adaptada al contexto de desarrollo de software.
+El objetivo es analizar cada propuesta desde perspectivas complementarias, evitando sesgos y discusiones desordenadas.
+
+Adopta explícitamente los siguientes roles cuando se te solicite analizar una idea o decisión:
+
+**🔵 Sombrero Azul — Project Manager / Tech Lead**
+- Define el objetivo de la discusión.
+- Estructura el análisis y marca los siguientes pasos.
+- Resume conclusiones accionables.
+
+**⚪ Sombrero Blanco — Arquitecto / Analista**
+- Aporta hechos, datos objetivos, restricciones técnicas y contexto del sistema.
+- Consulta las fuentes de verdad (ADRs, OpenAPI, business-rules.ts) antes de opinar.
+- Evita opiniones o juicios de valor.
+
+**🔴 Sombrero Rojo — Perfil Junior / UX / Stakeholder emocional**
+- Expresa miedos, dudas, sensaciones e intuiciones.
+- Señala complejidad percibida, riesgos de aprendizaje o inseguridad del equipo.
+
+**⚫ Sombrero Negro — Seguridad / SRE / Senior crítico**
+- Identifica riesgos técnicos, problemas de seguridad (SSDLC), mantenibilidad, deuda técnica y posibles fallos.
+- Evalúa qué puede salir mal y por qué, considerando las reglas de seguridad del proyecto (MFA, CSP, inyección).
+
+**🟡 Sombrero Amarillo — QA / Product Owner orientado a valor**
+- Defiende beneficios, impactos positivos, mejoras en calidad, productividad o valor para el usuario.
+- Evalúa el retorno potencial de la propuesta aplicando el enfoque ROI de la sección 8.
+
+**🟢 Sombrero Verde — I+D / Ingeniero creativo**
+- Propone alternativas, enfoques innovadores, prototipos, PoCs o soluciones no convencionales.
+- Sugiere experimentos controlados y simplificaciones.
+
+### Reglas de uso
+- Separa claramente cada sombrero en la respuesta con su encabezado.
+- No mezcles críticas (negro) con beneficios (amarillo) en el mismo apartado.
+- Prioriza conclusiones prácticas bajo el sombrero azul.
+- En decisiones complejas, sugiere un MVP o experimento acotado.
+- Documenta la decisión resultante como ADR en `docs/adr/` si procede.
+
+**Objetivo final:** Facilitar decisiones técnicas equilibradas, reducir conflictos de rol y mejorar la calidad de las decisiones de diseño y arquitectura.
+
 ---
 *Este agente opera bajo el Model Context Protocol (MCP) para acceder a herramientas del sistema de archivos y APIs de forma segura.*

@@ -2,6 +2,26 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Table component wrapper.
+ * 
+ * IMPORTANT: This table component requires a valid header row.
+ * Always include a TableHeader component with TableRow and TableHead children:
+ * 
+ * @example
+ * <Table>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Column 1</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>
+ *     <TableRow>
+ *       <TableCell>Data</TableCell>
+ *     </TableRow>
+ *   </TableBody>
+ * </Table>
+ */
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>

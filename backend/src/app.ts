@@ -20,6 +20,7 @@ import { isDebugLoggingEnabled } from './services/logger.js';
 import type { HonoEnv } from './types/hono.js';
 
 const app = new Hono<HonoEnv>();
+const LOCAL_DEV_ORIGIN_REGEX = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 
 const getSwaggerAssetsPath = (): string => {
   if (typeof swaggerUiDist.getAbsoluteFSPath === 'function') {
@@ -95,7 +96,22 @@ const globalRateLimit = createRateLimiter({
 });
 
 app.use('*', securityHeaders);
-app.use('*', cors({ origin: config.corsOrigins }));
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      if (!origin) return null;
+      if (config.corsOrigins.includes(origin)) return origin;
+      if (config.NODE_ENV === 'development' && LOCAL_DEV_ORIGIN_REGEX.test(origin)) {
+        return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Request-Signature', 'X-CSRF-Token'],
+  })
+);
 if (isDebugLoggingEnabled) {
   app.use('*', requestLogger);
 }

@@ -28,11 +28,13 @@ export const createPlantillaSchema = z.object({
 
 export const updatePlantillaSchema = createPlantillaSchema.partial();
 
-export const createTareaSchema = z.object({
+const baseTareaSchema = z.object({
   titulo: z.string().min(1),
   descripcion: z.string().optional(),
   categoria: z.enum(categorias),
-  responsableTipo: z.enum(responsables),
+  // Acepta ambos campos para compatibilidad frontend/backend
+  responsableTipo: z.enum(responsables).optional(),
+  responsable: z.enum(responsables).optional(),
   responsableId: uuidSchema.optional(),
   diasDesdeInicio: z.number().int().optional(),
   duracionEstimadaHoras: z.number().optional(),
@@ -44,7 +46,15 @@ export const createTareaSchema = z.object({
   dependencias: z.array(uuidSchema).optional(),
 });
 
-export const updateTareaSchema = createTareaSchema.partial();
+export const createTareaSchema = baseTareaSchema.refine(
+  (data) => data.responsableTipo || data.responsable,
+  {
+    message: 'Se requiere responsableTipo o responsable',
+    path: ['responsableTipo'],
+  }
+);
+
+export const updateTareaSchema = baseTareaSchema.partial();
 
 export const reorderSchema = z.object({
   orderedIds: z.array(uuidSchema),

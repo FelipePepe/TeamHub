@@ -40,6 +40,34 @@ import type { GanttProyecto } from '@/types/timetracking';
 import { calculateProgress } from '@/lib/gantt-utils';
 
 const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
+const LOADING_REGISTROS_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
+
+/**
+ * Resuelve el variant visual para el estado de un registro.
+ */
+function getRegistroEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' {
+  if (estado === 'APROBADO') {
+    return 'default';
+  }
+  if (estado === 'RECHAZADO') {
+    return 'destructive';
+  }
+  return 'secondary';
+}
+
+/**
+ * Extrae un mensaje de error de API sin type assertions.
+ */
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'error' in error) {
+    const maybeError = error.error;
+    if (typeof maybeError === 'string' && maybeError.length > 0) {
+      return maybeError;
+    }
+  }
+
+  return fallback;
+}
 
 export default function TimetrackingPage() {
   const router = useRouter();
@@ -200,8 +228,8 @@ export default function TimetrackingPage() {
             <CardContent>
               {isLoading ? (
                 <div className="space-y-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Skeleton key={i} className="h-12" />
+                  {LOADING_REGISTROS_KEYS.map((key) => (
+                    <Skeleton key={key} className="h-12" />
                   ))}
                 </div>
               ) : error ? (
@@ -226,13 +254,7 @@ export default function TimetrackingPage() {
                         <span className="text-sm text-muted-foreground truncate max-w-[200px]">{r.descripcion}</span>
                       </div>
                       <Badge
-                        variant={
-                          r.estado === 'APROBADO'
-                            ? 'default'
-                            : r.estado === 'RECHAZADO'
-                              ? 'destructive'
-                              : 'secondary'
-                        }
+                        variant={getRegistroEstadoVariant(r.estado)}
                       >
                         {r.estado === 'APROBADO' && <CheckCircle className="mr-1 h-3 w-3" />}
                         {r.estado === 'RECHAZADO' && <XCircle className="mr-1 h-3 w-3" />}
@@ -292,7 +314,7 @@ export default function TimetrackingPage() {
               toast.success('Registro creado');
               setShowForm(false);
             } catch (err: unknown) {
-              const msg = err && typeof err === 'object' && 'error' in err ? (err as { error: string }).error : 'Error al crear';
+              const msg = getApiErrorMessage(err, 'Error al crear');
               toast.error(msg);
             }
           }}
@@ -309,16 +331,16 @@ function RegistroHorasModal({
   onCreate,
   isPending,
 }: {
-  proyectos: { id: string; nombre: string; codigo: string }[];
-  onClose: () => void;
-  onCreate: (data: {
+  readonly proyectos: { id: string; nombre: string; codigo: string }[];
+  readonly onClose: () => void;
+  readonly onCreate: (data: {
     proyectoId: string;
     fecha: string;
     horas: number;
     descripcion: string;
     facturable?: boolean;
   }) => Promise<void>;
-  isPending: boolean;
+  readonly isPending: boolean;
 }) {
   const [proyectoId, setProyectoId] = useState('');
   const [fecha, setFecha] = useState(format(new Date(), 'yyyy-MM-dd'));

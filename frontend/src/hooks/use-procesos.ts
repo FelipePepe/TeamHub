@@ -50,6 +50,15 @@ export type {
   UpdateTareaData,
 } from './procesos/types';
 
+/**
+ * Detecta el formato legacy de completar tarea con campos sueltos.
+ */
+function isLegacyCompletarParams(
+  params: CompletarTareaMutationParams | CompletarTareaWithAllFields
+): params is CompletarTareaWithAllFields {
+  return 'notas' in params || 'evidenciaUrl' in params;
+}
+
 // ============================================================================
 // Hooks - Procesos
 // ============================================================================
@@ -274,8 +283,15 @@ export function useCompletarTarea() {
       if ('data' in params) {
         return completarTarea(params.procesoId, params.tareaId, params.data ?? {});
       }
-      const p = params as CompletarTareaWithAllFields;
-      return completarTarea(p.procesoId, p.tareaId, { notas: p.notas, evidenciaUrl: p.evidenciaUrl });
+
+      if (isLegacyCompletarParams(params)) {
+        return completarTarea(params.procesoId, params.tareaId, {
+          notas: params.notas,
+          evidenciaUrl: params.evidenciaUrl,
+        });
+      }
+
+      return completarTarea(params.procesoId, params.tareaId, {});
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

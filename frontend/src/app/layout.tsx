@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'TeamHub onboarding and assignments platform',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <body className="antialiased">

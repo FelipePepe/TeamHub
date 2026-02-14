@@ -14,12 +14,14 @@ interface Proyecto {
 }
 
 interface TimesheetGridProps {
-  currentDate: Date;
-  registros: TimeEntry[];
-  proyectos: Proyecto[];
-  isLoading: boolean;
-  onCellChange: (proyectoId: string, fecha: string, horas: number) => void;
+  readonly currentDate: Date;
+  readonly registros: TimeEntry[];
+  readonly proyectos: Proyecto[];
+  readonly isLoading: boolean;
+  readonly onCellChange: (proyectoId: string, fecha: string, horas: number) => void;
 }
+
+const LOADING_GRID_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 export function TimesheetGrid({
   currentDate,
@@ -41,7 +43,7 @@ export function TimesheetGrid({
         map[r.proyectoId] = {};
       }
       const fechaKey = r.fecha.split('T')[0];
-      map[r.proyectoId][fechaKey] = (map[r.proyectoId][fechaKey] || 0) + r.horas;
+      map[r.proyectoId][fechaKey] = (map[r.proyectoId][fechaKey] ?? 0) + r.horas;
     });
     return map;
   }, [registros]);
@@ -55,8 +57,8 @@ export function TimesheetGrid({
       const proyecto = proyectos.find((p) => p.id === id);
       return {
         id,
-        nombre: proyecto?.nombre || 'Proyecto desconocido',
-        codigo: proyecto?.codigo || '???',
+        nombre: proyecto?.nombre ?? 'Proyecto desconocido',
+        codigo: proyecto?.codigo ?? '???',
       };
     });
   }, [proyectos, horasPorProyectoYDia]);
@@ -66,7 +68,7 @@ export function TimesheetGrid({
     dias.forEach((dia) => {
       const fechaKey = format(dia, 'yyyy-MM-dd');
       totales[fechaKey] = Object.values(horasPorProyectoYDia).reduce(
-        (sum, proyectoHoras) => sum + (proyectoHoras[fechaKey] || 0),
+        (sum, proyectoHoras) => sum + (proyectoHoras[fechaKey] ?? 0),
         0
       );
     });
@@ -79,7 +81,7 @@ export function TimesheetGrid({
 
   const getTotalProyecto = useCallback(
     (proyectoId: string) => {
-      return Object.values(horasPorProyectoYDia[proyectoId] || {}).reduce(
+      return Object.values(horasPorProyectoYDia[proyectoId] ?? {}).reduce(
         (sum, h) => sum + h,
         0
       );
@@ -89,7 +91,7 @@ export function TimesheetGrid({
 
   const getHoras = useCallback(
     (proyectoId: string, fecha: string) => {
-      return horasPorProyectoYDia[proyectoId]?.[fecha] || 0;
+      return horasPorProyectoYDia[proyectoId]?.[fecha] ?? 0;
     },
     [horasPorProyectoYDia]
   );
@@ -98,8 +100,8 @@ export function TimesheetGrid({
     return (
       <div className="space-y-2">
         <Skeleton className="h-10 w-full" />
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+        {LOADING_GRID_ROW_KEYS.map((key) => (
+          <Skeleton key={key} className="h-10 w-full" />
         ))}
       </div>
     );

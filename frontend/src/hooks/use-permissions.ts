@@ -4,6 +4,23 @@ import { useMemo } from 'react';
 import { useAuth } from './use-auth';
 import type { UserRole } from '@/types';
 
+const USER_MANAGEMENT_ROLES = ['ADMIN', 'RRHH'] as const;
+const HOURS_APPROVER_ROLES = ['ADMIN', 'MANAGER'] as const;
+const ONBOARDING_CREATOR_ROLES = ['ADMIN', 'RRHH', 'MANAGER'] as const;
+const ONBOARDING_VIEW_ALL_ROLES = ['ADMIN', 'RRHH'] as const;
+const TEMPLATE_MANAGEMENT_ROLES = ['ADMIN', 'RRHH'] as const;
+const PROJECT_MANAGEMENT_ROLES = ['ADMIN', 'RRHH', 'MANAGER'] as const;
+
+/**
+ * Evalúa si un rol actual pertenece a un conjunto de roles permitidos.
+ */
+function hasAllowedRole(
+  currentRole: UserRole | undefined,
+  allowedRoles: readonly UserRole[]
+): boolean {
+  return Boolean(currentRole && allowedRoles.includes(currentRole));
+}
+
 /**
  * Hook para verificación de permisos client-side.
  * 
@@ -38,16 +55,16 @@ export function usePermissions() {
       isEmpleado: rol === 'EMPLEADO',
 
       // Permission checks
-      canManageUsers: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
-      canManageDepartments: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
-      canApproveHours: (['ADMIN', 'MANAGER'] as UserRole[]).includes(rol as UserRole),
-      canCreateOnboarding: (['ADMIN', 'RRHH', 'MANAGER'] as UserRole[]).includes(rol as UserRole),
-      canViewAllOnboardings: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
-      canManageTemplates: (['ADMIN', 'RRHH'] as UserRole[]).includes(rol as UserRole),
-      canManageProjects: (['ADMIN', 'RRHH', 'MANAGER'] as UserRole[]).includes(rol as UserRole),
+      canManageUsers: hasAllowedRole(rol, USER_MANAGEMENT_ROLES),
+      canManageDepartments: hasAllowedRole(rol, USER_MANAGEMENT_ROLES),
+      canApproveHours: hasAllowedRole(rol, HOURS_APPROVER_ROLES),
+      canCreateOnboarding: hasAllowedRole(rol, ONBOARDING_CREATOR_ROLES),
+      canViewAllOnboardings: hasAllowedRole(rol, ONBOARDING_VIEW_ALL_ROLES),
+      canManageTemplates: hasAllowedRole(rol, TEMPLATE_MANAGEMENT_ROLES),
+      canManageProjects: hasAllowedRole(rol, PROJECT_MANAGEMENT_ROLES),
 
       // Helper
-      hasRole: (roles: UserRole[]) => roles.includes(rol as UserRole),
+      hasRole: (roles: UserRole[]) => hasAllowedRole(rol, roles),
     };
   }, [user?.rol]);
 }

@@ -26,6 +26,29 @@ Antes de proponer cambios, consulta estos recursos en orden:
     *   Los tipos e interfaces del frontend deben reflejar exactamente el contrato OpenAPI del backend, sin renombrar campos ni invertir semántica.
     *   Si el frontend necesita un dato adicional, se añade al endpoint del backend y se actualiza el contrato OpenAPI.
 
+### ⚠️ REGLA CRÍTICA: NUNCA SUPRIMIR ERRORES DE LINTING
+**PROHIBIDO ABSOLUTAMENTE:** Usar `eslint-disable`, `eslint-disable-next-line`, `eslint-disable-line`, `@ts-ignore`, `@ts-expect-error`, o cualquier directiva que suprima errores de linting/TypeScript.
+
+**Razón:** Estas directivas ocultan problemas reales que deben ser corregidos:
+- Errores de tipado indican problemas de diseño o bugs potenciales
+- Advertencias de linting señalan code smells y malas prácticas
+- Suprimir errores acumula deuda técnica invisible
+- El código sin warnings es más mantenible y menos propenso a bugs
+
+**Si un linter/TypeScript se queja:**
+1. **Leer el error completo** y entender qué regla se violó y por qué
+2. **Corregir el código** para cumplir la regla (refactorizar, tipar correctamente, simplificar)
+3. **Si la regla es incorrecta para el proyecto:** Modificar `.eslintrc.json` o `tsconfig.json` a nivel global (NUNCA a nivel de línea)
+4. **NUNCA usar directivas de supresión** como solución rápida
+
+**Consecuencias de suprimir errores:**
+- Bugs ocultos pueden llegar a producción
+- Pérdida de type safety en TypeScript
+- Acumulación de deuda técnica
+- Código menos mantenible y más difícil de refactorizar
+
+**Única excepción válida:** NINGUNA. Si el linter falla, el código debe ser corregido, no silenciado.
+
 ## 4. Seguridad y Configuración (SSDLC)
 *   **Validación Fail-Fast:** Usa **Zod** para validar variables de entorno y entradas de API en tiempo de ejecución. La app no debe arrancar con configuración inválida.
 *   **Gestión de Secretos:** Prohibido subir secretos al repo. Usa `.env` (ignorado por Git) y `.env.example` como plantilla.

@@ -1,0 +1,16 @@
+{
+  "github.copilot.mcp.servers": {
+    "sonarqube": {
+      "command": "npx",
+      "args": ["-y", "sonarqube-mcp-server@latest"],
+      "env": {
+        "SONARQUBE_URL": "http://localhost:9000",
+        "SONARQUBE_TOKEN": "${env:SONARQUBE_TOKEN}"
+      }
+    }
+  },
+  "sonarlint.connectedMode.project": {
+    "connectionId": "http-localhost-9000",
+    "projectKey": "TeamHub"
+  }
+}

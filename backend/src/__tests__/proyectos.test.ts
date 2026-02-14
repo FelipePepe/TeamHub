@@ -15,18 +15,18 @@ const ADMIN_PASSWORD = 'ValidPassword1!';
 
 let app: Hono<HonoEnv>;
 
-const authHeaders = (token: string, method: string, path: string) =>
-  getSignedHeaders(method, path, { Authorization: `Bearer ${token}` });
+const authHeaders = (cookies: Record<string, string>, method: string, path: string) =>
+  getSignedHeaders(method, path, {}, cookies);
 
 const loginAsAdmin = async () => {
-  const { verifyBody } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
+  const { verifyBody, cookies } = await loginWithMfa(app, ADMIN_EMAIL, ADMIN_PASSWORD);
   return {
-    token: verifyBody.accessToken as string,
+    cookies,
     user: verifyBody.user as { id: string },
   };
 };
 
-const createProject = async (token: string, overrides?: Record<string, unknown>) => {
+const createProject = async (cookies: Record<string, string>, overrides?: Record<string, unknown>) => {
   const payload = {
     nombre: 'Proyecto Alpha',
     codigo: 'ALPHA',
@@ -34,7 +34,7 @@ const createProject = async (token: string, overrides?: Record<string, unknown>)
   };
   const response = await app.request('/api/proyectos', {
     method: 'POST',
-    headers: authHeaders(token, 'POST', '/api/proyectos'),
+    headers: authHeaders(cookies, 'POST', '/api/proyectos'),
     body: JSON.stringify(payload),
   });
   expect(response.status).toBe(201);
@@ -54,8 +54,8 @@ beforeEach(async () => {
 
 describe('proyectos routes', () => {
   it('creates a project and lists it', async () => {
-    const { token, user } = await loginAsAdmin();
-    const created = await createProject(token);
+    const { cookies, user } = await loginAsAdmin();
+    const created = await createProject(cookies);
 
     expect(created).toMatchObject({
       nombre: 'Proyecto Alpha',
@@ -66,7 +66,7 @@ describe('proyectos routes', () => {
     });
 
     const listResponse = await app.request('/api/proyectos', {
-      headers: authHeaders(token, 'GET', '/api/proyectos'),
+      headers: authHeaders(cookies, 'GET', '/api/proyectos'),
     });
     expect(listResponse.status).toBe(200);
     const listBody = await listResponse.json();
@@ -75,13 +75,13 @@ describe('proyectos routes', () => {
   });
 
   it('creates an assignment and finalizes it', async () => {
-    const { token, user } = await loginAsAdmin();
-    const project = await createProject(token, { codigo: 'BETA', nombre: 'Proyecto Beta' });
+    const { cookies, user } = await loginAsAdmin();
+    const project = await createProject(cookies, { codigo: 'BETA', nombre: 'Proyecto Beta' });
 
     const assignPath = `/api/proyectos/${project.id}/asignaciones`;
     const assignResponse = await app.request(assignPath, {
       method: 'POST',
-      headers: authHeaders(token, 'POST', assignPath),
+      headers: authHeaders(cookies, 'POST', assignPath),
       body: JSON.stringify({
         usuarioId: user.id,
         fechaInicio: '2024-01-01',
@@ -97,7 +97,7 @@ describe('proyectos routes', () => {
     });
 
     const myProjectsResponse = await app.request('/api/proyectos/mis-proyectos', {
-      headers: authHeaders(token, 'GET', '/api/proyectos/mis-proyectos'),
+      headers: authHeaders(cookies, 'GET', '/api/proyectos/mis-proyectos'),
     });
     expect(myProjectsResponse.status).toBe(200);
     const myProjects = await myProjectsResponse.json();
@@ -107,7 +107,7 @@ describe('proyectos routes', () => {
     const finalizePath = `/api/proyectos/${project.id}/asignaciones/${asignacion.id}/finalizar`;
     const finalizeResponse = await app.request(finalizePath, {
       method: 'PATCH',
-      headers: authHeaders(token, 'PATCH', finalizePath),
+      headers: authHeaders(cookies, 'PATCH', finalizePath),
     });
     expect(finalizeResponse.status).toBe(200);
     const finalized = await finalizeResponse.json();

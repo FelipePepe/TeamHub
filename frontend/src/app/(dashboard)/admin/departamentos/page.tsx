@@ -20,6 +20,15 @@ import { DepartamentoForm } from '@/components/forms/departamento-form';
 import { toast } from 'sonner';
 import type { DepartamentoFilters, Departamento } from '@/types';
 
+const LOADING_DEPARTAMENTO_CARD_KEYS = [
+  'loading-1',
+  'loading-2',
+  'loading-3',
+  'loading-4',
+  'loading-5',
+  'loading-6',
+] as const;
+
 /**
  * Página de listado de departamentos para administradores y RRHH
  * Permite ver, filtrar, buscar y gestionar departamentos
@@ -171,8 +180,8 @@ export default function DepartamentosPage() {
       {/* Contenido principal */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
+          {LOADING_DEPARTAMENTO_CARD_KEYS.map((key) => (
+            <Card key={key}>
               <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -236,7 +245,7 @@ export default function DepartamentosPage() {
                 {/* Stats */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  <span>{departamento._count?.usuarios || 0} empleados</span>
+                  <span>{departamento._count?.usuarios ?? 0} empleados</span>
                 </div>
 
                 {/* Acciones */}

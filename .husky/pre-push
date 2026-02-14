@@ -34,9 +34,46 @@ fi
 "$ROOT_DIR/scripts/validate-openapi.sh"
 
 if [ -f "$ROOT_DIR/backend/package.json" ]; then
+  echo ""
+  echo "🔍 Backend: linting, type-check, tests..."
   (cd "$ROOT_DIR/backend" && npm run lint && npm run type-check && npm run test)
 fi
 
 if [ -f "$ROOT_DIR/frontend/package.json" ]; then
+  echo ""
+  echo "🔍 Frontend: linting, type-check, tests..."
   (cd "$ROOT_DIR/frontend" && npm run lint && npm run type-check && npm run test)
 fi
+
+# ============================================================================
+# Security Audit (CVE Detection)
+# ============================================================================
+# Detects known vulnerabilities in dependencies
+# ============================================================================
+
+echo ""
+echo "🔒 Running security audit..."
+
+if [ -f "$ROOT_DIR/backend/package.json" ]; then
+  echo "Backend audit..."
+  if ! (cd "$ROOT_DIR/backend" && npm audit --audit-level=high); then
+    echo ""
+    echo "❌ ERROR: Security vulnerabilities detected in backend"
+    echo "Run 'npm audit fix' to resolve issues"
+    echo ""
+    exit 1
+  fi
+fi
+
+if [ -f "$ROOT_DIR/frontend/package.json" ]; then
+  echo "Frontend audit..."
+  if ! (cd "$ROOT_DIR/frontend" && npm audit --audit-level=high); then
+    echo ""
+    echo "❌ ERROR: Security vulnerabilities detected in frontend"
+    echo "Run 'npm audit fix' to resolve issues"
+    echo ""
+    exit 1
+  fi
+fi
+
+echo "✅ No high-severity vulnerabilities detected"

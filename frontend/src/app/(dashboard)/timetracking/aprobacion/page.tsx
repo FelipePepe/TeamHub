@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const LOADING_GROUP_KEYS = ['loading-1', 'loading-2', 'loading-3'] as const;
+
 export default function TimetrackingAprobacionPage() {
   const router = useRouter();
   const { canApproveHours } = usePermissions();
@@ -142,8 +144,8 @@ export default function TimetrackingAprobacionPage() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-24" />
+              {LOADING_GROUP_KEYS.map((key) => (
+                <Skeleton key={key} className="h-24" />
               ))}
             </div>
           ) : error ? (
@@ -247,11 +249,11 @@ function RechazarModal({
   onCancel,
   isPending,
 }: {
-  comentario: string;
-  onComentarioChange: (c: string) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isPending: boolean;
+  readonly comentario: string;
+  readonly onComentarioChange: (c: string) => void;
+  readonly onConfirm: () => void;
+  readonly onCancel: () => void;
+  readonly isPending: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

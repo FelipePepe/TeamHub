@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import app from '../app.js';
 
 describe('app.ts - Application Setup and Routes', () => {

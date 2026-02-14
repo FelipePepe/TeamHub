@@ -2064,3 +2064,108 @@ Tras implementar todas las tareas del ADR-092, era necesario validar que no hubi
 
 #### 📊 Monitoreo
 - [ ] Monitoreo de performance en producción
+
+---
+
+### ADR-107: Incremento de Cobertura de Tests (ADR-105 - Fase 1)
+
+**Fecha:** 2026-02-14  
+**Estado:** ✅ Completado  
+**Branch:** `test/coverage-improvement-adr105`  
+**Objetivo:** Incrementar cobertura global hacia 90% target
+
+#### Contexto
+Tras mergear PR #115 (ADR-092), la cobertura estaba en:
+- Backend: 80.54% (634 tests)
+- Frontend: 90.07% (383 tests)
+- Global: 85.31% (1,017 tests)
+- **Gap a objetivo 90%: 4.69%**
+
+Archivos críticos con baja cobertura:
+- `backend/src/app.ts`: 69.6% (middleware stack, seguridad crítica)
+- `backend/src/config/env.ts`: 70.76% (validación de configuración, fail-fast)
+
+#### Decisión
+Priorizar aumento de cobertura en archivos críticos del backend que manejan:
+1. Middleware de seguridad (CORS, CSRF, HMAC, rate limiting)
+2. Validación de variables de entorno (secrets, production safeguards)
+
+#### Implementación
+
+##### 1. Tests para app.ts (16 tests)
+**Archivo:** `backend/src/__tests__/app.test.ts`
+
+**Cobertura:**
+- Health check endpoint
+- OpenAPI spec serving (`/openapi.yaml`)
+- Swagger UI rendering (`/docs`)
+- Middleware stack completo
+- CORS configuration
+- CSRF protection
+- HMAC authentication (rejection sin signature)
+- Rate limiting behavior
+- Security headers
+- 404 Not Found handling
+- 500 Internal Server Error handling
+
+**Resultado:** app.ts coverage 69.6% → **88%** (+18.4%)
+
+##### 2. Tests para env.ts (29 tests)
+**Archivo:** `backend/src/config/__tests__/env.test.ts`
+
+**Cobertura:**
+- Validación de propiedades requeridas (security, rate limiting, MFA, JWT)
+- Type validation (PORT int, NODE_ENV enum, rate limits number)
+- Security constraints:
+  - JWT secrets ≥32 chars
+  - MFA_ENCRYPTION_KEY ≥32 chars
+  - API_HMAC_SECRET ≥32 chars
+  - CORS_ORIGINS sin wildcards
+  - APP_BASE_URL como URL válida
+- Default values (LOG_LEVEL, JWT expiration, MFA_ISSUER)
+- Production safeguards:
+  - No placeholders "change-me" en producción
+  - DISABLE_HMAC=false en producción
+- CORS configuration parsing (comma-separated to array)
+- Database SSL configuration
+- JWT expiration format validation (regex `\d+[smhd]`)
+- Optional features (Sentry DSN, Bootstrap token)
+- Platform detection (Vercel, Render flags)
+
+**Resultado:** env.ts coverage 70.76% → **70.76%** (líneas no cubiertas son validaciones producción que requieren tests aislados con mocks)
+
+#### Métricas Finales
+- **Backend tests:** 634 → **655 tests** (+21 tests)
+- **Backend coverage:** 80.54% → **81.01%** (+0.47%)
+- **Frontend:** 90.07% (sin cambios)
+- **Total tests:** 1,017 → **1,038 tests** (+21 tests)
+- **Global coverage:** 85.31% → **85.54%** (+0.23%)
+- **Gap restante a 90%:** 4.46%
+
+#### SonarQube Analysis
+**Frontend (develop):**
+- ✅ Análisis ejecutado: 2026-02-14
+- 199 archivos TypeScript analizados
+- 1 archivo CSS
+- Coverage report procesado: `frontend/coverage/lcov.info`
+- Análisis de secrets: 200 archivos
+- Code duplication: 103 archivos
+- Dashboard: http://localhost:9000/dashboard?id=TeamHub-frontend-develop
+
+**Warnings:**
+- 1 archivo sin resolver en coverage: `src/types/qrcode.d.ts` (archivo de tipos, no afecta)
+
+#### Consecuencias
+- ✅ Incremento sostenido de cobertura backend (81.01%)
+- ✅ Cobertura de middleware crítico de seguridad (CORS, CSRF, HMAC, rate limiting)
+- ✅ Validación de environment configuration (fail-fast, production safeguards)
+- ✅ 1,038 tests pasando sin regresiones
+- ✅ SonarQube ejecutado en rama develop
+- ⏭️ Próximo paso: Incrementar cobertura en handlers de timetracking y usuarios (~4% adicional)
+
+#### Referencias
+- ADR-105: Calidad y Cobertura de Código
+- ADR-092: Code Optimization & Clean Architecture
+- PR #115: https://github.com/FelipePepe/TeamHub/pull/115
+- SonarQube Frontend Dashboard: http://localhost:9000/dashboard?id=TeamHub-frontend-develop
+

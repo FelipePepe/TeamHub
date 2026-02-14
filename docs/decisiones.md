@@ -1365,14 +1365,71 @@ Este archivo registra decisiones clave del proyecto con formato ADR, organizadas
 
 #### Próximo Paso
 Crear PR: `feature/code-optimization → develop`
-- [ ] Tests passing tras refactoring
-- [ ] Crear PR feature/code-optimization → develop
+- [x] Tests passing tras refactoring (467 tests: 226 backend + 241 frontend)
+- [x] Crear PR feature/code-optimization → develop (PR #115 creado)
+
+---
+
+### 📅 2026-02-14: ADR-106 - Finalización y PR de Code Optimization (ADR-092)
+
+**Estado:** ✅ Completado  
+**Branch:** `feature/code-optimization`  
+**PR:** #115 `feature/code-optimization → develop`  
+
+#### Contexto
+Tras implementar todas las tareas del ADR-092, era necesario validar que no hubiera regresiones y crear el Pull Request para integrar los cambios a develop.
+
+#### Decisión
+1. Ejecutar suite completa de tests en backend y frontend
+2. Crear PR con descripción detallada de cambios técnicos y beneficios
+3. Actualizar decisiones.md con el resultado
+
+#### Resultado
+- ✅ **Backend:** 226 tests passing sin regresiones
+- ✅ **Frontend:** 241 tests passing sin regresiones  
+- ✅ **Total:** 467 tests ✅
+- ✅ **PR #115 creado:** https://github.com/FelipePepe/TeamHub/pull/115
+
+#### Commits del PR #115
+1. `2a8a847` - fix(backend): update toNumber import in usuarios handlers
+2. `001f13e` - fix(backend): remove unused imports from auth and usuarios helpers
+3. `a703ac5` - docs: mark ADR-092 code optimization as completed
+4. `0b8e5d3` - docs(readme): add ADR-092 code optimization summary
+5. `4118449` - fix(backend): re-export toNumber from dashboard utils for backward compatibility
+6. `7fbdf94` - refactor(e2e): consolidate TOTP functions using totp-shared module
+7. `0bdce61` - refactor(frontend): standardize staleTime using STALE_TIME constants in all hooks
+8. `09ae1a0` - docs: add ADR-092 for code optimization strategy
+9. `c335757` - refactor: consolidar utilidades y estandarizar configuración Query
+
+#### Consecuencias
+- ✅ ADR-092 completamente implementado y listo para merge
+- ✅ Código optimizado con Clean Architecture y DRY
+- ✅ Sin deuda técnica ni tests rotos
+- ⏭️ Próximo paso: Auditoría de documentación anticuada (ADR-105)
+
+---
 
 ### Próximos pasos
-- Completar refactoring de optimización (ADR-092)
-- Mergear PRs #92 y #93 de release/1.4.0
-- Crear tag v1.4.0 en main tras merge
-- Continuar con tests E2E adicionales
-- Preparar presentación TFM
-- Monitoreo de performance en producción
-- Documentación de arquitectura modular en ADRs
+
+#### ✅ Completado
+- [x] ~~Completar refactoring de optimización (ADR-092)~~ ✅ PR #115
+
+#### 🔜 Pendiente - Calidad y Cobertura (ADR-105)
+- [ ] **Auditoría completa de documentación anticuada**
+- [ ] Regenerar coverage completa y re-analizar con SonarQube
+- [ ] Incrementar cobertura frontend en páginas con 0%: `app/(dashboard)/**/[id]`, `mis-tareas`, `perfil`
+- [ ] Alcanzar 90% de cobertura global en aplicación (backend + frontend)
+- [ ] Resolver bugs y code smells detectados por SonarQube restantes
+- [ ] Revisar Security Hotspots pendientes
+
+#### 🚀 Releases y E2E
+- [ ] Mergear PRs #92 y #93 de release/1.4.0
+- [ ] Crear tag v1.4.0 en main tras merge
+- [ ] Continuar con tests E2E adicionales
+
+#### 📚 Documentación y TFM
+- [ ] Preparar presentación TFM
+- [ ] Documentación de arquitectura modular en ADRs
+
+#### 📊 Monitoreo
+- [ ] Monitoreo de performance en producción

@@ -50,6 +50,8 @@ export const extractCookies = (response: Response): Record<string, string> => {
   const setCookieHeaders = response.headers.getSetCookie?.() ?? [];
   const cookies: Record<string, string> = {};
   
+  // Security: Simple regex for cookie parsing (no backtracking risk)
+  // Extracts cookie name=value pairs from Set-Cookie headers in tests
   for (const header of setCookieHeaders) {
     const match = /^([^=]+)=([^;]+)/.exec(header);
     if (match) {

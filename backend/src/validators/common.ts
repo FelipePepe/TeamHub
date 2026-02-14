@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const uuidSchema = z.string().uuid();
 export const emailSchema = z.string().email();
+// Security: Simple date format validation (YYYY-MM-DD, no backtracking risk)
+// Validates ISO 8601 date format before parsing
 export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const dateTimeSchema = z.string();
 

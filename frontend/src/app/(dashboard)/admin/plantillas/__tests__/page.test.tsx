@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 const plantillasMocks = vi.hoisted(() => ({
-  data: null as { plantillas: Array<Record<string, unknown>> } | null,
+  data: null as { data: Array<Record<string, unknown>> } | null,
   isLoading: false,
   error: null as unknown,
   deleteMutateAsync: vi.fn(),
@@ -80,7 +80,7 @@ describe('PlantillasPage', () => {
     vi.clearAllMocks();
     permissionsMocks.canManageTemplates = true;
     plantillasMocks.data = {
-      plantillas: [
+      data: [
         {
           id: 'p-1',
           nombre: 'Onboarding Frontend',
@@ -124,7 +124,7 @@ describe('PlantillasPage', () => {
   });
 
   it('muestra mensaje cuando no hay plantillas con filtros activos', () => {
-    plantillasMocks.data = { plantillas: [] };
+    plantillasMocks.data = { data: [] };
 
     render(<PlantillasPage />);
 

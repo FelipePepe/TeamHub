@@ -77,8 +77,7 @@ describe('usePlantillas', () => {
   };
 
   const mockPlantillasResponse: PlantillaListResponse = {
-    plantillas: [mockPlantilla],
-    total: 1,
+    data: [mockPlantilla],
   };
 
   const mockTarea: TareaPlantilla = {
@@ -97,8 +96,7 @@ describe('usePlantillas', () => {
   };
 
   const mockTareasResponse: TareasPlantillaListResponse = {
-    tareas: [mockTarea],
-    total: 1,
+    data: [mockTarea],
   };
 
   describe('usePlantillas', () => {

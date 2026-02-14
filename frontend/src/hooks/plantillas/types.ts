@@ -48,13 +48,11 @@ export interface PlantillaFilters {
 }
 
 export interface PlantillaListResponse {
-  plantillas: Plantilla[];
-  total: number;
+  data: Plantilla[];
 }
 
 export interface TareasPlantillaListResponse {
-  tareas: TareaPlantilla[];
-  total: number;
+  data: TareaPlantilla[];
 }
 
 export interface CreatePlantillaData {

@@ -73,7 +73,7 @@ export default function PlantillasPage() {
   const deletePlantilla = useDeletePlantilla();
   const duplicatePlantilla = useDuplicatePlantilla();
 
-  const plantillas = plantillasData?.plantillas ?? [];
+  const plantillas = plantillasData?.data ?? [];
   const departamentos = departamentosData?.data ?? [];
 
   // Verificar permisos
@@ -157,7 +157,7 @@ export default function PlantillasPage() {
           <h1 className="text-2xl font-semibold text-foreground">
             Plantillas de Onboarding
           </h1>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Gestiona las plantillas de procesos de onboarding
           </p>
         </div>
@@ -276,8 +276,8 @@ export default function PlantillasPage() {
             </div>
           ) : filteredPlantillas.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="mb-4 h-12 w-12 text-slate-400" />
-              <p className="text-sm text-slate-500">
+              <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 {hasFiltersApplied
                   ? 'No se encontraron plantillas con los filtros seleccionados'
                   : 'No hay plantillas creadas. Crea tu primera plantilla para comenzar.'}
@@ -298,52 +298,52 @@ export default function PlantillasPage() {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Nombre
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
                         Departamento
                       </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-200">
                         Tareas
                       </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-200">
                         Duración
                       </th>
-                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-200">
                         Estado
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-700">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-200">
                         Acciones
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                     {filteredPlantillas.map((plantilla) => (
                       <tr
                         key={plantilla.id}
-                        className="hover:bg-slate-50 transition-colors"
+                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/60"
                       >
                         <td className="px-4 py-3">
                           <div>
-                            <p className="font-medium text-slate-900">
+                            <p className="font-medium text-slate-900 dark:text-slate-100">
                               {plantilla.nombre}
                             </p>
                             {plantilla.descripcion && (
-                              <p className="text-sm text-slate-500 truncate max-w-xs">
+                              <p className="text-sm text-muted-foreground truncate max-w-xs">
                                 {plantilla.descripcion}
                               </p>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
                           {plantilla.departamentoNombre || 'General'}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-600">
+                        <td className="px-4 py-3 text-center text-sm text-slate-600 dark:text-slate-300">
                           {plantilla.totalTareas ?? 0}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-600">
+                        <td className="px-4 py-3 text-center text-sm text-slate-600 dark:text-slate-300">
                           {plantilla.duracionEstimadaDias
                             ? `${plantilla.duracionEstimadaDias} días`
                             : '-'}
@@ -379,7 +379,7 @@ export default function PlantillasPage() {
                               title="Eliminar"
                               disabled={deletePlantilla.isPending}
                             >
-                              <Trash2 className="h-4 w-4 text-red-600" />
+                              <Trash2 className="h-4 w-4 text-red-600 dark:text-red-500" />
                             </Button>
                           </div>
                         </td>

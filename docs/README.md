@@ -7,6 +7,7 @@ Indice de documentos del proyecto.
 ## Arquitectura
 - `docs/adr/README.md` - Registro de ADRs (placeholder)
 - `docs/decisiones.md` - ADRs consolidados
+- `docs/analisis-6-sombreros.md` - Análisis del problema con método de los 6 sombreros
 - `docs/documentacion-checklist.md` - Checklist de documentacion pendiente
 - `docs/architecture/sad.md` - Software Architecture Document (SAD)
 - `docs/adr/adr-template.md` - Plantilla para nuevos ADR

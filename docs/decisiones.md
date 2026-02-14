@@ -2169,3 +2169,29 @@ Priorizar aumento de cobertura en archivos críticos del backend que manejan:
 - PR #115: https://github.com/FelipePepe/TeamHub/pull/115
 - SonarQube Frontend Dashboard: http://localhost:9000/dashboard?id=TeamHub-frontend-develop
 
+---
+
+## Registro de sesión (2026-02-14)
+
+**Objetivo:** dejar preparada una rama `bugfix/*` con fixes funcionales detectados en local (login CORS/HMAC, plantillas, onboarding) y documentación modularizada.
+
+**Rama de trabajo (GitFlow):** `bugfix/onboarding-plantillas-fixes-v2` (basada en `origin/develop`).
+
+**Commits incluidos (ahead 5 sobre `origin/develop`):**
+- `962433a` `fix(security): allow CORS preflight in HMAC middleware`
+- `388a174` `fix(auth): skip auto-refresh for pre-session endpoints`
+- `d744d5e` `fix(users): include departamentoNombre in user responses`
+- `4d49ec4` `fix(frontend): repair plantillas edit and onboarding start`
+  - `plantillas/[id]`: ruta robusta + distinguir 404 vs error real
+  - Iniciar onboarding: `fechaInicio` enviado como `YYYY-MM-DD` (backend valida `dateSchema`)
+- `affabef` `docs: modularize documentation and update slides`
+
+**Validación local:**
+- Backend: 655 tests pasando
+- Frontend: 383 tests pasando
+
+**Estado al cerrar el día (pendiente para mañana):**
+- Push a GitHub y PR a `develop` no finalizados: el `git push` se interrumpió durante la ejecución de hooks.
+- Siguiente paso recomendado:
+  - `git push -u origin bugfix/onboarding-plantillas-fixes-v2`
+  - Abrir PR `bugfix/onboarding-plantillas-fixes-v2 → develop`

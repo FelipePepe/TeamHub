@@ -32,7 +32,7 @@ import {
   useUpdateDepartamento,
   useDepartamento,
 } from '@/hooks/use-departamentos';
-import { useEmpleados } from '@/hooks/use-empleados';
+import { useEmpleado, useEmpleados } from '@/hooks/use-empleados';
 import type { CreateDepartamentoData, UpdateDepartamentoData, UserRole } from '@/types';
 
 // Schema de validación Zod
@@ -105,6 +105,21 @@ export function DepartamentoForm({
   const managers = (managersData?.data ?? []).filter((u) =>
     RESPONSABLE_ROLES.includes(u.rol)
   );
+  const currentResponsableId = departamento?.responsableId ?? '';
+  const { data: currentResponsableUser } = useEmpleado(
+    currentResponsableId,
+    Boolean(open && isEditing && currentResponsableId)
+  );
+  const responsableOptions = (() => {
+    // Ensure the currently configured responsible is selectable even if it doesn't match filters
+    // (e.g. role EMPLEADO or inactive user).
+    const byId = new Map<string, typeof managers[number]>();
+    for (const user of managers) byId.set(user.id, user);
+    if (currentResponsableUser && !byId.has(currentResponsableUser.id)) {
+      byId.set(currentResponsableUser.id, currentResponsableUser);
+    }
+    return Array.from(byId.values());
+  })();
 
   const {
     register,
@@ -294,7 +309,7 @@ export function DepartamentoForm({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE_SENTINEL}>Sin responsable</SelectItem>
-                  {managers.map((user) => (
+                  {responsableOptions.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.nombre} {user.apellidos ?? ''} ({user.rol})
                     </SelectItem>

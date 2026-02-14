@@ -1,8 +1,8 @@
 'use client';
 import type { Departamento } from '@/types';
 
-import { use, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/select';
 import {
   usePlantilla,
-  useTareasPlantilla,
   useUpdatePlantilla,
   useCreateTareaPlantilla,
   useUpdateTareaPlantilla,
@@ -65,20 +64,40 @@ type TareaFormData = z.infer<typeof tareaSchema>;
 // Main Component
 // ============================================================================
 
-export default function EditarPlantillaPage({
-  params,
-}: {
-  readonly params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const maybeResponse = (error as { response?: unknown }).response;
+  if (!maybeResponse || typeof maybeResponse !== 'object') return undefined;
+  const status = (maybeResponse as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (!error) return 'Error desconocido';
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object' && 'message' in error) {
+    const msg = (error as { message?: unknown }).message;
+    if (typeof msg === 'string' && msg.trim()) return msg;
+  }
+  return String(error);
+}
+
+export default function EditarPlantillaPage() {
+  const routeParams = useParams<{ id?: string | string[] }>();
+  const idValue = routeParams?.id;
+  const id = Array.isArray(idValue) ? idValue[0] : idValue;
   const router = useRouter();
   const { canManageTemplates } = usePermissions();
   const [editingTarea, setEditingTarea] = useState<TareaPlantilla | null>(null);
   const [showTareaForm, setShowTareaForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: plantilla, isLoading: loadingPlantilla } = usePlantilla(id);
-  const { data: tareasData, isLoading: loadingTareas } = useTareasPlantilla(id);
+  const {
+    data: plantilla,
+    isLoading: loadingPlantilla,
+    isError: isPlantillaError,
+    error: plantillaError,
+  } = usePlantilla(id ?? '', Boolean(id));
   const { data: departamentosData } = useDepartamentos();
 
   const updatePlantilla = useUpdatePlantilla();
@@ -114,10 +133,10 @@ export default function EditarPlantillaPage({
     if (plantilla) {
       form.reset({
         nombre: plantilla.nombre,
-        descripcion: plantilla.descripcion,
-        departamentoId: plantilla.departamentoId,
-        rolDestino: plantilla.rolDestino,
-        duracionEstimadaDias: plantilla.duracionEstimadaDias,
+        descripcion: plantilla.descripcion ?? '',
+        departamentoId: plantilla.departamentoId ?? undefined,
+        rolDestino: plantilla.rolDestino ?? undefined,
+        duracionEstimadaDias: plantilla.duracionEstimadaDias ?? undefined,
       });
     }
   }, [plantilla, form]);
@@ -137,7 +156,7 @@ export default function EditarPlantillaPage({
   }
 
   // Loading state
-  if (loadingPlantilla || loadingTareas) {
+  if (loadingPlantilla) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -151,6 +170,67 @@ export default function EditarPlantillaPage({
           <Skeleton className="h-[400px]" />
           <Skeleton className="h-[400px]" />
         </div>
+      </div>
+    );
+  }
+
+  // Invalid route param
+  if (!id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card>
+          <CardHeader>
+            <CardTitle>URL inválida</CardTitle>
+            <CardDescription>No se pudo identificar la plantilla a editar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/admin/plantillas')}>
+              Volver al listado
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // API error state (404 => not found, anything else => explicit error)
+  if (isPlantillaError) {
+    const status = getErrorStatus(plantillaError);
+    if (status === 404) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <Card>
+            <CardHeader>
+              <CardTitle>Plantilla no encontrada</CardTitle>
+              <CardDescription>La plantilla que buscas no existe</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => router.push('/admin/plantillas')}>
+                Volver al listado
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle>Error al cargar la plantilla</CardTitle>
+            <CardDescription>
+              {status ? `HTTP ${status}. ` : ''}
+              {getErrorMessage(plantillaError)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button variant="secondary" onClick={() => router.push('/admin/plantillas')}>
+              Volver al listado
+            </Button>
+            <Button onClick={() => router.refresh()}>Reintentar</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -174,7 +254,9 @@ export default function EditarPlantillaPage({
     );
   }
 
-  const tareas = tareasData?.tareas ?? [];
+  // Backend /api/plantillas/:id returns tareas in the detail response.
+  // We keep the UI stable by tolerating both shapes.
+  const tareas = ((plantilla as unknown as { tareas?: TareaPlantilla[] }).tareas ?? []) as TareaPlantilla[];
   const departamentos = departamentosData?.data ?? [];
 
   // ============================================================================

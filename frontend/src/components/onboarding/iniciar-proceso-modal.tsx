@@ -105,7 +105,8 @@ export function IniciarProcesoModal({
       const proceso = await createProceso.mutateAsync({
         empleadoId: data.empleadoId,
         plantillaId: data.plantillaId,
-        fechaInicio: data.fechaInicio.toISOString(),
+        // Backend expects `YYYY-MM-DD` (see dateSchema / OpenAPI `format: date`)
+        fechaInicio: format(data.fechaInicio, 'yyyy-MM-dd'),
       });
 
       toast.success('Proceso de onboarding iniciado correctamente');
@@ -120,7 +121,7 @@ export function IniciarProcesoModal({
     }
   };
 
-  const plantillas = plantillasData?.plantillas ?? [];
+  const plantillas = plantillasData?.data ?? [];
   const empleados = empleadosData?.data ?? [];
   const selectedPlantilla = plantillas.find(
     (p) => p.id === form.watch('plantillaId')

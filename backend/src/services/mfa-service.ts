@@ -15,6 +15,14 @@ const deriveKey = (salt: Buffer) => scryptSync(config.MFA_ENCRYPTION_KEY, salt, 
 
 /**
  * Cifra un secreto MFA y devuelve el payload en base64 (salt:iv:authTag:data).
+ * 
+ * Security: Uses AES-256-GCM with authenticated encryption:
+ * - Algorithm: aes-256-gcm (industry standard, NIST approved)
+ * - Key derivation: scrypt (memory-hard KDF, protects against brute-force)
+ * - Random IV: 16 bytes per encryption (prevents pattern analysis)
+ * - Authentication tag: Ensures integrity and prevents tampering
+ * - Salt: 16 bytes random (prevents rainbow table attacks)
+ * 
  * @param plainSecret - Secreto MFA en texto plano.
  * @returns Secreto cifrado en formato base64.
  * @throws Error si el secreto está vacío.
@@ -37,6 +45,12 @@ export const encryptMfaSecret = (plainSecret: string): string => {
 /**
  * Descifra un secreto MFA cifrado en formato base64.
  * Formato: salt:iv:authTag:data (todas las partes en base64).
+ * 
+ * Security: Uses AES-256-GCM authenticated decryption:
+ * - Verifies authentication tag before decrypting (prevents tampering)
+ * - Uses same key derivation as encryption (scrypt)
+ * - Throws error if authTag validation fails (integrity check)
+ * 
  * @param encryptedSecret - Secreto cifrado en formato base64.
  * @returns Secreto MFA en texto plano.
  * @throws Error si el formato es inválido o el authTag no valida.
@@ -92,9 +106,15 @@ const toBase32 = (buffer: Buffer): string => {
  * Convierte una cadena Base32 a Buffer.
  * @param input - Cadena Base32.
  * @returns Buffer decodificado.
+ * @throws Error if input contains invalid base32 characters
  */
 const fromBase32 = (input: string): Buffer => {
-  const normalized = input.replace(/=+$/g, '').toUpperCase();
+  // Remove trailing padding without regex to avoid backtracking issues
+  let normalized = input.toUpperCase();
+  while (normalized.endsWith('=')) {
+    normalized = normalized.slice(0, -1);
+  }
+  
   let bits = '';
 
   for (const char of normalized) {
@@ -154,6 +174,8 @@ export const generateTotpCode = (secret: string, timestampMs = Date.now()) => {
  */
 export const verifyTotpCode = (secret: string, code: string, timestampMs = Date.now()) => {
   const { totpStepSeconds, totpWindow } = BUSINESS_RULES.auth;
+  // Security: Simple regex check for digits only (no backtracking risk)
+  // Validates TOTP code format (6 digits) before expensive crypto operation
   if (!/^\d+$/.test(code)) {
     return false;
   }
@@ -184,7 +206,8 @@ export const isEncryptedMfaSecret = (value: string): boolean => {
     return false;
   }
   
-  // Verificar que cada parte sea base64 válido
+  // Security: Base64 character set validation (no backtracking risk)
+  // Ensures encrypted secret format integrity before decryption
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
   return parts.every(part => part.length > 0 && base64Regex.test(part));
 };

@@ -8,7 +8,9 @@ type UserResponseInput = {
   apellidos?: string | null;
   rol: string;
   departamentoId?: string | null;
+  departamentoNombre?: string | null;
   managerId?: string | null;
+  managerNombre?: string | null;
   activo?: boolean;
   deletedAt?: Date | string | null;
 };
@@ -33,7 +35,9 @@ export const toUserResponse = (user: UserResponseInput | User) => ({
   apellidos: user.apellidos ?? undefined,
   rol: user.rol,
   departamentoId: user.departamentoId ?? undefined,
+  departamentoNombre: 'departamentoNombre' in user ? user.departamentoNombre ?? undefined : undefined,
   managerId: user.managerId ?? undefined,
+  managerNombre: 'managerNombre' in user ? user.managerNombre ?? undefined : undefined,
   activo: resolveActiveState(user),
 });
 

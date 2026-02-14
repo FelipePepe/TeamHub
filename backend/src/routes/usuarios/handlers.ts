@@ -8,6 +8,7 @@ import { hashPassword, verifyPassword } from '../../services/auth-service.js';
 import { toProyectoResponse, toUserResponse } from '../../services/mappers.js';
 import { users } from '../../db/schema/users.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
+import { departamentos } from '../../db/schema/departamentos.js';
 import { db } from '../../db/index.js';
 import type { User } from '../../db/schema/users.js';
 import { createUser, findUserByEmail, findUserById, updateUserById } from '../../services/users-repository.js';
@@ -45,12 +46,23 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const baseQuery = db.select().from(users);
+    const baseQuery = db
+      .select({
+        user: users,
+        departamentoNombre: departamentos.nombre,
+      })
+      .from(users)
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id));
     const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
-    const list = await queryWithWhere.limit(limit).offset((page - 1) * limit);
+    const rows = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
     return c.json({
-      data: list.map(toUserResponse),
+      data: rows.map((row) =>
+        toUserResponse({
+          ...row.user,
+          departamentoNombre: row.departamentoNombre,
+        })
+      ),
       meta: {
         page,
         limit,
@@ -92,11 +104,25 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.get('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const user = await findUserById(id);
-    if (!user) {
+    const rows = await db
+      .select({
+        user: users,
+        departamentoNombre: departamentos.nombre,
+      })
+      .from(users)
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+      .where(eq(users.id, id))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-    return c.json(toUserResponse(user));
+    return c.json(
+      toUserResponse({
+        ...row.user,
+        departamentoNombre: row.departamentoNombre,
+      })
+    );
   });
 
   router.put('/:id', async (c) => {

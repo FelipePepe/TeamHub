@@ -32,4 +32,15 @@
 - Husky hooks activados (`pre-commit`, `pre-push`).
 - Documenta y prueba cualquier lógica añadida.
 
+## Análisis de Decisiones (6 Sombreros)
+Para decisiones técnicas/arquitecturales, usar la técnica de los 6 Sombreros:
+- 🔵 **Azul** (PM/Lead): objetivo, estructura, conclusiones accionables.
+- ⚪ **Blanco** (Arquitecto): hechos, datos, restricciones, fuentes de verdad.
+- 🔴 **Rojo** (Junior/UX): miedos, dudas, complejidad percibida.
+- ⚫ **Negro** (Seguridad/SRE): riesgos, deuda técnica, fallos posibles.
+- 🟡 **Amarillo** (QA/PO): beneficios, valor, ROI.
+- 🟢 **Verde** (I+D): alternativas, PoCs, soluciones creativas.
+
+Reglas: separar cada sombrero, no mezclar críticas con beneficios, priorizar conclusiones prácticas, sugerir MVP en decisiones complejas, documentar como ADR si procede.
+
 Guarda esta nota para referencia rápida dentro de `.codex-home`.

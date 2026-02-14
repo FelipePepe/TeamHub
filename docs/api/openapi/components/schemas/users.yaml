@@ -18,9 +18,15 @@ UserResponse:
     departamentoId:
       type: string
       format: uuid
+    departamentoNombre:
+      type: string
+      description: Nombre del departamento (campo derivado para facilitar UI).
     managerId:
       type: string
       format: uuid
+    managerNombre:
+      type: string
+      description: Nombre del manager (campo derivado para facilitar UI).
     activo:
       type: boolean
 

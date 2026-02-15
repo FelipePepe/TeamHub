@@ -946,10 +946,86 @@ Consulta API directa: `http://localhost:9000/api`
 
 ---
 
+### Release 1.6.1 - CORS Dynamic Validation & Docs Modularization
+
+**Fecha:** 2026-02-14  
+**Estado:** ✅ Completado  
+**Tag:** `v1.6.1`  
+**PRs incluidos:** #125, #126, #127
+
+#### Contenido de la Release
+
+##### PR #125 - CORS Dynamic Validation (ADR-110)
+- ✅ Implementación de validación dinámica de CORS con regex para desarrollo
+- ✅ `LOCAL_DEV_ORIGIN_REGEX` permite puertos dinámicos en localhost
+- ✅ Configuración explícita de credentials, methods y headers
+- ✅ Seguro en producción: solo origins configurados
+- ✅ Flexible en desarrollo: cualquier puerto localhost
+
+##### Documentación Modularizada
+- ✅ `docs/decisiones.md` separado en 7 archivos modulares:
+  - `00-contexto-e-indice-original.md` - Contexto del proyecto
+  - `01-adrs-por-categoria.md` - ADRs organizados por tema
+  - `02-adrs-registro-ejecucion.md` - Historial cronológico de ADRs
+  - `03-registro-fases-y-tareas.md` - Progreso de fases funcionales
+  - `04-progreso-releases-cobertura.md` - Historial de releases
+  - `README.md` - Índice central
+  - `decisiones_legacy_full.md` - Backup del archivo original
+- ✅ Mejora en mantenibilidad y navegabilidad de la documentación
+
+#### Implementación Técnica
+
+```typescript
+const LOCAL_DEV_ORIGIN_REGEX = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
+
+cors({
+  origin: (origin) => {
+    if (!origin) return null;
+    if (config.corsOrigins.includes(origin)) return origin;
+    if (config.NODE_ENV === 'development' && LOCAL_DEV_ORIGIN_REGEX.test(origin)) {
+      return origin;
+    }
+    return null;
+  },
+  credentials: true,
+  allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Request-Signature', 'X-CSRF-Token'],
+})
+```
+
+#### Métricas Finales
+- **Tests:** 1,038 pasando (100%)
+- **Coverage:** Backend 81.01%, Frontend 90.07%
+- **SonarQube:** 0 bugs, 0 vulnerabilities, 0 hotspots
+- **Linting:** 49 warnings (solo `any` en tests, no bloquea)
+
+#### GitFlow Ejecutado
+1. ✅ **PR #125** mergeado a develop (bugfix/cors-improvements)
+2. ✅ Branch `release/1.6.1` creada desde develop
+3. ✅ Version bumped a 1.6.1 en package.json
+4. ✅ **PR #126** mergeado a main (con conflictos resueltos)
+5. ✅ **Tag v1.6.1** creado y pusheado
+6. ✅ **PR #127** merge-back a develop completado
+
+#### Consecuencias
+- ✅ CORS más flexible en desarrollo sin comprometer seguridad
+- ✅ Documentación más modular y mantenible
+- ✅ Facilita desarrollo local con puertos dinámicos
+- ✅ Pattern reusable para futuros proyectos
+- 📈 Mejora en DX (Developer Experience)
+
+#### Referencias
+- ADR-110: CORS Dynamic Validation
+- Tag: https://github.com/FelipePepe/TeamHub/releases/tag/v1.6.1
+- PRs: #125, #126, #127
+
+---
+
 ### Releases Historial Completo
 
 | Version | Fecha | Descripción | PRs | Tag |
 |---------|-------|-------------|-----|-----|
+| **1.6.1** | 2026-02-14 | CORS Dynamic Validation (ADR-110) + Docs Modularization | #125, #126, #127 | ✅ v1.6.1 |
 | **1.6.0** | 2026-02-14 | Code Quality & Security: Optimization (ADR-092), Coverage 81%/90% (ADR-107), SonarQube clean (ADR-108) | #115, #116, #117, #118, #122, #123 | ✅ v1.6.0 |
 | **1.5.1** | 2026-02-14 | Bump version tras merge de features | #119, #121 | ✅ v1.5.1 |
 | **1.5.0** | 2026-02-10 | Security hardening: Secrets detection, CVE audit, CSRF, httpOnly cookies | #106, #107 | ✅ v1.5.0 |
@@ -972,6 +1048,7 @@ Consulta API directa: `http://localhost:9000/api`
 - [x] Incrementar cobertura backend app.ts y env.ts (ADR-107) ✅ PR #117
 - [x] Resolver issues SonarQube (1 bug + 6 hotspots) (ADR-108) ✅ PR #118
 - [x] **Release 1.6.0 completada** ✅ Tag v1.6.0
+- [x] **Release 1.6.1 completada** ✅ Tag v1.6.1 - CORS improvements + Docs modularization
 
 #### 🔜 Pendiente - Features y Mejoras
 - [ ] Preparar presentación TFM (en progreso)
@@ -987,6 +1064,8 @@ Consulta API directa: `http://localhost:9000/api`
 ---
 
 ### Estado Actual del Proyecto (2026-02-14)
+
+#### Versión Actual: **v1.6.1**
 
 #### Fases Funcionales
 - **Fases completadas:** 6/6 (100%)

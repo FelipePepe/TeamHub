@@ -42,7 +42,7 @@ const procesosMocks = vi.hoisted(() => ({
         plantillaNombre: 'Onboarding Base',
         fechaInicio: '2026-01-10',
         estado: 'EN_CURSO',
-        progreso: '0.5',
+        progreso: '50',
       },
       {
         id: 'proc-2',
@@ -50,7 +50,7 @@ const procesosMocks = vi.hoisted(() => ({
         plantillaNombre: 'Onboarding IT',
         fechaInicio: '2026-01-12',
         estado: 'PAUSADO',
-        progreso: '0.25',
+        progreso: '25',
       },
     ],
   } as { data: Array<Record<string, unknown>> } | undefined,
@@ -123,7 +123,7 @@ describe('ProcesosPage', () => {
           plantillaNombre: 'Onboarding Base',
           fechaInicio: '2026-01-10',
           estado: 'EN_CURSO',
-          progreso: '0.5',
+          progreso: '50',
         },
         {
           id: 'proc-2',
@@ -131,7 +131,7 @@ describe('ProcesosPage', () => {
           plantillaNombre: 'Onboarding IT',
           fechaInicio: '2026-01-12',
           estado: 'PAUSADO',
-          progreso: '0.25',
+          progreso: '25',
         },
       ],
     };

@@ -6,6 +6,13 @@ import { config } from '../config/env.js';
 const SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutos
 
 export const hmacValidation: MiddlewareHandler = async (c, next) => {
+  // CORS preflight must not require authentication/signatures.
+  // If we block OPTIONS, the browser will surface it as a CORS error.
+  if (c.req.method.toUpperCase() === 'OPTIONS') {
+    await next();
+    return;
+  }
+
   // Skip HMAC validation in test environment
   if (config.NODE_ENV === 'test') {
     await next();

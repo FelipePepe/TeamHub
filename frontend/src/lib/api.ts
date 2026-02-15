@@ -71,15 +71,26 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const requestUrl = originalRequest?.url ?? '';
+
+    // Endpoints de auth previos a sesión: nunca intentar refresh automático
+    const skipAutoRefresh =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/mfa/setup') ||
+      requestUrl.includes('/auth/mfa/verify') ||
+      requestUrl.includes('/auth/change-password') ||
+      requestUrl.includes('/auth/forgot-password') ||
+      requestUrl.includes('/auth/reset-password');
 
     // Handle 401: intentar refresh automático (cookies enviadas automáticamente)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !skipAutoRefresh) {
       originalRequest._retry = true;
 
       try {
         // Backend lee refresh token desde cookie, establece nuevos tokens en cookies
         const refreshPath = '/api/auth/refresh';
-        const signature = await generateRequestSignature('POST', refreshPath, '');
+        const refreshBody = '{}';
+        const signature = await generateRequestSignature('POST', refreshPath, refreshBody);
         await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
           headers: {
             'X-Request-Signature': signature,

@@ -16,7 +16,7 @@ import { csrfMiddleware } from './middleware/csrf.js';
 import { config } from './config/env.js';
 import { apiRoutes } from './routes/index.js';
 import { verifyAccessToken } from './services/auth-service.js';
-import { isDebugLoggingEnabled } from './services/logger.js';
+import { isDebugLoggingEnabled, isRequestLoggingEnabled } from './services/logger.js';
 import type { HonoEnv } from './types/hono.js';
 
 const app = new Hono<HonoEnv>();
@@ -112,13 +112,13 @@ app.use(
     allowHeaders: ['Content-Type', 'Authorization', 'X-Request-Signature', 'X-CSRF-Token'],
   })
 );
-if (isDebugLoggingEnabled) {
+if (isDebugLoggingEnabled || isRequestLoggingEnabled) {
   app.use('*', requestLogger);
 }
+app.use('*', errorLoggerMiddleware); // Log errors to DB + Sentry (ANTES de los gates para capturar sus errores)
 app.use('/api/*', hmacValidation);
 app.use('/api/*', globalRateLimit);
 app.use('/api/*', csrfMiddleware); // CSRF protection for state-changing operations
-app.use('*', errorLoggerMiddleware); // Log errors to DB + Sentry
 app.onError(errorHandler); // Format error responses
 
 app.get('/health', (c) => c.json({ status: 'ok' }));

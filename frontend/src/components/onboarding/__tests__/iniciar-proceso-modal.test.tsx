@@ -11,7 +11,7 @@ const procesoMocks = vi.hoisted(() => ({
 
 const plantillasMocks = vi.hoisted(() => ({
   data: {
-    plantillas: [
+    data: [
       {
         id: 'plant-1',
         nombre: 'Plantilla Base',

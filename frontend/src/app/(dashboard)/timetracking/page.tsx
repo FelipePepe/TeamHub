@@ -283,7 +283,7 @@ export default function TimetrackingPage() {
               <TimesheetGrid
                 currentDate={timesheetDate}
                 registros={registrosSemana}
-                proyectos={misProyectos}
+                proyectos={proyectos}
                 isLoading={isLoadingSemana}
                 onCellChange={handleCellChange}
               />
@@ -406,7 +406,7 @@ function RegistroHorasModal({
                   type="date"
                   value={fecha}
                   onChange={(e) => setFecha(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                   required
                 />
               </div>
@@ -416,10 +416,10 @@ function RegistroHorasModal({
                   type="number"
                   min={0.01}
                   max={24}
-                  step={0.25}
+                  step={0.01}
                   value={horas}
                   onChange={(e) => setHoras(Number(e.target.value))}
-                  className="flex h-10 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                   required
                 />
               </div>
@@ -430,7 +430,7 @@ function RegistroHorasModal({
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={3}
-                className="flex w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 required
               />
             </div>

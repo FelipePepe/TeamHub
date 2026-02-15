@@ -27,6 +27,7 @@ vi.mock('@/hooks/use-empleados', () => ({
       data: [{ id: '11111111-1111-1111-1111-111111111111', nombre: 'Ana', apellidos: 'Lopez', rol: 'MANAGER' }],
     },
   }),
+  useEmpleado: () => ({ data: undefined }),
 }));
 
 vi.mock('sonner', () => ({ toast: toastMocks }));

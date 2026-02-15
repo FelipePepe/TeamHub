@@ -197,3 +197,38 @@
   - 📈 Mantenibilidad: +60% mejora
 - Referencias: ADR-092, ADR-107, ADR-108, Tag v1.6.0
 
+### ADR-110: CORS Dynamic Validation for Development
+
+- Fecha: 2026-02-14
+- Estado: Aceptado
+- Contexto: El frontend en desarrollo usa puertos dinámicos (ej: localhost:3000, 3001, etc.) que cambian según disponibilidad. La configuración CORS estática requería actualizar `.env` cada vez que cambiaba el puerto, generando fricción en el flujo de desarrollo.
+- Decision: Implementar validación dinámica de CORS usando regex para permitir cualquier puerto localhost en desarrollo, manteniendo seguridad estricta en producción.
+- Implementación:
+  ```typescript
+  const LOCAL_DEV_ORIGIN_REGEX = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
+  
+  cors({
+    origin: (origin) => {
+      if (!origin) return null;
+      // Producción: solo origins configurados
+      if (config.corsOrigins.includes(origin)) return origin;
+      // Desarrollo: cualquier puerto localhost
+      if (config.NODE_ENV === 'development' && LOCAL_DEV_ORIGIN_REGEX.test(origin)) {
+        return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Request-Signature', 'X-CSRF-Token'],
+  })
+  ```
+- Consecuencias:
+  - ✅ Mejora DX: No requiere actualizar `.env` al cambiar puerto
+  - ✅ Seguro en producción: Solo origins configurados explícitamente
+  - ✅ Flexible en desarrollo: Cualquier puerto localhost funciona
+  - ✅ Pattern reusable para futuros proyectos
+  - ⚠️ Regex debe ser simple para evitar ReDoS (validado: O(n) linear time)
+- Referencias: PR #125, #126, #127, Release 1.6.1
+
+

@@ -8,6 +8,7 @@ import {
   createTareaPlantilla,
   deleteTareaPlantilla,
   fetchTareasPlantilla,
+  reorderTareasPlantilla,
   updateTareaPlantilla,
 } from './api';
 import type {
@@ -81,6 +82,34 @@ export function useUpdateTareaPlantilla() {
     },
     onError: (error: ApiError) => {
       console.error('Error al actualizar tarea de plantilla:', error);
+    },
+  });
+}
+
+/**
+ * Hook para reordenar tareas de una plantilla atómicamente
+ */
+export function useReorderTareasPlantilla() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      plantillaId,
+      orderedIds,
+    }: {
+      plantillaId: string;
+      orderedIds: string[];
+    }) => reorderTareasPlantilla(plantillaId, orderedIds),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: plantillasKeys.tareas(variables.plantillaId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: plantillasKeys.detail(variables.plantillaId),
+      });
+    },
+    onError: (error: ApiError) => {
+      console.error('Error al reordenar tareas de plantilla:', error);
     },
   });
 }

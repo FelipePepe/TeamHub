@@ -173,6 +173,42 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json(toPlantillaResponse(duplicated), 201);
   });
 
+  // IMPORTANTE: registrar antes de /:id/tareas/:tareaId para que "reordenar" no se capture como :tareaId
+  router.put('/:id/tareas/reordenar', async (c) => {
+    const { id } = parseParams(c, plantillaIdSchema);
+    const payload = await parseJson(c, reorderSchema);
+    const tareas = await db
+      .select()
+      .from(tareasPlantilla)
+      .where(inArray(tareasPlantilla.id, payload.orderedIds));
+    if (tareas.length !== payload.orderedIds.length) {
+      throw new HTTPException(404, { message: 'No encontrado' });
+    }
+    if (tareas.some((tarea) => tarea.plantillaId !== id)) {
+      throw new HTTPException(404, { message: 'No encontrado' });
+    }
+
+    const now = new Date();
+    await db.transaction(async (tx) => {
+      // Fase 1: valores negativos temporales para evitar violación del unique constraint (plantillaId, orden)
+      for (let i = 0; i < payload.orderedIds.length; i++) {
+        await tx
+          .update(tareasPlantilla)
+          .set({ orden: -(i + 1), updatedAt: now })
+          .where(and(eq(tareasPlantilla.id, payload.orderedIds[i]), eq(tareasPlantilla.plantillaId, id)));
+      }
+      // Fase 2: valores finales
+      for (let i = 0; i < payload.orderedIds.length; i++) {
+        await tx
+          .update(tareasPlantilla)
+          .set({ orden: i + 1 })
+          .where(and(eq(tareasPlantilla.id, payload.orderedIds[i]), eq(tareasPlantilla.plantillaId, id)));
+      }
+    });
+
+    return c.json({ message: 'Tareas reordenadas' });
+  });
+
   router.post('/:id/tareas', async (c) => {
     const { id } = parseParams(c, plantillaIdSchema);
     const plantilla = await findPlantillaById(id);
@@ -182,25 +218,29 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
 
     const payload = await parseJson(c, createTareaSchema);
     const now = new Date();
-    // Mapear 'responsable' a 'responsableTipo' para compatibilidad frontend
+    // Mapear aliases del frontend a campos del backend
     const responsableTipo = payload.responsableTipo || payload.responsable;
     if (!responsableTipo) {
       throw new HTTPException(400, {
         message: 'Se requiere responsableTipo o responsable',
       });
     }
+    const responsableId = payload.responsableId || payload.responsablePersonalizadoId;
+    const diasDesdeInicio = payload.diasDesdeInicio ?? payload.duracionEstimadaDias ?? 0;
+    const obligatoria = payload.obligatoria ?? (payload.esOpcional !== undefined ? !payload.esOpcional : true);
+    const requiereEvidencia = payload.requiereEvidencia ?? payload.requiereAprobacion ?? false;
     const tarea = await createTareaPlantilla({
       plantillaId: id,
       titulo: payload.titulo,
       descripcion: payload.descripcion,
       categoria: payload.categoria,
       responsableTipo,
-      responsableId: payload.responsableId,
-      diasDesdeInicio: payload.diasDesdeInicio ?? 0,
+      responsableId,
+      diasDesdeInicio,
       duracionEstimadaHoras: payload.duracionEstimadaHoras?.toString(),
       orden: payload.orden,
-      obligatoria: payload.obligatoria ?? true,
-      requiereEvidencia: payload.requiereEvidencia ?? false,
+      obligatoria,
+      requiereEvidencia,
       instrucciones: payload.instrucciones,
       recursosUrl: payload.recursosUrl,
       dependencias: payload.dependencias,
@@ -225,15 +265,28 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     }
 
     const payload = await parseJson(c, updateTareaSchema);
-    const { duracionEstimadaHoras, responsable, ...rest } = payload;
-    // Mapear 'responsable' a 'responsableTipo' para compatibilidad frontend
+    const {
+      duracionEstimadaHoras,
+      responsable,
+      responsablePersonalizadoId,
+      duracionEstimadaDias,
+      esOpcional,
+      requiereAprobacion,
+      ...rest
+    } = payload;
+    // Mapear aliases del frontend a campos del backend
     const responsableTipo = rest.responsableTipo || responsable;
-    const updated = await updateTareaPlantillaById(tareaId, {
+    const updates: Record<string, unknown> = {
       ...rest,
       ...(responsableTipo && { responsableTipo }),
-      duracionEstimadaHoras: duracionEstimadaHoras?.toString(),
+      ...(duracionEstimadaHoras !== undefined && { duracionEstimadaHoras: duracionEstimadaHoras.toString() }),
+      ...((responsablePersonalizadoId !== undefined) && { responsableId: responsablePersonalizadoId }),
+      ...((duracionEstimadaDias !== undefined) && { diasDesdeInicio: duracionEstimadaDias }),
+      ...((esOpcional !== undefined) && { obligatoria: !esOpcional }),
+      ...((requiereAprobacion !== undefined) && { requiereEvidencia: requiereAprobacion }),
       updatedAt: new Date(),
-    });
+    };
+    const updated = await updateTareaPlantillaById(tareaId, updates);
     if (!updated) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
@@ -254,31 +307,4 @@ export const registerPlantillasRoutes = (router: Hono<HonoEnv>) => {
     return c.json({ message: 'Tarea eliminada' });
   });
 
-  router.put('/:id/tareas/reordenar', async (c) => {
-    const { id } = parseParams(c, plantillaIdSchema);
-    const payload = await parseJson(c, reorderSchema);
-    const tareas = await db
-      .select()
-      .from(tareasPlantilla)
-      .where(inArray(tareasPlantilla.id, payload.orderedIds));
-    if (tareas.length !== payload.orderedIds.length) {
-      throw new HTTPException(404, { message: 'No encontrado' });
-    }
-    if (tareas.some((tarea) => tarea.plantillaId !== id)) {
-      throw new HTTPException(404, { message: 'No encontrado' });
-    }
-
-    await db.transaction(async (tx) => {
-      await Promise.all(
-        payload.orderedIds.map((taskId, index) =>
-          tx
-            .update(tareasPlantilla)
-            .set({ orden: index + 1, updatedAt: new Date() })
-            .where(and(eq(tareasPlantilla.id, taskId), eq(tareasPlantilla.plantillaId, id)))
-        )
-      );
-    });
-
-    return c.json({ message: 'Tareas reordenadas' });
-  });
 };

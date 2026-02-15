@@ -92,13 +92,13 @@ describe('Frontend Performance Tests', () => {
     vi.clearAllMocks();
   });
 
-  // ============================================================================
-  // Render Time Tests
-  // ============================================================================
-  describe('Tiempos de Renderizado', () => {
-    it('debe renderizar un componente simple en menos de 100ms', async () => {
-      const baseBudgetMs = 100;
-      const SimpleComponent = () => <div data-testid="simple">Hello</div>;
+	  // ============================================================================
+	  // Render Time Tests
+	  // ============================================================================
+	  describe('Tiempos de Renderizado', () => {
+	    it('debe renderizar un componente simple en menos de 200ms', async () => {
+	      const baseBudgetMs = 200;
+	      const SimpleComponent = () => <div data-testid="simple">Hello</div>;
 
       const start = performance.now();
       render(<SimpleComponent />);

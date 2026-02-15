@@ -98,6 +98,16 @@ export async function updateTareaPlantilla(
 }
 
 /**
+ * Reordena las tareas de una plantilla atómicamente
+ */
+export async function reorderTareasPlantilla(
+  plantillaId: string,
+  orderedIds: string[]
+): Promise<void> {
+  return put(`/plantillas/${plantillaId}/tareas/reordenar`, { orderedIds });
+}
+
+/**
  * Elimina una tarea de plantilla
  */
 export async function deleteTareaPlantilla(

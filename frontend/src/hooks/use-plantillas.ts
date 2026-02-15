@@ -15,6 +15,7 @@ export {
 export {
   useCreateTareaPlantilla,
   useDeleteTareaPlantilla,
+  useReorderTareasPlantilla,
   useTareasPlantilla,
   useUpdateTareaPlantilla,
 } from './plantillas/tareas-hooks';

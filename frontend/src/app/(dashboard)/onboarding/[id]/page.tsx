@@ -221,10 +221,10 @@ export default function ProcesoDetailPage({
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Progreso general</span>
               <span className="font-medium">
-                {tareasCompletadas} de {tareas.length} tareas completadas ({Math.round(progreso * 100)}%)
+                {tareasCompletadas} de {tareas.length} tareas completadas ({Math.round(progreso)}%)
               </span>
             </div>
-            <Progress value={progreso * 100} className="h-3" />
+            <Progress value={progreso} className="h-3" />
           </div>
 
           {/* Detalles */}
@@ -359,9 +359,6 @@ export default function ProcesoDetailPage({
                               {getTareaEstadoLabel(tarea.estado)}
                             </Badge>
                             <Badge variant="outline">{tarea.categoria}</Badge>
-                            <Badge variant="outline">
-                              Prioridad: {tarea.prioridad}
-                            </Badge>
                             {tarea.duracionEstimadaDias && (
                               <Badge variant="outline">
                                 {tarea.duracionEstimadaDias} días

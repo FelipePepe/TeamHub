@@ -1,5 +1,5 @@
 import type { Plantilla, TareaPlantilla } from '../../store/index.js';
-import { resolveActiveState, toNumberOrUndefined } from './utils.js';
+import { resolveActiveState } from './utils.js';
 
 type PlantillaResponseInput = {
   id: string;
@@ -31,6 +31,8 @@ type TareaPlantillaResponseInput = {
   instrucciones?: string | null;
   recursosUrl?: string[] | null;
   dependencias?: string[] | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 export const toPlantillaResponse = (
@@ -56,14 +58,13 @@ export const toTareaPlantillaResponse = (
   titulo: tarea.titulo,
   descripcion: tarea.descripcion,
   categoria: tarea.categoria,
-  responsableTipo: tarea.responsableTipo,
-  responsableId: tarea.responsableId,
-  diasDesdeInicio: tarea.diasDesdeInicio,
-  duracionEstimadaHoras: toNumberOrUndefined(tarea.duracionEstimadaHoras),
+  responsable: tarea.responsableTipo,
+  responsablePersonalizadoId: tarea.responsableId,
+  duracionEstimadaDias: tarea.diasDesdeInicio,
   orden: tarea.orden,
-  obligatoria: tarea.obligatoria,
-  requiereEvidencia: tarea.requiereEvidencia,
-  instrucciones: tarea.instrucciones,
-  recursosUrl: tarea.recursosUrl,
+  esOpcional: !(tarea.obligatoria ?? true),
+  requiereAprobacion: tarea.requiereEvidencia ?? false,
   dependencias: tarea.dependencias,
+  creadoEn: tarea.createdAt,
+  actualizadoEn: tarea.updatedAt,
 });

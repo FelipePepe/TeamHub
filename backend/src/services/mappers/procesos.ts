@@ -14,6 +14,8 @@ type ProcesoResponseInput = {
   iniciadoPor?: string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  empleadoNombre?: string | null;
+  plantillaNombre?: string | null;
 };
 
 type TareaOnboardingResponseInput = {
@@ -50,6 +52,8 @@ export const toProcesoResponse = (proceso: ProcesoResponseInput | Proceso) => ({
   iniciadoPor: proceso.iniciadoPor,
   createdAt: proceso.createdAt,
   updatedAt: proceso.updatedAt,
+  ...(('empleadoNombre' in proceso) && { empleadoNombre: proceso.empleadoNombre }),
+  ...(('plantillaNombre' in proceso) && { plantillaNombre: proceso.plantillaNombre }),
 });
 
 export const toTareaOnboardingResponse = (

@@ -1,8 +1,7 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import EditarPlantillaPage from '../page';
 
 vi.mock('react', async () => {
   const actual = await vi.importActual<typeof import('react')>('react');
@@ -14,9 +13,9 @@ vi.mock('react', async () => {
 
 const routerMocks = vi.hoisted(() => ({ push: vi.fn() }));
 const permsMocks = vi.hoisted(() => ({ canManageTemplates: true }));
+const paramsMocks = vi.hoisted(() => ({ id: 'pl1' }));
 const dataMocks = vi.hoisted(() => ({
   plantilla: { data: undefined as unknown, isLoading: false },
-  tareas: { data: { tareas: [] } as unknown, isLoading: false },
   departamentos: { data: { data: [] } as unknown },
 }));
 const mutMocks = vi.hoisted(() => ({
@@ -27,15 +26,18 @@ const mutMocks = vi.hoisted(() => ({
 }));
 const toastMocks = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 
-vi.mock('next/navigation', () => ({ useRouter: () => routerMocks }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => routerMocks,
+  useParams: () => paramsMocks,
+}));
 vi.mock('@/hooks/use-permissions', () => ({ usePermissions: () => permsMocks }));
 vi.mock('@/hooks/use-plantillas', () => ({
   usePlantilla: () => dataMocks.plantilla,
-  useTareasPlantilla: () => dataMocks.tareas,
   useUpdatePlantilla: () => ({ mutateAsync: mutMocks.updatePlantilla, isPending: false }),
   useCreateTareaPlantilla: () => ({ mutateAsync: mutMocks.createTarea, isPending: false }),
   useUpdateTareaPlantilla: () => ({ mutateAsync: mutMocks.updateTarea, isPending: false }),
   useDeleteTareaPlantilla: () => ({ mutateAsync: mutMocks.deleteTarea, isPending: false }),
+  useReorderTareasPlantilla: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 vi.mock('@/hooks/use-departamentos', () => ({ useDepartamentos: () => dataMocks.departamentos }));
 vi.mock('sonner', () => ({ toast: toastMocks }));
@@ -53,37 +55,47 @@ vi.mock('@/components/ui/select', async () => {
     },
     SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder || 'value'}</span>,
     SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    SelectItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => {
+      if (!value) {
+        throw new Error('SelectItem value must be a non-empty string');
+      }
+      return <div>{children}</div>;
+    },
   };
 });
 
 describe('Admin plantillas/[id] page', () => {
-  beforeEach(() => {
+  let EditarPlantillaPage: typeof import('../page').default;
+
+  beforeEach(async () => {
     routerMocks.push.mockReset();
     permsMocks.canManageTemplates = true;
+    paramsMocks.id = 'pl1';
     dataMocks.plantilla = { data: undefined, isLoading: false };
-    dataMocks.tareas = { data: { tareas: [] }, isLoading: false };
     dataMocks.departamentos = { data: { data: [{ id: 'd1', nombre: 'IT' }] } };
     Object.values(mutMocks).forEach((m) => m.mockReset());
     toastMocks.success.mockReset();
     toastMocks.error.mockReset();
     vi.stubGlobal('confirm', vi.fn(() => true));
+
+    const mod = await import('../page');
+    EditarPlantillaPage = mod.default;
   });
 
   it('renderiza acceso denegado, loading y not found', () => {
-    const { rerender } = render(<EditarPlantillaPage params={{ id: 'pl1' } as never} />);
+    const { rerender } = render(<EditarPlantillaPage />);
 
     permsMocks.canManageTemplates = false;
-    rerender(<EditarPlantillaPage params={{ id: 'pl1' } as never} />);
+    rerender(<EditarPlantillaPage />);
     expect(screen.getByText(/acceso denegado/i)).toBeInTheDocument();
 
     permsMocks.canManageTemplates = true;
     dataMocks.plantilla = { data: undefined, isLoading: true };
-    rerender(<EditarPlantillaPage params={{ id: 'pl1' } as never} />);
+    rerender(<EditarPlantillaPage />);
     expect(document.querySelectorAll('[class*="skeleton"], [class*="animate-pulse"]').length).toBeGreaterThan(0);
 
     dataMocks.plantilla = { data: undefined, isLoading: false };
-    rerender(<EditarPlantillaPage params={{ id: 'pl1' } as never} />);
+    rerender(<EditarPlantillaPage />);
     expect(screen.getByText(/plantilla no encontrada/i)).toBeInTheDocument();
   });
 
@@ -98,18 +110,22 @@ describe('Admin plantillas/[id] page', () => {
       data: { id: 'pl1', nombre: 'Plantilla Base', descripcion: 'desc', rolDestino: 'EMPLEADO', duracionEstimadaDias: 20 },
       isLoading: false,
     };
-    dataMocks.tareas = {
-      data: {
-        tareas: [
-          {
-            id: 't1', titulo: 'Completar docs', orden: 1, categoria: 'DOCUMENTACION', responsable: 'RRHH', esOpcional: false, requiereAprobacion: false,
-          },
-        ],
+    (dataMocks.plantilla.data as { tareas?: unknown[] }).tareas = [
+      {
+        id: 't1',
+        plantillaId: 'pl1',
+        titulo: 'Completar docs',
+        orden: 1,
+        categoria: 'DOCUMENTACION',
+        responsable: 'RRHH',
+        esOpcional: false,
+        requiereAprobacion: false,
+        creadoEn: new Date().toISOString(),
+        actualizadoEn: new Date().toISOString(),
       },
-      isLoading: false,
-    };
+    ];
 
-    render(<EditarPlantillaPage params={{ id: 'pl1' } as never} />);
+    render(<EditarPlantillaPage />);
 
     await user.click(screen.getByRole('button', { name: /guardar cambios/i }));
     await user.click(screen.getByRole('button', { name: /añadir tarea/i }));

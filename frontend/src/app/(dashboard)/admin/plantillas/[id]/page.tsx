@@ -1,8 +1,8 @@
 'use client';
 import type { Departamento } from '@/types';
 
-import { use, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,11 +23,11 @@ import {
 } from '@/components/ui/select';
 import {
   usePlantilla,
-  useTareasPlantilla,
   useUpdatePlantilla,
   useCreateTareaPlantilla,
   useUpdateTareaPlantilla,
   useDeleteTareaPlantilla,
+  useReorderTareasPlantilla,
   type TareaPlantilla,
 } from '@/hooks/use-plantillas';
 import { useDepartamentos } from '@/hooks/use-departamentos';
@@ -38,6 +38,9 @@ import type { CategoriaTarea, TipoResponsable } from '@/hooks/use-plantillas';
 // ============================================================================
 // Validation Schemas
 // ============================================================================
+
+const DEPARTAMENTO_TODOS_VALUE = '__todos__';
+const ROL_CUALQUIERA_VALUE = '__cualquiera__';
 
 const plantillaSchema = z.object({
   nombre: z.string().min(3, 'Mínimo 3 caracteres').max(150, 'Máximo 150 caracteres'),
@@ -65,35 +68,84 @@ type TareaFormData = z.infer<typeof tareaSchema>;
 // Main Component
 // ============================================================================
 
-export default function EditarPlantillaPage({
-  params,
-}: {
-  readonly params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const maybeResponse = (error as { response?: unknown }).response;
+  if (!maybeResponse || typeof maybeResponse !== 'object') return undefined;
+  const status = (maybeResponse as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (!error) return 'Error desconocido';
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object' && 'message' in error) {
+    const msg = (error as { message?: unknown }).message;
+    if (typeof msg === 'string' && msg.trim()) return msg;
+  }
+  return String(error);
+}
+
+export default function EditarPlantillaPage() {
+  const routeParams = useParams<{ id?: string | string[] }>();
+  const idValue = routeParams?.id;
+  const id = Array.isArray(idValue) ? idValue[0] : idValue;
   const router = useRouter();
   const { canManageTemplates } = usePermissions();
   const [editingTarea, setEditingTarea] = useState<TareaPlantilla | null>(null);
   const [showTareaForm, setShowTareaForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDeps, setSelectedDeps] = useState<string[]>([]);
 
-  const { data: plantilla, isLoading: loadingPlantilla } = usePlantilla(id);
-  const { data: tareasData, isLoading: loadingTareas } = useTareasPlantilla(id);
+  const {
+    data: plantilla,
+    isLoading: loadingPlantilla,
+    isError: isPlantillaError,
+    error: plantillaError,
+  } = usePlantilla(id ?? '', Boolean(id));
   const { data: departamentosData } = useDepartamentos();
 
   const updatePlantilla = useUpdatePlantilla();
   const createTarea = useCreateTareaPlantilla();
   const updateTarea = useUpdateTareaPlantilla();
   const deleteTarea = useDeleteTareaPlantilla();
+  const reorderTareas = useReorderTareasPlantilla();
 
-  const form = useForm<PlantillaFormData>({
+  const [selectedDepartamentoId, setSelectedDepartamentoId] = useState<string | undefined>();
+  const [selectedRolDestino, setSelectedRolDestino] = useState<PlantillaFormData['rolDestino']>();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm<PlantillaFormData>({
     resolver: zodResolver(plantillaSchema),
     defaultValues: {
       nombre: '',
       descripcion: '',
+      departamentoId: undefined,
+      rolDestino: undefined,
       duracionEstimadaDias: undefined,
     },
   });
+
+  useEffect(() => {
+    if (plantilla) {
+      reset({
+        nombre: plantilla.nombre,
+        descripcion: plantilla.descripcion ?? '',
+        departamentoId: plantilla.departamentoId ?? undefined,
+        rolDestino: (plantilla.rolDestino as PlantillaFormData['rolDestino']) ?? undefined,
+        duracionEstimadaDias: plantilla.duracionEstimadaDias ?? undefined,
+      });
+      setSelectedDepartamentoId(plantilla.departamentoId ?? undefined);
+      setSelectedRolDestino((plantilla.rolDestino as PlantillaFormData['rolDestino']) ?? undefined);
+    }
+  }, [plantilla, reset]);
+
+  const departamentos = departamentosData?.data ?? [];
 
   const tareaForm = useForm<TareaFormData>({
     resolver: zodResolver(tareaSchema),
@@ -108,19 +160,6 @@ export default function EditarPlantillaPage({
       dependencias: [],
     },
   });
-
-  // Load plantilla data into form
-  useEffect(() => {
-    if (plantilla) {
-      form.reset({
-        nombre: plantilla.nombre,
-        descripcion: plantilla.descripcion,
-        departamentoId: plantilla.departamentoId,
-        rolDestino: plantilla.rolDestino,
-        duracionEstimadaDias: plantilla.duracionEstimadaDias,
-      });
-    }
-  }, [plantilla, form]);
 
   // Check permissions
   if (!canManageTemplates) {
@@ -137,7 +176,7 @@ export default function EditarPlantillaPage({
   }
 
   // Loading state
-  if (loadingPlantilla || loadingTareas) {
+  if (loadingPlantilla) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -151,6 +190,67 @@ export default function EditarPlantillaPage({
           <Skeleton className="h-[400px]" />
           <Skeleton className="h-[400px]" />
         </div>
+      </div>
+    );
+  }
+
+  // Invalid route param
+  if (!id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card>
+          <CardHeader>
+            <CardTitle>URL inválida</CardTitle>
+            <CardDescription>No se pudo identificar la plantilla a editar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/admin/plantillas')}>
+              Volver al listado
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // API error state (404 => not found, anything else => explicit error)
+  if (isPlantillaError) {
+    const status = getErrorStatus(plantillaError);
+    if (status === 404) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <Card>
+            <CardHeader>
+              <CardTitle>Plantilla no encontrada</CardTitle>
+              <CardDescription>La plantilla que buscas no existe</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => router.push('/admin/plantillas')}>
+                Volver al listado
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle>Error al cargar la plantilla</CardTitle>
+            <CardDescription>
+              {status ? `HTTP ${status}. ` : ''}
+              {getErrorMessage(plantillaError)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Button variant="secondary" onClick={() => router.push('/admin/plantillas')}>
+              Volver al listado
+            </Button>
+            <Button onClick={() => router.refresh()}>Reintentar</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -174,14 +274,17 @@ export default function EditarPlantillaPage({
     );
   }
 
-  const tareas = tareasData?.tareas ?? [];
-  const departamentos = departamentosData?.data ?? [];
+  // Backend /api/plantillas/:id returns tareas in the detail response.
+  // We keep the UI stable by tolerating both shapes.
+  const tareas = ((plantilla as unknown as { tareas?: TareaPlantilla[] }).tareas ?? []) as TareaPlantilla[];
 
   // ============================================================================
   // Tareas Management
   // ============================================================================
 
   const handleAddTarea = async (data: TareaFormData) => {
+    // Usar selectedDeps como fuente de verdad para dependencias (evita acumulación de UUIDs huérfanos)
+    const submitData = { ...data, dependencias: selectedDeps };
     if (editingTarea) {
       // Update existing
       try {
@@ -189,12 +292,13 @@ export default function EditarPlantillaPage({
           plantillaId: id,
           tareaId: editingTarea.id,
           data: {
-            ...data,
+            ...submitData,
             orden: editingTarea.orden,
           },
         });
         toast.success('Tarea actualizada');
         setEditingTarea(null);
+        setSelectedDeps([]);
         tareaForm.reset();
         setShowTareaForm(false);
       } catch (error) {
@@ -206,10 +310,11 @@ export default function EditarPlantillaPage({
       try {
         await createTarea.mutateAsync({
           plantillaId: id,
-          ...data,
+          ...submitData,
           orden: tareas.length + 1,
         });
         toast.success('Tarea añadida');
+        setSelectedDeps([]);
         tareaForm.reset();
         setShowTareaForm(false);
       } catch (error) {
@@ -221,15 +326,19 @@ export default function EditarPlantillaPage({
 
   const handleEditTarea = (tarea: TareaPlantilla) => {
     setEditingTarea(tarea);
+    // Filtrar dependencias huérfanas (UUIDs que no corresponden a tareas existentes)
+    const tareaIds = new Set(tareas.map((t) => t.id));
+    const deps = (tarea.dependencias ?? []).filter((depId) => tareaIds.has(depId));
+    setSelectedDeps(deps);
     tareaForm.reset({
       titulo: tarea.titulo,
-      descripcion: tarea.descripcion,
+      descripcion: tarea.descripcion ?? '',
       categoria: tarea.categoria,
       responsable: tarea.responsable,
-      duracionEstimadaDias: tarea.duracionEstimadaDias || 0,
-      esOpcional: tarea.esOpcional,
-      requiereAprobacion: tarea.requiereAprobacion,
-      dependencias: tarea.dependencias || [],
+      duracionEstimadaDias: tarea.duracionEstimadaDias ?? 0,
+      esOpcional: tarea.esOpcional ?? false,
+      requiereAprobacion: tarea.requiereAprobacion ?? false,
+      dependencias: deps,
     });
     setShowTareaForm(true);
   };
@@ -253,22 +362,16 @@ export default function EditarPlantillaPage({
     if (direction === 'down' && index === tareas.length - 1) return;
 
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    const otherTarea = tareas[swapIndex];
+
+    // Construir nuevo orden intercambiando posiciones
+    const reordered = [...tareas];
+    [reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]];
 
     try {
-      // Swap orden
-      await Promise.all([
-        updateTarea.mutateAsync({
-          plantillaId: id,
-          tareaId: tarea.id,
-          data: { orden: otherTarea.orden },
-        }),
-        updateTarea.mutateAsync({
-          plantillaId: id,
-          tareaId: otherTarea.id,
-          data: { orden: tarea.orden },
-        }),
-      ]);
+      await reorderTareas.mutateAsync({
+        plantillaId: id,
+        orderedIds: reordered.map((t) => t.id),
+      });
       toast.success('Orden actualizado');
     } catch (error) {
       console.error('Error updating orden:', error);
@@ -313,7 +416,7 @@ export default function EditarPlantillaPage({
           </div>
         </div>
         <Button
-          onClick={form.handleSubmit(onSubmit)}
+          onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting}
         >
           <Save className="mr-2 h-4 w-4" />
@@ -329,8 +432,8 @@ export default function EditarPlantillaPage({
             <CardDescription>
               Información básica de la plantilla
             </CardDescription>
-          </CardHeader>
-          <CardContent>
+	          </CardHeader>
+	          <CardContent>
             <form className="space-y-4">
               {/* Nombre */}
               <div className="space-y-2">
@@ -339,12 +442,12 @@ export default function EditarPlantillaPage({
                 </Label>
                 <Input
                   id="nombre"
-                  {...form.register('nombre')}
+                  {...register('nombre')}
                   placeholder="Ej: Onboarding Desarrollador Frontend"
                 />
-                {form.formState.errors.nombre && (
+                {errors.nombre && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.nombre.message}
+                    {errors.nombre.message}
                   </p>
                 )}
               </div>
@@ -354,7 +457,7 @@ export default function EditarPlantillaPage({
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea
                   id="descripcion"
-                  {...form.register('descripcion')}
+                  {...register('descripcion')}
                   placeholder="Descripción opcional de la plantilla"
                   rows={4}
                 />
@@ -364,16 +467,19 @@ export default function EditarPlantillaPage({
               <div className="space-y-2">
                 <Label htmlFor="departamentoId">Departamento</Label>
                 <Select
-                  value={form.watch('departamentoId') || ''}
-                  onValueChange={(value) =>
-                    form.setValue('departamentoId', value || undefined)
-                  }
+                  key={`dept-${selectedDepartamentoId ?? 'todos'}`}
+                  value={selectedDepartamentoId ?? DEPARTAMENTO_TODOS_VALUE}
+                  onValueChange={(value) => {
+                    const parsed = value === DEPARTAMENTO_TODOS_VALUE ? undefined : value;
+                    setSelectedDepartamentoId(parsed);
+                    setValue('departamentoId', parsed, { shouldDirty: true });
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar departamento" />
+                    <SelectValue placeholder="Todos los departamentos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los departamentos</SelectItem>
+                    <SelectItem value={DEPARTAMENTO_TODOS_VALUE}>Todos los departamentos</SelectItem>
                     {departamentos.map((dept: Departamento) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.nombre}
@@ -387,16 +493,21 @@ export default function EditarPlantillaPage({
               <div className="space-y-2">
                 <Label htmlFor="rolDestino">Rol Destino</Label>
                 <Select
-                  value={form.watch('rolDestino') || ''}
-                  onValueChange={(value) =>
-                    form.setValue('rolDestino', (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN') || undefined)
-                  }
+                  key={`rol-${selectedRolDestino ?? 'cualquiera'}`}
+                  value={selectedRolDestino ?? ROL_CUALQUIERA_VALUE}
+                  onValueChange={(value) => {
+                    const parsed = value === ROL_CUALQUIERA_VALUE
+                      ? undefined
+                      : (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN');
+                    setSelectedRolDestino(parsed);
+                    setValue('rolDestino', parsed, { shouldDirty: true });
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar rol" />
+                    <SelectValue placeholder="Cualquier rol" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Cualquier rol</SelectItem>
+                    <SelectItem value={ROL_CUALQUIERA_VALUE}>Cualquier rol</SelectItem>
                     <SelectItem value="EMPLEADO">Empleado</SelectItem>
                     <SelectItem value="MANAGER">Manager</SelectItem>
                     <SelectItem value="RRHH">RRHH</SelectItem>
@@ -415,12 +526,12 @@ export default function EditarPlantillaPage({
                   type="number"
                   min="1"
                   max="365"
-                  {...form.register('duracionEstimadaDias')}
+                  {...register('duracionEstimadaDias')}
                   placeholder="30"
                 />
-                {form.formState.errors.duracionEstimadaDias && (
+                {errors.duracionEstimadaDias && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.duracionEstimadaDias.message}
+                    {errors.duracionEstimadaDias.message}
                   </p>
                 )}
               </div>
@@ -442,6 +553,7 @@ export default function EditarPlantillaPage({
                 size="sm"
                 onClick={() => {
                   setEditingTarea(null);
+                  setSelectedDeps([]);
                   tareaForm.reset();
                   setShowTareaForm(true);
                 }}
@@ -500,6 +612,7 @@ export default function EditarPlantillaPage({
                           Categoría <span className="text-destructive">*</span>
                         </Label>
                         <Select
+                          key={`cat-${tareaForm.watch('categoria')}`}
                           value={tareaForm.watch('categoria')}
                           onValueChange={(value) =>
                             tareaForm.setValue('categoria', value as CategoriaTarea)
@@ -524,6 +637,7 @@ export default function EditarPlantillaPage({
                           Responsable <span className="text-destructive">*</span>
                         </Label>
                         <Select
+                          key={`resp-${tareaForm.watch('responsable')}`}
                           value={tareaForm.watch('responsable')}
                           onValueChange={(value) =>
                             tareaForm.setValue('responsable', value as TipoResponsable)
@@ -570,17 +684,13 @@ export default function EditarPlantillaPage({
                               >
                                 <input
                                   type="checkbox"
-                                  checked={tareaForm.watch('dependencias').includes(t.id)}
+                                  checked={selectedDeps.includes(t.id)}
                                   onChange={(e) => {
-                                    const deps = tareaForm.watch('dependencias');
-                                    if (e.target.checked) {
-                                      tareaForm.setValue('dependencias', [...deps, t.id]);
-                                    } else {
-                                      tareaForm.setValue(
-                                        'dependencias',
-                                        deps.filter((depId) => depId !== t.id)
-                                      );
-                                    }
+                                    const next = e.target.checked
+                                      ? [...selectedDeps, t.id]
+                                      : selectedDeps.filter((depId) => depId !== t.id);
+                                    setSelectedDeps(next);
+                                    tareaForm.setValue('dependencias', next);
                                   }}
                                   className="rounded"
                                 />
@@ -636,6 +746,7 @@ export default function EditarPlantillaPage({
                         onClick={() => {
                           setShowTareaForm(false);
                           setEditingTarea(null);
+                          setSelectedDeps([]);
                           tareaForm.reset();
                         }}
                       >
@@ -730,7 +841,7 @@ export default function EditarPlantillaPage({
                         variant="ghost"
                         className="h-7 w-7"
                         onClick={() => handleMoveTarea(tarea, 'up')}
-                        disabled={index === 0 || updateTarea.isPending}
+                        disabled={index === 0 || reorderTareas.isPending}
                       >
                         ↑
                       </Button>
@@ -739,7 +850,7 @@ export default function EditarPlantillaPage({
                         variant="ghost"
                         className="h-7 w-7"
                         onClick={() => handleMoveTarea(tarea, 'down')}
-                        disabled={index === tareas.length - 1 || updateTarea.isPending}
+                        disabled={index === tareas.length - 1 || reorderTareas.isPending}
                       >
                         ↓
                       </Button>

@@ -71,6 +71,18 @@ const ESTADO_LABELS: Record<EstadoTarea, string> = {
   BLOCKED: 'Bloqueada',
 };
 
+/**
+ * Transiciones válidas entre estados de tarea (estilo Jira).
+ * Solo se muestran las opciones de cambio de estado que son lógicamente válidas.
+ */
+const VALID_TRANSITIONS: Record<EstadoTarea, EstadoTarea[]> = {
+  TODO: ['IN_PROGRESS', 'BLOCKED'],
+  IN_PROGRESS: ['TODO', 'REVIEW', 'BLOCKED'],
+  REVIEW: ['IN_PROGRESS', 'DONE', 'BLOCKED'],
+  DONE: ['IN_PROGRESS'],
+  BLOCKED: ['TODO', 'IN_PROGRESS'],
+};
+
 const PRIORIDAD_COLORS: Record<PrioridadTarea, string> = {
   LOW: 'secondary',
   MEDIUM: 'default',
@@ -184,7 +196,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
           {/* Filtros */}
           <div className="flex flex-wrap gap-4 pt-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-500" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filterEstado} onValueChange={(v) => setFilterEstado(v as EstadoTarea | 'all')}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Estado" />
@@ -236,11 +248,11 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
           {isLoading ? (
             <div className="space-y-2">
               {LOADING_TASK_ROW_KEYS.map((key) => (
-                <div key={key} className="h-12 w-full animate-pulse rounded bg-slate-100" />
+                <div key={key} className="h-12 w-full animate-pulse rounded bg-muted" />
               ))}
             </div>
           ) : tareasFiltradas.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
               {tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros'}
             </div>
           ) : (
@@ -261,7 +273,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                   {tareasFiltradas.map((tarea) => (
                     <TableRow
                       key={tarea.id}
-                      className="cursor-pointer hover:bg-slate-50"
+                      className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleEditTask(tarea)}
                     >
                       <TableCell className="font-medium">{tarea.titulo}</TableCell>
@@ -287,7 +299,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                             {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">Sin fechas</span>
+                          <span className="text-xs text-muted-foreground">Sin fechas</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -316,9 +328,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
-                            {(Object.keys(ESTADO_LABELS) as EstadoTarea[])
-                              .filter((e) => e !== tarea.estado)
-                              .map((estado) => (
+                            {VALID_TRANSITIONS[tarea.estado].map((estado) => (
                                 <DropdownMenuItem
                                   key={estado}
                                   onClick={(e) => {

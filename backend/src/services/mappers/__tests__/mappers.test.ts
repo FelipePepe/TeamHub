@@ -397,22 +397,21 @@ describe('toTareaPlantillaResponse', () => {
       titulo: 'Configurar entorno',
       descripcion: 'Instalar herramientas',
       categoria: 'tecnica',
-      responsableTipo: 'manager',
-      responsableId: 'user-1',
-      diasDesdeInicio: 1,
-      duracionEstimadaHoras: 4,
+      responsable: 'manager',
+      responsablePersonalizadoId: 'user-1',
+      duracionEstimadaDias: 1,
       orden: 1,
-      obligatoria: true,
-      requiereEvidencia: false,
-      instrucciones: 'Seguir la guía',
-      recursosUrl: ['https://docs.example.com'],
+      esOpcional: false,
+      requiereAprobacion: false,
       dependencias: ['tp-0'],
+      creadoEn: undefined,
+      actualizadoEn: undefined,
     });
   });
 
-  it('converts duracionEstimadaHoras from string to number', () => {
-    const result = toTareaPlantillaResponse({ ...baseTareaPlantilla, duracionEstimadaHoras: '2.5' });
-    expect(result.duracionEstimadaHoras).toBe(2.5);
+  it('maps esOpcional as inverse of obligatoria', () => {
+    const result = toTareaPlantillaResponse({ ...baseTareaPlantilla, obligatoria: false });
+    expect(result.esOpcional).toBe(true);
   });
 
   it('handles null optional fields', () => {
@@ -429,10 +428,10 @@ describe('toTareaPlantillaResponse', () => {
       dependencias: null,
     });
     expect(result.descripcion).toBeNull();
-    expect(result.responsableId).toBeNull();
-    expect(result.duracionEstimadaHoras).toBeUndefined();
-    expect(result.obligatoria).toBeNull();
-    expect(result.recursosUrl).toBeNull();
+    expect(result.responsablePersonalizadoId).toBeNull();
+    expect(result.duracionEstimadaDias).toBeNull();
+    expect(result.esOpcional).toBe(false);
+    expect(result.requiereAprobacion).toBe(false);
     expect(result.dependencias).toBeNull();
   });
 });

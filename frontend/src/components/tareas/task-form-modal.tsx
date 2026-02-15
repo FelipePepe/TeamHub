@@ -29,6 +29,8 @@ import { useEmpleados } from '@/hooks/use-empleados';
 import { toast } from 'sonner';
 import type { Tarea, PrioridadTarea } from '@/types';
 
+const USUARIO_SIN_ASIGNAR_VALUE = '__sin_asignar__';
+
 const tareaFormSchema = z
   .object({
     titulo: z.string().min(3, 'Mínimo 3 caracteres').max(200, 'Máximo 200 caracteres'),
@@ -97,7 +99,7 @@ export function TaskFormModal({
       titulo: '',
       descripcion: '',
       prioridad: 'MEDIUM',
-      usuarioAsignadoId: '',
+      usuarioAsignadoId: undefined,
       fechaInicio: '',
       fechaFin: '',
       horasEstimadas: undefined,
@@ -113,7 +115,7 @@ export function TaskFormModal({
         titulo: tarea.titulo,
         descripcion: tarea.descripcion || '',
         prioridad: tarea.prioridad,
-        usuarioAsignadoId: tarea.usuarioAsignadoId || '',
+        usuarioAsignadoId: tarea.usuarioAsignadoId ?? undefined,
         fechaInicio: tarea.fechaInicio
           ? new Date(tarea.fechaInicio).toISOString().split('T')[0]
           : '',
@@ -125,7 +127,7 @@ export function TaskFormModal({
         titulo: '',
         descripcion: '',
         prioridad: 'MEDIUM',
-        usuarioAsignadoId: '',
+        usuarioAsignadoId: undefined,
         fechaInicio: '',
         fechaFin: '',
         horasEstimadas: undefined,
@@ -241,15 +243,20 @@ export function TaskFormModal({
             <div className="space-y-2">
               <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
               <Select
-                value={usuarioAsignadoId}
-                onValueChange={(value) => setValue('usuarioAsignadoId', value)}
+                value={usuarioAsignadoId || USUARIO_SIN_ASIGNAR_VALUE}
+                onValueChange={(value) =>
+                  setValue(
+                    'usuarioAsignadoId',
+                    value === USUARIO_SIN_ASIGNAR_VALUE ? undefined : value
+                  )
+                }
                 disabled={isSubmitting}
               >
                 <SelectTrigger id="usuarioAsignadoId">
                   <SelectValue placeholder="Seleccionar usuario" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin asignar</SelectItem>
+                  <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
                   {empleados.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.nombre} {emp.apellidos || ''}

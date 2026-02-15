@@ -1,12 +1,12 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { db } from '../../db/index.js';
 import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.js';
-import { tareasPlantilla } from '../../db/schema/plantillas.js';
+import { plantillasOnboarding, tareasPlantilla } from '../../db/schema/plantillas.js';
 import { users } from '../../db/schema/users.js';
 import type { User } from '../../db/schema/users.js';
 import { toProcesoResponse, toTareaOnboardingResponse } from '../../services/mappers.js';
@@ -36,29 +36,34 @@ export const registerProcesosRoutes = (router: Hono<HonoEnv>) => {
 
   router.get('/', async (c) => {
     const query = parseQuery(c, listQuerySchema);
-    const filters = {
-      estado: query.estado,
-      empleadoId: query.empleadoId,
-    };
 
-    let procesos = [];
-    if (query.departamentoId) {
-      const clauses = [eq(users.departamentoId, query.departamentoId)];
-      if (filters.estado) {
-        clauses.push(eq(procesosOnboarding.estado, filters.estado));
-      }
-      if (filters.empleadoId) {
-        clauses.push(eq(procesosOnboarding.empleadoId, filters.empleadoId));
-      }
-      const rows = await db
-        .select({ proceso: procesosOnboarding })
-        .from(procesosOnboarding)
-        .innerJoin(users, eq(procesosOnboarding.empleadoId, users.id))
-        .where(and(...clauses));
-      procesos = rows.map((row) => row.proceso);
-    } else {
-      procesos = await listProcesos(filters);
+    const clauses = [isNull(procesosOnboarding.deletedAt)];
+    if (query.estado) {
+      clauses.push(eq(procesosOnboarding.estado, query.estado));
     }
+    if (query.empleadoId) {
+      clauses.push(eq(procesosOnboarding.empleadoId, query.empleadoId));
+    }
+    if (query.departamentoId) {
+      clauses.push(eq(users.departamentoId, query.departamentoId));
+    }
+
+    const rows = await db
+      .select({
+        proceso: procesosOnboarding,
+        empleadoNombre: sql<string>`concat(${users.nombre}, ' ', coalesce(${users.apellidos}, ''))`.as('empleado_nombre'),
+        plantillaNombre: plantillasOnboarding.nombre,
+      })
+      .from(procesosOnboarding)
+      .innerJoin(users, eq(procesosOnboarding.empleadoId, users.id))
+      .leftJoin(plantillasOnboarding, eq(procesosOnboarding.plantillaId, plantillasOnboarding.id))
+      .where(and(...clauses));
+
+    const procesos = rows.map((row) => ({
+      ...row.proceso,
+      empleadoNombre: row.empleadoNombre?.trim(),
+      plantillaNombre: row.plantillaNombre,
+    }));
 
     return c.json({ data: procesos.map(toProcesoResponse) });
   });

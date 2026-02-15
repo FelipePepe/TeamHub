@@ -86,9 +86,11 @@ export default function ProcesosPage() {
   const hasFiltersApplied = hasActiveProcesoFilters(search, filters);
 
   // Filtrar procesos localmente por nombre de empleado
-  const filteredProcesos = procesos.filter((proceso) =>
-    proceso.empleadoNombre?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProcesos = search
+    ? procesos.filter((proceso) =>
+        proceso.empleadoNombre?.toLowerCase().includes(search.toLowerCase())
+      )
+    : procesos;
 
   // Manejar búsqueda
   const handleSearchChange = (value: string) => {
@@ -387,9 +389,9 @@ export default function ProcesosPage() {
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Progreso</span>
-                          <span className="font-medium">{Math.round(progreso * 100)}%</span>
+                          <span className="font-medium">{Math.round(progreso)}%</span>
                         </div>
-                        <Progress value={progreso * 100} className="h-2" />
+                        <Progress value={progreso} className="h-2" />
                       </div>
 
                       {/* Acciones */}

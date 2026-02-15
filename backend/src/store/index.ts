@@ -68,6 +68,8 @@ export interface TareaPlantilla {
   instrucciones?: string;
   recursosUrl?: string[];
   dependencias?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Proceso {

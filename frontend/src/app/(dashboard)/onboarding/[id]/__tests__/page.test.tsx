@@ -72,7 +72,7 @@ describe('Onboarding/[id] page', () => {
       empleadoNombre: 'Ana Lopez',
       plantillaNombre: 'Onboarding Base',
       estado: 'EN_CURSO',
-      progreso: '0.5',
+      progreso: '50',
       fechaInicio: '2026-01-10',
       tareas: [
         { id: 't1', titulo: 'Leer política', estado: 'PENDIENTE', categoria: 'DOC', prioridad: 'ALTA' },
@@ -102,7 +102,7 @@ describe('Onboarding/[id] page', () => {
       empleadoNombre: 'Ana Lopez',
       plantillaNombre: 'Onboarding Base',
       estado: 'PAUSADO',
-      progreso: '0.2',
+      progreso: '20',
       fechaInicio: '2026-01-10',
       tareas: [],
     };

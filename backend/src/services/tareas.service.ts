@@ -181,6 +181,7 @@ export class TareasService {
     this.assertDateRange(data.fechaInicio, data.fechaFin);
 
     const now = new Date();
+    const orden = data.orden ?? (await tareasRepository.getNextOrden(proyectoId)) ?? 0;
     const nuevaTarea: NuevaTarea = {
       ...data,
       proyectoId,
@@ -188,7 +189,7 @@ export class TareasService {
       fechaFin: data.fechaFin ? new Date(data.fechaFin) : undefined,
       horasEstimadas: data.horasEstimadas?.toString(),
       horasReales: data.horasReales?.toString(),
-      orden: data.orden?.toString() ?? '0',
+      orden: orden.toString(),
       createdAt: now,
       updatedAt: now,
     };

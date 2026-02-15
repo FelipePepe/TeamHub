@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -37,6 +37,7 @@ vi.mock('@/hooks/use-plantillas', () => ({
   useCreateTareaPlantilla: () => ({ mutateAsync: mutMocks.createTarea, isPending: false }),
   useUpdateTareaPlantilla: () => ({ mutateAsync: mutMocks.updateTarea, isPending: false }),
   useDeleteTareaPlantilla: () => ({ mutateAsync: mutMocks.deleteTarea, isPending: false }),
+  useReorderTareasPlantilla: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 vi.mock('@/hooks/use-departamentos', () => ({ useDepartamentos: () => dataMocks.departamentos }));
 vi.mock('sonner', () => ({ toast: toastMocks }));
@@ -54,7 +55,12 @@ vi.mock('@/components/ui/select', async () => {
     },
     SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder || 'value'}</span>,
     SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    SelectItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => {
+      if (!value) {
+        throw new Error('SelectItem value must be a non-empty string');
+      }
+      return <div>{children}</div>;
+    },
   };
 });
 

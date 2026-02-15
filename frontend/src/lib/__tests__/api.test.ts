@@ -127,7 +127,7 @@ describe('lib/api', () => {
       config: originalRequest,
     });
 
-    expect(signMock).toHaveBeenCalledWith('POST', '/api/auth/refresh', '');
+    expect(signMock).toHaveBeenCalledWith('POST', '/api/auth/refresh', '{}');
     expect(axiosPostMock).toHaveBeenCalledWith(
       'http://localhost:3001/api/auth/refresh',
       {},

@@ -86,14 +86,24 @@ export default function CrearPlantillaPage() {
   const createPlantilla = useCreatePlantilla();
   const createTarea = useCreateTareaPlantilla();
 
-  const form = useForm<PlantillaFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<PlantillaFormData>({
     resolver: zodResolver(plantillaSchema),
     defaultValues: {
       nombre: '',
       descripcion: '',
+      departamentoId: undefined,
+      rolDestino: undefined,
       duracionEstimadaDias: undefined,
     },
   });
+  const selectedDepartamentoId = watch('departamentoId');
+  const selectedRolDestino = watch('rolDestino');
 
   const tareaForm = useForm<TareaFormData>({
     resolver: zodResolver(tareaSchema),
@@ -246,7 +256,7 @@ export default function CrearPlantillaPage() {
           </div>
         </div>
         <Button
-          onClick={form.handleSubmit(onSubmit)}
+          onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting}
         >
           <Save className="mr-2 h-4 w-4" />
@@ -262,22 +272,23 @@ export default function CrearPlantillaPage() {
             <CardDescription>
               Información básica de la plantilla
             </CardDescription>
-          </CardHeader>
-          <CardContent>
+	          </CardHeader>
+	          <CardContent>
             <form className="space-y-4">
-              {/* Nombre */}
-              <div className="space-y-2">
-                <Label htmlFor="nombre">
-                  Nombre <span className="text-destructive">*</span>
-                </Label>
+
+	              {/* Nombre */}
+	              <div className="space-y-2">
+	                <Label htmlFor="nombre">
+	                  Nombre <span className="text-destructive">*</span>
+	                </Label>
                 <Input
                   id="nombre"
-                  {...form.register('nombre')}
+                  {...register('nombre')}
                   placeholder="Ej: Onboarding Desarrollador Frontend"
                 />
-                {form.formState.errors.nombre && (
+                {errors.nombre && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.nombre.message}
+                    {errors.nombre.message}
                   </p>
                 )}
               </div>
@@ -287,52 +298,52 @@ export default function CrearPlantillaPage() {
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea
                   id="descripcion"
-                  {...form.register('descripcion')}
+                  {...register('descripcion')}
                   placeholder="Descripción opcional de la plantilla"
                   rows={4}
                 />
               </div>
 
-              {/* Departamento */}
-              <div className="space-y-2">
-                <Label htmlFor="departamentoId">Departamento</Label>
-                <Select
-                  value={form.watch('departamentoId')}
+		              {/* Departamento */}
+		              <div className="space-y-2">
+		                <Label htmlFor="departamentoId">Departamento</Label>
+		                <Select
+                  value={selectedDepartamentoId ?? 'all'}
                   onValueChange={(value) =>
-                    form.setValue('departamentoId', value === 'all' ? undefined : value)
+                    setValue('departamentoId', value === 'all' ? undefined : value, { shouldDirty: true })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar departamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los departamentos</SelectItem>
-                    {departamentos.map((dept: Departamento) => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.nombre}
+		                >
+	                  <SelectTrigger>
+	                    <SelectValue />
+	                  </SelectTrigger>
+	                  <SelectContent>
+	                    <SelectItem value="all">Todos los departamentos</SelectItem>
+	                    {departamentos.map((dept: Departamento) => (
+	                      <SelectItem key={dept.id} value={dept.id}>
+	                        {dept.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Rol Destino */}
-              <div className="space-y-2">
-                <Label htmlFor="rolDestino">Rol Destino</Label>
-                <Select
-                  value={form.watch('rolDestino')}
+		              {/* Rol Destino */}
+		              <div className="space-y-2">
+		                <Label htmlFor="rolDestino">Rol Destino</Label>
+		                <Select
+                  value={selectedRolDestino ?? 'any'}
                   onValueChange={(value) =>
-                    form.setValue('rolDestino', value === 'any' ? undefined : (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN'))
+                    setValue('rolDestino', value === 'any' ? undefined : (value as 'EMPLEADO' | 'MANAGER' | 'RRHH' | 'ADMIN'), { shouldDirty: true })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Cualquier rol</SelectItem>
-                    <SelectItem value="EMPLEADO">Empleado</SelectItem>
-                    <SelectItem value="MANAGER">Manager</SelectItem>
-                    <SelectItem value="RRHH">RRHH</SelectItem>
+		                >
+	                  <SelectTrigger>
+	                    <SelectValue />
+	                  </SelectTrigger>
+	                  <SelectContent>
+	                    <SelectItem value="any">Cualquier rol</SelectItem>
+	                    <SelectItem value="EMPLEADO">Empleado</SelectItem>
+	                    <SelectItem value="MANAGER">Manager</SelectItem>
+	                    <SelectItem value="RRHH">RRHH</SelectItem>
                     <SelectItem value="ADMIN">Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -348,12 +359,12 @@ export default function CrearPlantillaPage() {
                   type="number"
                   min="1"
                   max="365"
-                  {...form.register('duracionEstimadaDias')}
+                  {...register('duracionEstimadaDias')}
                   placeholder="30"
                 />
-                {form.formState.errors.duracionEstimadaDias && (
+                {errors.duracionEstimadaDias && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.duracionEstimadaDias.message}
+                    {errors.duracionEstimadaDias.message}
                   </p>
                 )}
               </div>

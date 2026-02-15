@@ -1,4 +1,4 @@
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { tareas, type Tarea, type NuevaTarea } from '../db/schema/tareas.js';
 
@@ -35,6 +35,17 @@ export class TareasRepository {
       .where(and(eq(tareas.id, id), isNull(tareas.deletedAt)))
       .limit(1);
     return result[0];
+  }
+
+  /**
+   * Obtener el siguiente valor de orden para un proyecto
+   */
+  async getNextOrden(proyectoId: string): Promise<number> {
+    const result = await db
+      .select({ maxOrden: sql<string>`coalesce(max(${tareas.orden}), '-1')` })
+      .from(tareas)
+      .where(and(eq(tareas.proyectoId, proyectoId), isNull(tareas.deletedAt)));
+    return parseInt(result[0].maxOrden, 10) + 1;
   }
 
   /**

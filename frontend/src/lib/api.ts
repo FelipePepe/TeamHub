@@ -89,7 +89,8 @@ api.interceptors.response.use(
       try {
         // Backend lee refresh token desde cookie, establece nuevos tokens en cookies
         const refreshPath = '/api/auth/refresh';
-        const signature = await generateRequestSignature('POST', refreshPath, '');
+        const refreshBody = '{}';
+        const signature = await generateRequestSignature('POST', refreshPath, refreshBody);
         await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
           headers: {
             'X-Request-Signature': signature,

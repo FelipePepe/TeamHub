@@ -6,6 +6,9 @@ const isHostedPlatform = Boolean(config.VERCEL || config.RENDER);
 export const isDebugLoggingEnabled =
   config.LOG_LEVEL === 'debug' && config.NODE_ENV !== 'production' && !isHostedPlatform;
 
+export const isRequestLoggingEnabled =
+  config.NODE_ENV === 'development' && !isHostedPlatform;
+
 export const logger = pino({
   level: config.LOG_LEVEL,
 });
@@ -27,4 +30,19 @@ export const logRequestError = (err: Error, context: Record<string, unknown>) =>
 export const logDebug = (message: string, context: Record<string, unknown> = {}) => {
   if (!isDebugLoggingEnabled) return;
   logger.debug(context, message);
+};
+
+/**
+ * Registra un resumen de request (método, path, estado y latencia) cuando está habilitado.
+ * - En `development` se registra siempre a nivel `info`.
+ * - En modo debug se registra a nivel `debug`.
+ * @param context - Contexto del request a registrar.
+ */
+export const logRequestCompleted = (context: Record<string, unknown>) => {
+  if (isDebugLoggingEnabled) {
+    logger.debug(context, 'Request completed');
+    return;
+  }
+  if (!isRequestLoggingEnabled) return;
+  logger.info(context, 'Request completed');
 };

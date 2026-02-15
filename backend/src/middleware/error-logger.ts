@@ -1,16 +1,17 @@
 /**
  * Global Error Logger Middleware
- * Captura y registra errores en la base de datos (sin modificar la respuesta)
+ * Captura y registra errores en la base de datos y Sentry (sin modificar la respuesta)
  */
 
 import type { Context, Next } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { HonoEnv } from '../types/hono.js';
 import { extractErrorInfo, logError } from '../services/error-logger.js';
+import { captureException } from '../services/sentry.js';
 import { ZodError } from 'zod';
 
 /**
- * Middleware para registrar errores en la base de datos
+ * Middleware para registrar errores en la base de datos y Sentry
  * No modifica el flujo de error handling existente
  */
 export async function errorLoggerMiddleware(c: Context<HonoEnv>, next: Next) {
@@ -68,8 +69,7 @@ export async function errorLoggerMiddleware(c: Context<HonoEnv>, next: Next) {
       console.error('Failed to log error to database:', logErr);
     });
 
-    // Enviar a Sentry
-    const { captureException } = await import('../services/sentry.js');
+    // Enviar a Sentry (import estático para garantizar misma instancia del módulo)
     captureException(error, contexto);
 
     // Re-lanzar el error para que el error handler existente lo procese

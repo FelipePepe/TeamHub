@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // ── Hoisted mocks ───────────────────────────────────────────────────
-const mockLogDebug = vi.hoisted(() => vi.fn());
+const mockLogRequestCompleted = vi.hoisted(() => vi.fn());
 
 vi.mock('../../services/logger.js', () => ({
-  logDebug: mockLogDebug,
+  logRequestCompleted: mockLogRequestCompleted,
 }));
 
 // Import after mocks
@@ -52,8 +52,7 @@ describe('requestLogger', () => {
     await requestLogger(c, next);
 
     expect(next).toHaveBeenCalledOnce();
-    expect(mockLogDebug).toHaveBeenCalledWith(
-      'Request completed',
+    expect(mockLogRequestCompleted).toHaveBeenCalledWith(
       expect.objectContaining({
         method: 'POST',
         path: '/api/users',
@@ -70,8 +69,7 @@ describe('requestLogger', () => {
 
     await expect(requestLogger(c, next)).rejects.toThrow('Handler exploded');
 
-    expect(mockLogDebug).toHaveBeenCalledWith(
-      'Request completed',
+    expect(mockLogRequestCompleted).toHaveBeenCalledWith(
       expect.objectContaining({
         method: 'DELETE',
         path: '/api/items/5',
@@ -87,8 +85,7 @@ describe('requestLogger', () => {
 
     await requestLogger(c, next);
 
-    expect(mockLogDebug).toHaveBeenCalledWith(
-      'Request completed',
+    expect(mockLogRequestCompleted).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 500,
       }),
@@ -101,8 +98,8 @@ describe('requestLogger', () => {
 
     await requestLogger(c, next);
 
-    const logCall = mockLogDebug.mock.calls[0];
-    expect(logCall[1].durationMs).toBeGreaterThanOrEqual(0);
+    const logCall = mockLogRequestCompleted.mock.calls[0];
+    expect(logCall[0].durationMs).toBeGreaterThanOrEqual(0);
   });
 
   it('captures the correct response status', async () => {
@@ -112,8 +109,7 @@ describe('requestLogger', () => {
 
     await requestLogger(c, next);
 
-    expect(mockLogDebug).toHaveBeenCalledWith(
-      'Request completed',
+    expect(mockLogRequestCompleted).toHaveBeenCalledWith(
       expect.objectContaining({ status: 404 }),
     );
   });

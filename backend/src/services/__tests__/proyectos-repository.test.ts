@@ -10,10 +10,14 @@ const {
   mockValues,
   mockReturning,
   mockSet,
+  mockLeftJoin,
+  mockGroupBy,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
+  const mockGroupBy = vi.fn();
   const mockWhere = vi.fn();
+  const mockLeftJoin = vi.fn();
   const mockFrom = vi.fn();
   const mockSet = vi.fn();
   const mockValues = vi.fn();
@@ -31,6 +35,8 @@ const {
     mockValues,
     mockReturning,
     mockSet,
+    mockLeftJoin,
+    mockGroupBy,
   };
 });
 
@@ -98,27 +104,36 @@ describe('proyectos-repository', () => {
     mockUpdate.mockReturnValue({ set: mockSet });
   };
 
+  /**
+   * Helper para configurar la cadena de mocks de listProyectos:
+   * db.select({...}).from(proyectos).leftJoin(asignaciones, ...).where(clause).groupBy(proyectos.id)
+   */
+  const setupListProyectosChain = (result: unknown[]) => {
+    mockGroupBy.mockResolvedValue(result);
+    mockWhere.mockReturnValue({ groupBy: mockGroupBy });
+    mockLeftJoin.mockReturnValue({ where: mockWhere });
+    mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
+    mockSelect.mockReturnValue({ from: mockFrom });
+  };
+
   describe('listProyectos', () => {
     it('should list proyectos with no filters (always has deletedAt clause)', async () => {
-      const mockProyectos = [{ id: 'p1', nombre: 'Proyecto 1' }];
-      // listProyectos always adds isNull(deletedAt) so it always calls where()
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', nombre: 'Proyecto 1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos();
 
       expect(result).toEqual(mockProyectos);
       expect(mockSelect).toHaveBeenCalled();
       expect(mockFrom).toHaveBeenCalled();
+      expect(mockLeftJoin).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
+      expect(mockGroupBy).toHaveBeenCalled();
     });
 
     it('should filter by estado', async () => {
-      const mockProyectos = [{ id: 'p1', estado: 'ACTIVO' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', estado: 'ACTIVO', asignacionesActivas: 2 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ estado: 'ACTIVO' });
 
@@ -127,10 +142,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by managerId', async () => {
-      const mockProyectos = [{ id: 'p1', managerId: 'u1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', managerId: 'u1', asignacionesActivas: 1 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ managerId: 'u1' });
 
@@ -138,10 +151,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by cliente', async () => {
-      const mockProyectos = [{ id: 'p1', cliente: 'Acme' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', cliente: 'Acme', asignacionesActivas: 3 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ cliente: 'Acme' });
 
@@ -149,10 +160,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by fechaInicio', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ fechaInicio: '2024-01-01' });
 
@@ -160,10 +169,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by fechaFin', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ fechaFin: '2024-12-31' });
 
@@ -171,10 +178,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should apply all filters combined', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 5 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({
         estado: 'ACTIVO',
@@ -185,7 +190,9 @@ describe('proyectos-repository', () => {
       });
 
       expect(result).toEqual(mockProyectos);
+      expect(mockLeftJoin).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
+      expect(mockGroupBy).toHaveBeenCalled();
     });
   });
 

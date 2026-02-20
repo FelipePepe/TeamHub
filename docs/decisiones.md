@@ -2171,6 +2171,28 @@ Priorizar aumento de cobertura en archivos críticos del backend que manejan:
 
 ---
 
+## Registro de sesión (2026-02-20)
+
+**Objetivo:** Resolver vulnerabilidades HIGH en `npm audit` que bloqueaban el hook `pre-push` al intentar publicar `feature/proyectos-asignaciones-activas`.
+
+**Problema detectado:**
+- `npm audit --audit-level=high` reportaba 16 HIGH: `minimatch < 10.2.1` arrastrada por `@sentry/node`, `@typescript-eslint/*`, `eslint`, `@vitest/coverage-v8`.
+- `@vitest/coverage-v8@^4.0.18` y `vitest@^3.0.4` declaradas con versiones mayores distintas → `npm install` fallaba sin `--legacy-peer-deps`.
+
+**Decisión adoptada (ADR-094):**
+- Añadir `"overrides": { "minimatch": "^10.2.1" }` en `backend/package.json` para forzar la versión segura en todo el árbol de dependencias transitivas.
+- Bajar `@vitest/coverage-v8` de `^4.0.18` a `^3.2.4` para alinear con `vitest@3.x` instalado.
+- Intento de subir a `vitest@4.x` descartado: cambió comportamiento de `singleFork` rompiendo 8 tests de integración.
+
+**Resultado:**
+- `npm audit`: 0 vulnerabilidades ✅
+- `npm install` sin `--legacy-peer-deps` ✅
+- 655 tests backend pasando ✅
+
+**ADR:** [ADR-094](adr/094-minimatch-override-vitest-version-alignment.md)
+
+---
+
 ## Registro de sesión (2026-02-14)
 
 **Objetivo:** dejar preparada una rama `bugfix/*` con fixes funcionales detectados en local (login CORS/HMAC, plantillas, onboarding) y documentación modularizada.

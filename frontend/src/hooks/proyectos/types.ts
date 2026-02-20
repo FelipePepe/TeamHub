@@ -23,6 +23,7 @@ export interface Proyecto {
   prioridad?: ProyectoPrioridad;
   color?: string;
   activo: boolean;
+  asignacionesActivas?: number;
   createdAt?: string;
   updatedAt?: string;
 }

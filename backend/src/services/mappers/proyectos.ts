@@ -20,6 +20,7 @@ type ProyectoResponseInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  asignacionesActivas?: number | null;
 };
 
 type AsignacionResponseInput = {
@@ -54,6 +55,7 @@ export const toProyectoResponse = (proyecto: ProyectoResponseInput | Proyecto) =
   prioridad: proyecto.prioridad,
   color: proyecto.color,
   activo: resolveActiveState(proyecto),
+  asignacionesActivas: (proyecto as ProyectoResponseInput).asignacionesActivas ?? undefined,
   createdAt: proyecto.createdAt,
   updatedAt: proyecto.updatedAt,
 });

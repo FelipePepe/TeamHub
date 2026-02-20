@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull, lte } from 'drizzle-orm';
+import { and, eq, getTableColumns, gte, isNull, lte, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos.js';
 
@@ -30,10 +30,19 @@ export const listProyectos = async (filters: ProyectoFilters = {}) => {
     clauses.push(lte(proyectos.fechaInicio, filters.fechaFin));
   }
   const whereClause = clauses.length ? and(...clauses) : undefined;
+  const asignacionesActivasSubquery = sql<number>`
+    (select count(*) from asignaciones
+     where asignaciones.proyecto_id = ${proyectos.id}
+       and asignaciones.deleted_at is null)::int
+  `;
+  const selectFields = {
+    ...getTableColumns(proyectos),
+    asignacionesActivas: asignacionesActivasSubquery,
+  };
   if (whereClause) {
-    return db.select().from(proyectos).where(whereClause);
+    return db.select(selectFields).from(proyectos).where(whereClause);
   }
-  return db.select().from(proyectos);
+  return db.select(selectFields).from(proyectos);
 };
 
 export const findProyectoById = async (id: string) => {

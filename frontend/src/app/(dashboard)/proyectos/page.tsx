@@ -391,7 +391,8 @@ function ProyectoCard({
   const fechaFinLabel = proyecto.fechaFinEstimada
     ? format(new Date(proyecto.fechaFinEstimada), 'd MMM yyyy', { locale: es })
     : '—';
-  const asignacionesLabel = '—';
+  const asignacionesLabel =
+    proyecto.asignacionesActivas != null ? String(proyecto.asignacionesActivas) : '—';
 
   return (
     <Card className="hover:shadow-md transition-shadow">

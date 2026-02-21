@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+type CellEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
 
 interface TimesheetCellProps {
   readonly value: number;
   readonly onChange: (value: number) => void;
   readonly disabled?: boolean;
   readonly isWeekend?: boolean;
+  readonly estado?: CellEstado;
+  readonly isFuture?: boolean;
 }
 
 export function TimesheetCell({ value, onChange, disabled = false, isWeekend = false }: TimesheetCellProps) {

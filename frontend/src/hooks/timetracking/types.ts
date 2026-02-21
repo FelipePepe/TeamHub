@@ -3,6 +3,8 @@ export type TimetrackingEstado = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
 export interface TimeEntry {
   id: string;
   usuarioId: string;
+  /** Nombre completo del empleado (disponible en respuestas enriquecidas). */
+  usuarioNombre?: string;
   proyectoId: string;
   fecha: string;
   horas: number;

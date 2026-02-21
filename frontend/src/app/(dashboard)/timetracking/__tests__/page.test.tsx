@@ -53,6 +53,13 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermissions: () => permissionsMocks,
 }));
 
+vi.mock('@/hooks/use-auth', () => ({
+  useAuth: () => ({
+    user: { id: 'user-1', nombre: 'Test User', email: 'test@example.com', rol: 'EMPLEADO' },
+    isLoading: false,
+  }),
+}));
+
 const timetrackingMocks = vi.hoisted(() => ({
   misRegistrosData: {
     data: [
@@ -84,6 +91,11 @@ vi.mock('@/hooks/use-timetracking', () => ({
     isLoading: timetrackingMocks.misRegistrosLoading,
     error: timetrackingMocks.misRegistrosError,
   }),
+  useTimeEntries: () => ({
+    data: timetrackingMocks.misRegistrosData,
+    isLoading: timetrackingMocks.misRegistrosLoading,
+    error: timetrackingMocks.misRegistrosError,
+  }),
   useResumenTimetracking: () => ({
     data: timetrackingMocks.resumenData,
   }),
@@ -102,6 +114,11 @@ vi.mock('@/hooks/use-timetracking', () => ({
     mutateAsync: timetrackingMocks.copyMutateAsync,
     isPending: timetrackingMocks.copyPending,
   }),
+}));
+
+vi.mock('@/hooks/use-empleados', () => ({
+  useEmpleados: () => ({ data: { data: [] }, isLoading: false }),
+  useEmpleadosByManager: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
 vi.mock('@/hooks/use-proyectos', () => ({

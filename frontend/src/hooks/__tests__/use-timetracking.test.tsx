@@ -199,7 +199,7 @@ describe('use-timetracking', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(apiMocks.get).toHaveBeenCalledWith('/timetracking/semana/2024-06-15');
+      expect(apiMocks.get).toHaveBeenCalledWith('/timetracking/semana/2024-06-15', {});
     });
 
     it('no debe ejecutar si fecha está vacía', () => {
@@ -212,7 +212,7 @@ describe('use-timetracking', () => {
     });
 
     it('no debe ejecutar si enabled es false', () => {
-      const { result } = renderHook(() => useTimeEntriesSemana('2024-06-15', false), {
+      const { result } = renderHook(() => useTimeEntriesSemana('2024-06-15', undefined, false), {
         wrapper: createWrapper(),
       });
 

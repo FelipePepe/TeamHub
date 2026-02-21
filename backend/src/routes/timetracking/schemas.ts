@@ -61,3 +61,7 @@ export const idParamsSchema = z.object({
 export const semanaParamsSchema = z.object({
   fecha: dateSchema,
 });
+
+export const semanaQuerySchema = z.object({
+  usuarioId: uuidSchema.optional(),
+});

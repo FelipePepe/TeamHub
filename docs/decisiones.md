@@ -2217,3 +2217,31 @@ Priorizar aumento de cobertura en archivos críticos del backend que manejan:
 - Siguiente paso recomendado:
   - `git push -u origin bugfix/onboarding-plantillas-fixes-v2`
   - Abrir PR `bugfix/onboarding-plantillas-fixes-v2 → develop`
+
+---
+
+### ADR-108: Control de Acceso por Rol en Timetracking (MyTE-style)
+
+**Fecha:** 2025-07-16
+**Estado:** Aceptado
+
+#### Contexto
+El módulo de timetracking carecía de control de acceso basado en roles. Todos los usuarios podían leer y escribir registros de cualquier otro usuario. Se detectaron también bugs: la vista semanal usaba la misma fecha para inicio y fin (solo se mostraban registros del lunes), y la tarjeta de proyectos mostraba siempre "Empleados asignados: —".
+
+#### Decisión
+1. **Bug fix — proyectos asignacionesActivas**: `listProyectos` corregido con `leftJoin` + `count()` + `groupBy` en lugar de subquery SQL raw. Propagado a mapper, frontend type, `ProyectoCard` y OpenAPI schema.
+2. **Bug fix — timetracking semana**: Añadida función `calcularFinSemana(fechaIso)` que añade 6 días al inicio de la semana (sin depender de timezone). Añadido `usuarioId: user.id` que faltaba en el filtro.
+3. **RBAC timetracking**:
+   - Creado `auth-utils.ts` con `getTeamMemberIds`, `resolveAllowedUserIds`, `assertCanWrite`.
+   - `listing.ts` y `records.ts` reescritos para aplicar RBAC en todos los endpoints.
+   - Reglas: ADMIN (todo), RRHH (solo lectura), MANAGER (su equipo + él mismo), EMPLEADO (solo propio, solo PENDIENTE para editar/borrar).
+   - `timetracking-repository.ts` extendido con filtro `usuarioIds: string[]` via `inArray`.
+4. **Frontend selector de empleado**: `usePermissions` ampliado con `canViewOthersHours` y `canWriteOthersHours`. `fetchSemana` y `useTimeEntriesSemana` aceptan `usuarioId` opcional. La página de timetracking muestra un selector de empleado para ADMIN/RRHH/MANAGER.
+
+#### Consecuencias
+- ✅ Seguridad RBAC real en todos los endpoints de timetracking
+- ✅ Bug de semana corregido (rango 7 días correcto)
+- ✅ Bug asignaciones activas corregido en proyectos
+- ✅ Backend: 0 errores TypeScript (`tsc --noEmit`)
+- ✅ Frontend: 0 errores TypeScript (`tsc --noEmit`)
+- ⏭️ Pendiente: mejoras visuales TimesheetCell estilo MyTE (estados APROBADO/RECHAZADO/PENDIENTE)

@@ -6,6 +6,8 @@ import type { UserRole } from '@/types';
 
 const USER_MANAGEMENT_ROLES = ['ADMIN', 'RRHH'] as const;
 const HOURS_APPROVER_ROLES = ['ADMIN', 'MANAGER'] as const;
+const HOURS_VIEW_OTHERS_ROLES = ['ADMIN', 'RRHH', 'MANAGER'] as const;
+const HOURS_WRITE_OTHERS_ROLES = ['ADMIN', 'MANAGER'] as const;
 const ONBOARDING_CREATOR_ROLES = ['ADMIN', 'RRHH', 'MANAGER'] as const;
 const ONBOARDING_VIEW_ALL_ROLES = ['ADMIN', 'RRHH'] as const;
 const TEMPLATE_MANAGEMENT_ROLES = ['ADMIN', 'RRHH'] as const;
@@ -58,6 +60,8 @@ export function usePermissions() {
       canManageUsers: hasAllowedRole(rol, USER_MANAGEMENT_ROLES),
       canManageDepartments: hasAllowedRole(rol, USER_MANAGEMENT_ROLES),
       canApproveHours: hasAllowedRole(rol, HOURS_APPROVER_ROLES),
+      canViewOthersHours: hasAllowedRole(rol, HOURS_VIEW_OTHERS_ROLES),
+      canWriteOthersHours: hasAllowedRole(rol, HOURS_WRITE_OTHERS_ROLES),
       canCreateOnboarding: hasAllowedRole(rol, ONBOARDING_CREATOR_ROLES),
       canViewAllOnboardings: hasAllowedRole(rol, ONBOARDING_VIEW_ALL_ROLES),
       canManageTemplates: hasAllowedRole(rol, TEMPLATE_MANAGEMENT_ROLES),

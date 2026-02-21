@@ -222,7 +222,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                   <SelectItem value="sin-asignar">Sin asignar</SelectItem>
                   {usuariosUnicos.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.nombre}
+                      <span className="uppercase">{u.nombre}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -289,7 +289,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                       </TableCell>
                       <TableCell>
                         {tarea.usuarioAsignado
-                          ? `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos ?? ''}`
+                          ? <span className="uppercase">{tarea.usuarioAsignado.nombre} {tarea.usuarioAsignado.apellidos ?? ''}</span>
                           : 'Sin asignar'}
                       </TableCell>
                       <TableCell>
@@ -454,7 +454,7 @@ function ReasignarModal({
               <SelectContent>
                 {empleados.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {emp.nombre} {emp.apellidos ?? ''}
+                    <span className="uppercase">{emp.nombre} {emp.apellidos ?? ''}</span>
                   </SelectItem>
                 ))}
               </SelectContent>

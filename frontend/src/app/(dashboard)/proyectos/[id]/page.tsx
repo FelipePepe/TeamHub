@@ -270,7 +270,7 @@ export default function ProyectoDetailPage({
                   <li key={a.id} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{nombreEmpleado}</span>
+                      <span className="text-sm font-medium uppercase">{nombreEmpleado}</span>
                       {a.rol && <Badge variant="outline">{a.rol}</Badge>}
                       <span className="text-xs text-muted-foreground">
                         {format(new Date(a.fechaInicio), 'd MMM yyyy', { locale: es })}
@@ -414,7 +414,7 @@ function AddAsignacionModal({
               <SelectContent>
                 {empleados.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
-                    {u.nombre} {u.apellidos ?? ''} ({u.email})
+                    <span className="uppercase">{u.nombre} {u.apellidos ?? ''}</span> ({u.email})
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -108,7 +108,7 @@ export function ManagerDashboard() {
                 {data?.sections.equipoOcupacion.map((item) => (
                   <li key={item.usuarioId} className="flex items-center justify-between p-3 border border-border rounded-lg">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{item.nombre}</p>
+                      <p className="text-sm font-medium uppercase text-foreground">{item.nombre}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.proyectosActivos} proyecto{item.proyectosActivos !== 1 ? 's' : ''} activo{item.proyectosActivos !== 1 ? 's' : ''}
                       </p>

@@ -50,7 +50,7 @@ export function UserNav() {
           <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg">
             {/* User info */}
             <div className="border-b border-slate-100 dark:border-slate-700 px-4 py-3">
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{displayName}</p>
+              <p className="text-sm font-medium uppercase text-slate-900 dark:text-slate-100">{displayName}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
               <span className="mt-1 inline-block rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                 {user?.rol}

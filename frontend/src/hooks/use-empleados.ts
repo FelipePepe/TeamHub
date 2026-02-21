@@ -50,7 +50,6 @@ export function useEmpleados(filters?: EmpleadoFilters, enabled = true) {
     queryFn: () => fetchEmpleados(filters),
     enabled,
     staleTime: STALE_TIME.LONG,
-    enabled,
   });
 }
 

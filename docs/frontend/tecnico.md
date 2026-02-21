@@ -58,7 +58,7 @@
 - EmpleadoForm: crear/editar empleados con validaciones Zod
 - DepartamentoForm: gestión de departamentos
 - PlantillaEditor: editor de plantillas con drag & drop
-- ProyectoForm: formulario de proyectos con fechas
+- ProyectoForm: formulario de proyectos con fechas y selector multi-departamento (N:M)
 - TimetrackingForm: registro de horas por proyecto
 
 #### Visualizaciones
@@ -257,7 +257,7 @@ interface GanttDimensions {
 - Ubicacion: `frontend/src/__tests__/`.
 - E2E: Playwright.
 - Ubicacion: `frontend/e2e/`.
-- **241 tests pasando** (hooks, componentes, páginas, formularios, performance).
+- **383 tests pasando** (hooks, componentes, páginas, formularios, performance).
 
 ## Performance y Optimizaciones
 

@@ -1,6 +1,13 @@
 import { and, count, eq, getTableColumns, gte, isNull, lte } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { asignaciones, proyectos, type NewAsignacion, type NewProyecto } from '../db/schema/proyectos.js';
+import {
+  asignaciones,
+  proyectos,
+  proyectosDepartamentos,
+  type NewAsignacion,
+  type NewProyecto,
+  type NewProyectosDepartamento,
+} from '../db/schema/proyectos.js';
 
 type ProjectStatus = 'PLANIFICACION' | 'ACTIVO' | 'PAUSADO' | 'COMPLETADO' | 'CANCELADO';
 
@@ -49,8 +56,18 @@ export const findProyectoById = async (id: string) => {
   return result[0] ?? null;
 };
 
+/**
+ * Busca un proyecto activo (no eliminado) por su código.
+ * Excluye proyectos con soft-delete para permitir reutilización del código.
+ * @param codigo - Código único del proyecto.
+ * @returns Proyecto activo o null si no existe o fue eliminado.
+ */
 export const findProyectoByCodigo = async (codigo: string) => {
-  const result = await db.select().from(proyectos).where(eq(proyectos.codigo, codigo)).limit(1);
+  const result = await db
+    .select()
+    .from(proyectos)
+    .where(and(eq(proyectos.codigo, codigo), isNull(proyectos.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 };
 
@@ -99,4 +116,55 @@ export const updateAsignacionById = async (id: string, payload: Partial<NewAsign
     .where(eq(asignaciones.id, id))
     .returning();
   return result[0] ?? null;
+};
+
+// ============================================================================
+// Departamentos por proyecto (N:M)
+// ============================================================================
+
+/**
+ * Obtiene los IDs de departamentos asociados a un proyecto.
+ * @param proyectoId - UUID del proyecto.
+ * @returns Array de UUIDs de departamentos.
+ */
+export const getDepartamentosForProyecto = async (proyectoId: string): Promise<string[]> => {
+  const rows = await db
+    .select({ departamentoId: proyectosDepartamentos.departamentoId })
+    .from(proyectosDepartamentos)
+    .where(eq(proyectosDepartamentos.proyectoId, proyectoId));
+  return rows.map((r) => r.departamentoId);
+};
+
+/**
+ * Reemplaza la lista completa de departamentos asociados a un proyecto.
+ * Elimina los registros existentes e inserta los nuevos en una sola operación.
+ * @param proyectoId - UUID del proyecto.
+ * @param departamentoIds - Lista de UUIDs de departamentos a asociar.
+ */
+export const setDepartamentosForProyecto = async (
+  proyectoId: string,
+  departamentoIds: string[]
+): Promise<void> => {
+  await db
+    .delete(proyectosDepartamentos)
+    .where(eq(proyectosDepartamentos.proyectoId, proyectoId));
+  if (departamentoIds.length > 0) {
+    const rows: NewProyectosDepartamento[] = departamentoIds.map((departamentoId) => ({
+      proyectoId,
+      departamentoId,
+    }));
+    await db.insert(proyectosDepartamentos).values(rows);
+  }
+};
+
+/**
+ * Obtiene un proyecto junto con sus departamentos asociados.
+ * @param id - UUID del proyecto.
+ * @returns Proyecto con `departamentoIds: string[]`, o null si no existe.
+ */
+export const findProyectoWithDepartamentos = async (id: string) => {
+  const proyecto = await findProyectoById(id);
+  if (!proyecto) return null;
+  const departamentoIds = await getDepartamentosForProyecto(id);
+  return { ...proyecto, departamentoIds };
 };

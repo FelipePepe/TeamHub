@@ -22,6 +22,27 @@
       "when": 1769875059000,
       "tag": "0002_add_tareas_table",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769900000000,
+      "tag": "0003_add_unique_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1769950000000,
+      "tag": "0004_add_proyectos_departamentos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771705400000,
+      "tag": "0005_partial_unique_codigo_proyectos",
+      "breakpoints": true
     }
   ]
 }

@@ -58,12 +58,27 @@ const tareaFormSchema = z
 
 type TareaFormData = z.infer<typeof tareaFormSchema>;
 
+/** Empleado simplificado para el selector de asignación de tareas. */
+interface EmpleadoAsignado {
+  id: string;
+  nombre: string;
+  apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
+}
+
 interface TaskFormModalProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly proyectoId: string;
   readonly tarea?: Tarea;
   readonly onSuccess?: () => void;
+  /**
+   * Lista de empleados asignados al proyecto.
+   * Cuando se proporciona, el selector muestra solo estos empleados;
+   * si se omite, se carga la lista completa de empleados activos como fallback.
+   */
+  readonly empleadosAsignados?: EmpleadoAsignado[];
 }
 
 const PRIORIDADES: { value: PrioridadTarea; label: string; color: string }[] = [
@@ -79,12 +94,14 @@ export function TaskFormModal({
   proyectoId,
   tarea,
   onSuccess,
+  empleadosAsignados,
 }: TaskFormModalProps) {
   const isEdit = !!tarea;
   const createTarea = useCreateTarea();
   const updateTarea = useUpdateTarea();
+  // Fallback: carga todos los empleados activos solo si no se recibe la lista filtrada del proyecto.
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
-  const empleados = empleadosData?.data ?? [];
+  const empleados: EmpleadoAsignado[] = empleadosAsignados ?? (empleadosData?.data ?? []);
 
   const {
     register,
@@ -215,7 +232,7 @@ export function TaskFormModal({
             )}
           </div>
 
-          {/* Prioridad y Usuario */}
+          {/* Prioridad + Asignado a */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="prioridad">Prioridad</Label>
@@ -240,6 +257,7 @@ export function TaskFormModal({
               )}
             </div>
 
+            {/* Asignado a */}
             <div className="space-y-2">
               <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
               <Select
@@ -258,8 +276,17 @@ export function TaskFormModal({
                 <SelectContent>
                   <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
                   {empleados.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
+                    <SelectItem
+                      key={emp.id}
+                      value={emp.id}
+                      textValue={`${emp.nombre}${emp.apellidos ? ` ${emp.apellidos}` : ''}`}
+                    >
+                      <span className="uppercase">
+                        {emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}
+                      </span>
+                      {emp.rol && (
+                        <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>

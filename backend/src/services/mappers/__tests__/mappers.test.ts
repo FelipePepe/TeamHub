@@ -478,6 +478,7 @@ describe('toProyectoResponse', () => {
       prioridad: 'alta',
       color: '#00FF00',
       activo: true,
+      departamentoIds: [],
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-06-01T00:00:00Z',
     });
@@ -510,6 +511,17 @@ describe('toProyectoResponse', () => {
     expect(result.cliente).toBeNull();
     expect(result.presupuestoHoras).toBeUndefined();
     expect(result.horasConsumidas).toBeUndefined();
+  });
+
+  it('returns departamentoIds from input when provided', () => {
+    const deptIds = ['dept-1', 'dept-2'];
+    const result = toProyectoResponse({ ...baseProyecto, departamentoIds: deptIds });
+    expect(result.departamentoIds).toEqual(deptIds);
+  });
+
+  it('defaults departamentoIds to empty array when absent', () => {
+    const result = toProyectoResponse(baseProyecto);
+    expect(result.departamentoIds).toEqual([]);
   });
 });
 

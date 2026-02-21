@@ -55,15 +55,15 @@ TeamHub centraliza toda esta información proporcionando **visibilidad en tiempo
 
 ## 📊 Estado del Proyecto
 
-> **Última actualización:** 14 de febrero de 2026 | **Versión:** v1.6.1
+> **Última actualización:** 21 de febrero de 2026 | **Versión:** v1.7.0
 
 ### ✅ Progreso General: 100%
 
 | Componente | Estado | Tests |
 |------------|--------|-------|
-| **Backend** | ✅ Completo | 655/655 ✅ |
+| **Backend** | ✅ Completo | 663/663 ✅ |
 | **Frontend** | ✅ Completo | 383/383 ✅ |
-| **Total Tests** | ✅ Pasando | **1,038/1,038** ✅ |
+| **Total Tests** | ✅ Pasando | **1,046/1,046** ✅ |
 
 ### 📈 Métricas de Calidad
 
@@ -93,7 +93,8 @@ TeamHub centraliza toda esta información proporcionando **visibilidad en tiempo
 
 ✅ **Proyectos y Asignaciones**
 - CRUD de proyectos con estados
-- Asignación de empleados a proyectos
+- **N:M Proyectos ↔ Departamentos** (proyectos pueden pertenecer a múltiples departamentos)
+- Asignación de empleados a proyectos con **filtro por departamentos del proyecto**
 - Validación de carga de trabajo (máx 100%)
 
 ✅ **Timetracking**
@@ -206,7 +207,8 @@ La documentación está modularizada para facilitar su navegación:
 
 ### 3. Proyectos y Asignaciones
 - CRUD de proyectos con estados (Planificación, Activo, Pausado, Completado)
-- Asignación de empleados a proyectos con dedicación (%)
+- **Proyectos multi-departamento:** relación N:M con tabla pivote `proyectos_departamentos`
+- Asignación de empleados filtrada por departamentos del proyecto
 - Validación: dedicación total no puede superar 100%
 - Vista de carga de trabajo del equipo
 

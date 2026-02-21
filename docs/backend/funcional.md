@@ -143,11 +143,11 @@ Definir el comportamiento funcional de la API de TeamHub, los recursos principal
 - GET `/estadisticas`
 
 ### Proyectos (`/api/proyectos`)
-- GET `/`
-- GET `/:id`
+- GET `/` — lista proyectos; cada ítem incluye `departamentoIds` (array de UUIDs)
+- GET `/:id` — detalle + `departamentoIds` (resueltos via `proyectos_departamentos`)
 - GET `/:id/estadisticas`
-- POST `/`
-- PUT `/:id`
+- POST `/` — acepta `departamentoIds` opcional (array de UUIDs; sincroniza tabla pivot)
+- PUT `/:id` — acepta `departamentoIds` opcional (sincroniza `proyectos_departamentos`)
 - PATCH `/:id/estado`
 - DELETE `/:id` (soft delete)
 - PATCH `/:id/restore`

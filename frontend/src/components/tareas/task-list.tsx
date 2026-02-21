@@ -49,10 +49,25 @@ import { useEmpleados } from '@/hooks/use-empleados';
 import { toast } from 'sonner';
 import type { Tarea, EstadoTarea, PrioridadTarea } from '@/types';
 
+/** Empleado simplificado para los selectores de asignación y reasignación. */
+interface EmpleadoAsignado {
+  id: string;
+  nombre: string;
+  apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
+}
+
 interface TaskListProps {
   readonly proyectoId: string;
   readonly tareas: Tarea[];
   readonly isLoading?: boolean;
+  /**
+   * Lista de empleados asignados al proyecto.
+   * Se usa en los modales de crear/editar tarea y reasignar.
+   * Si se omite, se carga la lista completa de empleados activos como fallback.
+   */
+  readonly empleadosAsignados?: EmpleadoAsignado[];
 }
 
 const ESTADO_COLORS: Record<EstadoTarea, string> = {
@@ -98,7 +113,7 @@ const PRIORIDAD_LABELS: Record<PrioridadTarea, string> = {
 };
 const LOADING_TASK_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
-export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
+export function TaskList({ proyectoId, tareas, isLoading, empleadosAsignados }: TaskListProps) {
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedTarea, setSelectedTarea] = useState<Tarea | undefined>();
   const [filterEstado, setFilterEstado] = useState<EstadoTarea | 'all'>('all');
@@ -109,8 +124,9 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
   const updateEstadoTarea = useUpdateEstadoTarea();
   const reasignarTarea = useReasignarTarea();
   const deleteTarea = useDeleteTarea();
+  // Fallback: carga todos los empleados activos solo si no se recibe la lista filtrada del proyecto.
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
-  const empleados = empleadosData?.data ?? [];
+  const empleados: EmpleadoAsignado[] = empleadosAsignados ?? (empleadosData?.data ?? []);
 
   // Filtros
   const tareasFiltradas = useMemo(() => {
@@ -378,6 +394,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
         proyectoId={proyectoId}
         tarea={selectedTarea}
         onSuccess={() => setShowFormModal(false)}
+        empleadosAsignados={empleados}
       />
 
       {/* Modal de reasignar */}
@@ -429,7 +446,7 @@ function ReasignarModal({
 }: {
   readonly tareaId: string;
   readonly tarea?: Tarea;
-  readonly empleados: { id: string; nombre: string; apellidos?: string }[];
+  readonly empleados: { id: string; nombre: string; apellidos?: string; rol?: string }[];
   readonly onReasignar: (tareaId: string, usuarioId: string) => void;
   readonly onClose: () => void;
 }) {
@@ -453,8 +470,17 @@ function ReasignarModal({
               </SelectTrigger>
               <SelectContent>
                 {empleados.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    <span className="uppercase">{emp.nombre} {emp.apellidos ?? ''}</span>
+                  <SelectItem
+                    key={emp.id}
+                    value={emp.id}
+                    textValue={`${emp.nombre}${emp.apellidos ? ` ${emp.apellidos}` : ''}`}
+                  >
+                    <span className="uppercase">
+                      {emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}
+                    </span>
+                    {emp.rol && (
+                      <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>

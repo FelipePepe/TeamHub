@@ -63,7 +63,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-        <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v1.0.0</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
       </div>
     </aside>
   );

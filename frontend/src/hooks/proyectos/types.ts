@@ -24,6 +24,7 @@ export interface Proyecto {
   color?: string;
   activo: boolean;
   asignacionesActivas?: number;
+  departamentoIds?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -76,6 +77,7 @@ export interface CreateProyectoData {
   presupuestoHoras?: number;
   prioridad?: ProyectoPrioridad;
   color?: string;
+  departamentoIds?: string[];
 }
 
 export interface UpdateProyectoData {
@@ -90,6 +92,7 @@ export interface UpdateProyectoData {
   color?: string;
   estado?: ProyectoEstado;
   activo?: boolean;
+  departamentoIds?: string[];
 }
 
 export interface CreateAsignacionData {

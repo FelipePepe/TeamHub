@@ -63,6 +63,8 @@ interface EmpleadoAsignado {
   id: string;
   nombre: string;
   apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
 }
 
 interface TaskFormModalProps {
@@ -275,6 +277,9 @@ export function TaskFormModal({
                   {empleados.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
+                      {emp.rol && (
+                        <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>

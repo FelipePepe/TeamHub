@@ -99,9 +99,12 @@ export default function ProyectoDetailPage({
    */
   const empleadosAsignados = asignaciones
     .filter((a) => a.activo)
-    .map((a) => empleadosById.get(a.usuarioId))
-    .filter((e): e is NonNullable<typeof e> => e !== undefined)
-    .map((e) => ({ id: e.id, nombre: e.nombre, apellidos: e.apellidos }));
+    .map((a) => {
+      const e = empleadosById.get(a.usuarioId);
+      if (!e) return null;
+      return { id: e.id, nombre: e.nombre, apellidos: e.apellidos, rol: a.rol };
+    })
+    .filter((e): e is NonNullable<typeof e> => e !== null);
 
   const handleDelete = async () => {
     if (!proyecto || !confirm(`¿Eliminar el proyecto "${proyecto.nombre}"?`)) return;

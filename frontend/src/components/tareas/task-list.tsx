@@ -54,6 +54,8 @@ interface EmpleadoAsignado {
   id: string;
   nombre: string;
   apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
 }
 
 interface TaskListProps {
@@ -444,7 +446,7 @@ function ReasignarModal({
 }: {
   readonly tareaId: string;
   readonly tarea?: Tarea;
-  readonly empleados: { id: string; nombre: string; apellidos?: string }[];
+  readonly empleados: { id: string; nombre: string; apellidos?: string; rol?: string }[];
   readonly onReasignar: (tareaId: string, usuarioId: string) => void;
   readonly onClose: () => void;
 }) {
@@ -470,6 +472,9 @@ function ReasignarModal({
                 {empleados.map((emp) => (
                   <SelectItem key={emp.id} value={emp.id}>
                     <span className="uppercase">{emp.nombre} {emp.apellidos ?? ''}</span>
+                    {emp.rol && (
+                      <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>

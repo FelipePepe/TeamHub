@@ -93,6 +93,16 @@ export default function ProyectoDetailPage({
   const asignaciones = asignacionesData?.data ?? [];
   const tareas = tareasData?.data ?? [];
 
+  /**
+   * Empleados con asignación activa en el proyecto.
+   * Se pasa a TaskList para que los modales de tarea solo muestren este subconjunto.
+   */
+  const empleadosAsignados = asignaciones
+    .filter((a) => a.activo)
+    .map((a) => empleadosById.get(a.usuarioId))
+    .filter((e): e is NonNullable<typeof e> => e !== undefined)
+    .map((e) => ({ id: e.id, nombre: e.nombre, apellidos: e.apellidos }));
+
   const handleDelete = async () => {
     if (!proyecto || !confirm(`¿Eliminar el proyecto "${proyecto.nombre}"?`)) return;
     try {
@@ -303,7 +313,7 @@ export default function ProyectoDetailPage({
         </TabsContent>
 
         <TabsContent value="tareas" className="space-y-6">
-          <TaskList proyectoId={id} tareas={tareas} isLoading={tareasLoading} />
+          <TaskList proyectoId={id} tareas={tareas} isLoading={tareasLoading} empleadosAsignados={empleadosAsignados} />
           <TaskGanttChart tareas={tareas} isLoading={tareasLoading} />
         </TabsContent>
       </Tabs>

@@ -58,12 +58,25 @@ const tareaFormSchema = z
 
 type TareaFormData = z.infer<typeof tareaFormSchema>;
 
+/** Empleado simplificado para el selector de asignación de tareas. */
+interface EmpleadoAsignado {
+  id: string;
+  nombre: string;
+  apellidos?: string;
+}
+
 interface TaskFormModalProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly proyectoId: string;
   readonly tarea?: Tarea;
   readonly onSuccess?: () => void;
+  /**
+   * Lista de empleados asignados al proyecto.
+   * Cuando se proporciona, el selector muestra solo estos empleados;
+   * si se omite, se carga la lista completa de empleados activos como fallback.
+   */
+  readonly empleadosAsignados?: EmpleadoAsignado[];
 }
 
 const PRIORIDADES: { value: PrioridadTarea; label: string; color: string }[] = [
@@ -79,12 +92,14 @@ export function TaskFormModal({
   proyectoId,
   tarea,
   onSuccess,
+  empleadosAsignados,
 }: TaskFormModalProps) {
   const isEdit = !!tarea;
   const createTarea = useCreateTarea();
   const updateTarea = useUpdateTarea();
+  // Fallback: carga todos los empleados activos solo si no se recibe la lista filtrada del proyecto.
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
-  const empleados = empleadosData?.data ?? [];
+  const empleados: EmpleadoAsignado[] = empleadosAsignados ?? (empleadosData?.data ?? []);
 
   const {
     register,

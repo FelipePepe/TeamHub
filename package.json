@@ -15,7 +15,7 @@
     "sonar:branch": "bash scripts/sonar-analyze-branch.sh"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.36.4",
     "husky": "^9.0.11"
   },

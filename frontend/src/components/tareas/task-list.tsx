@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, MoreVertical, Trash2, UserCheck, Filter } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Plus, MoreVertical, Trash2, UserCheck, Filter, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -470,18 +471,23 @@ function ReasignarModal({
               </SelectTrigger>
               <SelectContent>
                 {empleados.map((emp) => (
-                  <SelectItem
+                  <SelectPrimitive.Item
                     key={emp.id}
                     value={emp.id}
-                    textValue={`${emp.nombre}${emp.apellidos ? ` ${emp.apellidos}` : ''}`}
+                    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-slate-800 dark:focus:text-slate-50"
                   >
-                    <span className="uppercase">
-                      {emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}
+                    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                      <SelectPrimitive.ItemIndicator>
+                        <Check className="h-4 w-4" />
+                      </SelectPrimitive.ItemIndicator>
                     </span>
+                    <SelectPrimitive.ItemText>
+                      <span className="uppercase">{emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}</span>
+                    </SelectPrimitive.ItemText>
                     {emp.rol && (
-                      <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                      <span className="ml-2 text-xs text-muted-foreground">({emp.rol})</span>
                     )}
-                  </SelectItem>
+                  </SelectPrimitive.Item>
                 ))}
               </SelectContent>
             </Select>

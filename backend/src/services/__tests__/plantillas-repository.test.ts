@@ -11,6 +11,8 @@ const {
   mockValues,
   mockReturning,
   mockSet,
+  mockLeftJoin,
+  mockGroupBy,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
@@ -22,6 +24,8 @@ const {
   const mockInsert = vi.fn();
   const mockUpdate = vi.fn();
   const mockDelete = vi.fn();
+  const mockLeftJoin = vi.fn();
+  const mockGroupBy = vi.fn();
 
   return {
     mockSelect,
@@ -34,6 +38,8 @@ const {
     mockValues,
     mockReturning,
     mockSet,
+    mockLeftJoin,
+    mockGroupBy,
   };
 });
 
@@ -96,26 +102,32 @@ describe('plantillas-repository', () => {
   };
 
   describe('listPlantillas', () => {
+    // Helper: chain is select → from → leftJoin → groupBy → where
+    const setupListChain = (result: unknown[]) => {
+      mockWhere.mockResolvedValue(result);
+      mockGroupBy.mockReturnValue({ where: mockWhere });
+      mockLeftJoin.mockReturnValue({ groupBy: mockGroupBy });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
+      mockSelect.mockReturnValue({ from: mockFrom });
+    };
+
     it('should list plantillas with no filters (undefined) - defaults to isNull deletedAt', async () => {
       const mockPlantillas = [{ id: 'pl1', nombre: 'Plantilla 1' }];
-      // When filters is undefined, the code adds isNull(deletedAt) and calls where()
-      mockWhere.mockResolvedValue(mockPlantillas);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      setupListChain(mockPlantillas);
 
       const result = await listPlantillas();
 
       expect(result).toEqual(mockPlantillas);
       expect(mockSelect).toHaveBeenCalled();
       expect(mockFrom).toHaveBeenCalled();
+      expect(mockLeftJoin).toHaveBeenCalled();
+      expect(mockGroupBy).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
     });
 
     it('should filter by departamentoId', async () => {
       const mockPlantillas = [{ id: 'pl1', departamentoId: 'd1' }];
-      mockWhere.mockResolvedValue(mockPlantillas);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      setupListChain(mockPlantillas);
 
       const result = await listPlantillas({ departamentoId: 'd1' });
 
@@ -125,9 +137,7 @@ describe('plantillas-repository', () => {
 
     it('should filter by activo=true (isNull deletedAt)', async () => {
       const mockPlantillas = [{ id: 'pl1', deletedAt: null }];
-      mockWhere.mockResolvedValue(mockPlantillas);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      setupListChain(mockPlantillas);
 
       const result = await listPlantillas({ activo: true });
 
@@ -137,9 +147,7 @@ describe('plantillas-repository', () => {
 
     it('should filter by activo=false (isNotNull deletedAt)', async () => {
       const mockPlantillas = [{ id: 'pl2', deletedAt: new Date() }];
-      mockWhere.mockResolvedValue(mockPlantillas);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      setupListChain(mockPlantillas);
 
       const result = await listPlantillas({ activo: false });
 
@@ -149,9 +157,7 @@ describe('plantillas-repository', () => {
 
     it('should apply activo=undefined as isNull deletedAt by default', async () => {
       const mockPlantillas = [{ id: 'pl1' }];
-      mockWhere.mockResolvedValue(mockPlantillas);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      setupListChain(mockPlantillas);
 
       const result = await listPlantillas({ activo: undefined });
 

@@ -13,6 +13,8 @@ type PlantillaResponseInput = {
   updatedAt?: Date | string;
   activo?: boolean;
   deletedAt?: Date | string | null;
+  /** Número de tareas asociadas a la plantilla (disponible en listado). */
+  totalTareas?: number | null;
 };
 
 type TareaPlantillaResponseInput = {
@@ -48,6 +50,7 @@ export const toPlantillaResponse = (
   createdBy: plantilla.createdBy,
   createdAt: plantilla.createdAt,
   updatedAt: plantilla.updatedAt,
+  totalTareas: 'totalTareas' in plantilla ? (plantilla.totalTareas ?? 0) : 0,
 });
 
 export const toTareaPlantillaResponse = (

@@ -9,9 +9,11 @@ import {
   index,
   uniqueIndex,
   unique,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { projectStatusEnum, priorityEnum } from './enums.js';
 import { users } from './users.js';
+import { departamentos } from './departamentos.js';
 
 // ============================================================================
 // PROYECTOS - Proyectos de la empresa
@@ -127,3 +129,29 @@ export type Proyecto = typeof proyectos.$inferSelect;
 export type NewProyecto = typeof proyectos.$inferInsert;
 export type Asignacion = typeof asignaciones.$inferSelect;
 export type NewAsignacion = typeof asignaciones.$inferInsert;
+
+// ============================================================================
+// PROYECTOS_DEPARTAMENTOS - Relación N:M entre proyectos y departamentos
+// ============================================================================
+export const proyectosDepartamentos = pgTable(
+  'proyectos_departamentos',
+  {
+    proyectoId: uuid('proyecto_id')
+      .notNull()
+      .references(() => proyectos.id, { onDelete: 'cascade' }),
+
+    departamentoId: uuid('departamento_id')
+      .notNull()
+      .references(() => departamentos.id, { onDelete: 'cascade' }),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.proyectoId, table.departamentoId] }),
+    index('proyectos_departamentos_proyecto_idx').on(table.proyectoId),
+    index('proyectos_departamentos_departamento_idx').on(table.departamentoId),
+  ]
+);
+
+export type ProyectosDepartamento = typeof proyectosDepartamentos.$inferSelect;
+export type NewProyectosDepartamento = typeof proyectosDepartamentos.$inferInsert;

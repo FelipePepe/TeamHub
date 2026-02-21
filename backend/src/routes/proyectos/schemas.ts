@@ -22,6 +22,7 @@ export const createProyectoSchema = z.object({
   presupuestoHoras: z.number().optional(),
   prioridad: z.enum(prioridades).optional(),
   color: z.string().optional(),
+  departamentoIds: z.array(uuidSchema).optional(),
 });
 
 export const updateProyectoSchema = z.object({
@@ -36,6 +37,7 @@ export const updateProyectoSchema = z.object({
   color: z.string().optional(),
   estado: z.enum(estados).optional(),
   activo: z.boolean().optional(),
+  departamentoIds: z.array(uuidSchema).optional(),
 });
 
 export const updateEstadoSchema = z.object({

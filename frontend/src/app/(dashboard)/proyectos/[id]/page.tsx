@@ -82,6 +82,14 @@ export default function ProyectoDetailPage({
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 100 });
   const empleados = empleadosData?.data ?? [];
   const empleadosById = new Map(empleados.map((empleado) => [empleado.id, empleado]));
+
+  /** Filtra empleados por los departamentos asociados al proyecto (N:M). Si no hay filtro, muestra todos. */
+  const empleadosParaAsignacion =
+    proyecto && proyecto.departamentoIds && proyecto.departamentoIds.length > 0
+      ? empleados.filter(
+          (e) => e.departamentoId != null && proyecto.departamentoIds!.includes(e.departamentoId)
+        )
+      : empleados;
   const asignaciones = asignacionesData?.data ?? [];
   const tareas = tareasData?.data ?? [];
 
@@ -287,7 +295,7 @@ export default function ProyectoDetailPage({
           )}
           {canManageProjects && (
             <div className="mt-4">
-              <AddAsignacionButton proyectoId={id} empleados={empleados} />
+              <AddAsignacionButton proyectoId={id} empleados={empleadosParaAsignacion} />
             </div>
           )}
         </CardContent>

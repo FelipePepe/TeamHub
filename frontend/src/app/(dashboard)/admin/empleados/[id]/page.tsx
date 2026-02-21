@@ -105,7 +105,7 @@ export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: str
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl font-semibold uppercase text-foreground">
               {empleado.nombre} {empleado.apellidos}
             </h1>
             <p className="text-muted-foreground">Información del empleado</p>
@@ -140,7 +140,7 @@ export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: str
             {/* Nombre completo */}
             <div>
               <p className="text-sm text-muted-foreground">Nombre completo</p>
-              <p className="text-base font-medium text-foreground">
+              <p className="text-base font-medium uppercase text-foreground">
                 {empleado.nombre} {empleado.apellidos}
               </p>
             </div>

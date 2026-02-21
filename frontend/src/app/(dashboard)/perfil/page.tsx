@@ -91,7 +91,7 @@ export default function PerfilPage() {
               {user?.nombre.charAt(0)}
               {user?.apellidos?.charAt(0)}
             </div>
-            <CardTitle className="mt-4">
+            <CardTitle className="mt-4 uppercase">
               {user?.nombre} {user?.apellidos}
             </CardTitle>
             <CardDescription>{user?.email}</CardDescription>

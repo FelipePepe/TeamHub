@@ -255,7 +255,7 @@ export default function ProcesosPage() {
                   <SelectItem value={FILTRO_TODOS_VALUE}>Todos los empleados</SelectItem>
                   {empleados.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
-                      {emp.nombre} {emp.apellidos}
+                      <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>

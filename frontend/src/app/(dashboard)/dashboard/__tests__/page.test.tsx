@@ -23,7 +23,7 @@ describe('dashboard/page', () => {
   it('renderiza dashboard de admin', () => {
     authMocks.user = { nombre: 'Admin', rol: 'ADMIN' };
     render(<DashboardPage />);
-    expect(screen.getByText(/bienvenido, admin/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /bienvenido.*admin/i })).toBeInTheDocument();
     expect(screen.getByText(/panel de administrador/i)).toBeInTheDocument();
     expect(screen.getByText('AdminDashboard')).toBeInTheDocument();
   });

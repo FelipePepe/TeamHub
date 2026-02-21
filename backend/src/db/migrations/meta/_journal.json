@@ -36,6 +36,13 @@
       "when": 1769950000000,
       "tag": "0004_add_proyectos_departamentos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771705400000,
+      "tag": "0005_partial_unique_codigo_proyectos",
+      "breakpoints": true
     }
   ]
 }

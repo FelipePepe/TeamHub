@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   uuid,
@@ -23,7 +24,7 @@ export const proyectos = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     nombre: varchar('nombre', { length: 150 }).notNull(),
-    codigo: varchar('codigo', { length: 20 }).notNull().unique(),
+    codigo: varchar('codigo', { length: 20 }).notNull(),
     descripcion: text('descripcion'),
 
     // Cliente del proyecto
@@ -60,7 +61,8 @@ export const proyectos = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('proyectos_codigo_idx').on(table.codigo),
+    // Partial unique index: enforces uniqueness only for non-deleted projects
+    uniqueIndex('proyectos_codigo_active_idx').on(table.codigo).where(sql`"deleted_at" IS NULL`),
     index('proyectos_manager_idx').on(table.managerId),
     index('proyectos_estado_idx').on(table.estado),
     index('proyectos_cliente_idx').on(table.cliente),

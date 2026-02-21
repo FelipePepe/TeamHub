@@ -164,7 +164,7 @@ export default function TimetrackingAprobacionPage() {
                 <li key={`${grupo.usuarioId}-${grupo.proyectoId}`} className="border-b border-slate-200 pb-4 last:border-0">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium">{grupo.usuarioNombre ?? grupo.usuarioId}</p>
+                      <p className="font-medium uppercase">{grupo.usuarioNombre ?? grupo.usuarioId}</p>
                       <p className="text-sm text-slate-500">{grupo.proyectoNombre ?? grupo.proyectoId}</p>
                     </div>
                     <div className="flex items-center gap-2">

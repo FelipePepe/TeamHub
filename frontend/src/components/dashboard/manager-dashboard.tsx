@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   Users,
   TrendingUp,
+  TrendingDown,
   Clock,
   FolderKanban,
 } from 'lucide-react';
@@ -39,7 +40,7 @@ export function ManagerDashboard() {
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <KpiCard
           title="Miembros del equipo"
           value={data?.kpis.miembrosEquipo ?? 0}
@@ -64,6 +65,13 @@ export function ManagerDashboard() {
           title="Proyectos activos"
           value={data?.kpis.proyectosActivos ?? 0}
           icon={FolderKanban}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          title="Proyectos con desviacion"
+          value={data?.kpis.proyectosConDesviacion ?? 0}
+          icon={TrendingDown}
+          variant={data?.kpis.proyectosConDesviacion ? 'danger' : 'default'}
           isLoading={isLoading}
         />
       </div>

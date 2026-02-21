@@ -7,6 +7,7 @@ const {
   mockDelete,
   mockFrom,
   mockWhere,
+  mockOrderBy,
   mockLimit,
   mockOffset,
   mockValues,
@@ -17,6 +18,7 @@ const {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
   const mockOffset = vi.fn();
+  const mockOrderBy = vi.fn();
   const mockWhere = vi.fn();
   const mockFrom = vi.fn();
   const mockSet = vi.fn();
@@ -34,6 +36,7 @@ const {
     mockDelete,
     mockFrom,
     mockWhere,
+    mockOrderBy,
     mockLimit,
     mockOffset,
     mockValues,
@@ -107,8 +110,9 @@ describe('timetracking-repository', () => {
   describe('listTimetracking', () => {
     it('should list timetracking entries with no filters and no pagination', async () => {
       const mockEntries = [{ id: 'tt1' }, { id: 'tt2' }];
-      // No clauses => no where; chain: select → from → leftJoin → resolves
-      mockLeftJoin.mockResolvedValue(mockEntries);
+      // No clauses => no where; chain: select → from → leftJoin → orderBy → resolves
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockLeftJoin.mockReturnValue({ orderBy: mockOrderBy });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -118,12 +122,14 @@ describe('timetracking-repository', () => {
       expect(mockSelect).toHaveBeenCalled();
       expect(mockFrom).toHaveBeenCalled();
       expect(mockLeftJoin).toHaveBeenCalled();
+      expect(mockOrderBy).toHaveBeenCalled();
     });
 
     it('should filter by usuarioId', async () => {
       const mockEntries = [{ id: 'tt1', usuarioId: 'u1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -135,8 +141,9 @@ describe('timetracking-repository', () => {
 
     it('should filter by proyectoId', async () => {
       const mockEntries = [{ id: 'tt1', proyectoId: 'p1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -147,8 +154,9 @@ describe('timetracking-repository', () => {
 
     it('should filter by estado', async () => {
       const mockEntries = [{ id: 'tt1', estado: 'APROBADO' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -159,8 +167,9 @@ describe('timetracking-repository', () => {
 
     it('should filter by facturable', async () => {
       const mockEntries = [{ id: 'tt1', facturable: true }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -171,8 +180,9 @@ describe('timetracking-repository', () => {
 
     it('should filter by fechaInicio', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -183,8 +193,9 @@ describe('timetracking-repository', () => {
 
     it('should filter by fechaFin', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -195,11 +206,12 @@ describe('timetracking-repository', () => {
 
     it('should apply pagination when page and limit are provided', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      // chain: select → from → leftJoin → where → limit → offset
+      // chain: select → from → leftJoin → where → orderBy → limit → offset
       mockOffset.mockResolvedValue(mockEntries);
       mockLimit.mockReturnValue({ offset: mockOffset });
-      mockWhere.mockReturnValue({ limit: mockLimit });
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockReturnValue({ limit: mockLimit });
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -212,8 +224,9 @@ describe('timetracking-repository', () => {
 
     it('should not apply pagination when pagination object is absent', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockLeftJoin.mockReturnValue({ where: mockWhere, limit: mockLimit });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
       mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 

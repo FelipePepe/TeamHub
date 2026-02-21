@@ -8,6 +8,7 @@ import type { ApiError } from '@/types';
 import type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
 import { STALE_TIME } from '@/lib/query-config';
 import { empleadosKeys } from './empleados/keys';
+import { departamentosKeys } from './use-departamentos';
 import {
   createEmpleado,
   deleteEmpleado,
@@ -47,6 +48,7 @@ export function useEmpleados(filters?: EmpleadoFilters, enabled = true) {
   return useQuery({
     queryKey: empleadosKeys.list(filters),
     queryFn: () => fetchEmpleados(filters),
+    enabled,
     staleTime: STALE_TIME.LONG,
     enabled,
   });
@@ -84,8 +86,9 @@ export function useCreateEmpleado() {
   return useMutation({
     mutationFn: createEmpleado,
     onSuccess: () => {
-      // Invalidar todas las listas para refrescar datos
+      // Invalidar listas de empleados y conteos de departamentos
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al crear empleado:', error);
@@ -111,6 +114,8 @@ export function useUpdateEmpleado() {
       // Invalidar también queries por departamento y manager
       queryClient.invalidateQueries({ queryKey: [empleadosKeys.all[0], 'departamento'] });
       queryClient.invalidateQueries({ queryKey: [empleadosKeys.all[0], 'manager'] });
+      // Invalidar conteos de departamentos (el empleado puede haber cambiado de depto)
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar empleado:', error);
@@ -127,8 +132,9 @@ export function useDeleteEmpleado() {
   return useMutation({
     mutationFn: deleteEmpleado,
     onSuccess: () => {
-      // Invalidar todas las listas para refrescar datos
+      // Invalidar listas de empleados y conteos de departamentos
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar empleado:', error);

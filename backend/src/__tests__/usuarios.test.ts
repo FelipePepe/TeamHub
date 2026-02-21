@@ -63,7 +63,7 @@ describe('usuarios routes', () => {
     const created = await createResponse.json();
     expect(created).toMatchObject({
       email: payload.email,
-      nombre: payload.nombre,
+      nombre: payload.nombre.toUpperCase(),
       rol: payload.rol,
       activo: true,
     });

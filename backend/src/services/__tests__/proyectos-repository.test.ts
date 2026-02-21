@@ -248,6 +248,17 @@ describe('proyectos-repository', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should return null for a soft-deleted project with same code (allows code reuse)', async () => {
+      // The query filters by deletedAt IS NULL so soft-deleted projects
+      // are not returned, allowing the same code to be reused.
+      setupSelectChain([]);
+
+      const result = await findProyectoByCodigo('PRJ-001');
+
+      expect(result).toBeNull();
+      expect(mockWhere).toHaveBeenCalled();
+    });
   });
 
   describe('createProyecto', () => {

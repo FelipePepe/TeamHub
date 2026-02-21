@@ -56,8 +56,18 @@ export const findProyectoById = async (id: string) => {
   return result[0] ?? null;
 };
 
+/**
+ * Busca un proyecto activo (no eliminado) por su código.
+ * Excluye proyectos con soft-delete para permitir reutilización del código.
+ * @param codigo - Código único del proyecto.
+ * @returns Proyecto activo o null si no existe o fue eliminado.
+ */
 export const findProyectoByCodigo = async (codigo: string) => {
-  const result = await db.select().from(proyectos).where(eq(proyectos.codigo, codigo)).limit(1);
+  const result = await db
+    .select()
+    .from(proyectos)
+    .where(and(eq(proyectos.codigo, codigo), isNull(proyectos.deletedAt)))
+    .limit(1);
   return result[0] ?? null;
 };
 

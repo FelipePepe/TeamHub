@@ -18,6 +18,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       DISABLE_HMAC: 'true',
+      DOTENV_CONFIG_PATH: './.env.test',
     },
     coverage: {
       provider: 'v8',

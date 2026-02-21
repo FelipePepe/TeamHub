@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, Plus, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, Plus, CheckCircle, XCircle, Briefcase, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -12,11 +12,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  useMisRegistros,
+  useTimeEntries,
   useResumenTimetracking,
   useCreateTimeEntry,
   useTimeEntriesSemana,
@@ -25,6 +24,8 @@ import {
 } from '@/hooks/use-timetracking';
 import { useProyectos, useMisProyectos } from '@/hooks/use-proyectos';
 import { usePermissions } from '@/hooks/use-permissions';
+import { useAuth } from '@/hooks/use-auth';
+import { useEmpleados, useEmpleadosByManager } from '@/hooks/use-empleados';
 import { toast } from 'sonner';
 import { format, startOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -42,17 +43,22 @@ import { calculateProgress } from '@/lib/gantt-utils';
 const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
 const LOADING_REGISTROS_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
-/**
- * Resuelve el variant visual para el estado de un registro.
- */
-function getRegistroEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' {
-  if (estado === 'APROBADO') {
-    return 'default';
-  }
-  if (estado === 'RECHAZADO') {
-    return 'destructive';
-  }
-  return 'secondary';
+/** Color de fondo/texto del pill de horas según el total de horas del registro. */
+function getHorasColor(horas: number): string {
+  if (horas >= 8) return 'bg-blue-500/15 text-blue-400';
+  if (horas >= 4) return 'bg-indigo-500/15 text-indigo-400';
+  return 'bg-slate-500/15 text-slate-400';
+}
+
+/** Estilos del indicador de estado. */
+const ESTADO_STYLES: Record<string, { dot: string; text: string; bg: string }> = {
+  APROBADO:  { dot: 'bg-emerald-400', text: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+  RECHAZADO: { dot: 'bg-red-400',     text: 'text-red-400',     bg: 'bg-red-400/10'     },
+  PENDIENTE: { dot: 'bg-amber-400',   text: 'text-amber-400',   bg: 'bg-amber-400/10'   },
+};
+
+function getEstadoStyle(estado: string) {
+  return ESTADO_STYLES[estado] ?? { dot: 'bg-slate-400', text: 'text-slate-400', bg: 'bg-slate-400/10' };
 }
 
 /**
@@ -71,7 +77,8 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 
 export default function TimetrackingPage() {
   const router = useRouter();
-  const { canApproveHours } = usePermissions();
+  const { user } = useAuth();
+  const { canApproveHours, canViewOthersHours, canWriteOthersHours, isManager } = usePermissions();
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('registros');
 
@@ -79,8 +86,17 @@ export default function TimetrackingPage() {
   const [timesheetDate, setTimesheetDate] = useState(new Date());
   const [showCopyDialog, setShowCopyDialog] = useState(false);
 
+  // User selector state (for privileged roles)
+  const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined);
+  /** Filtro de la pestaña Registros: '__todos__' = sin filtro de usuario. */
+  const [registrosFilterUserId, setRegistrosFilterUserId] = useState<string>('__todos__');
+
   // Data hooks
-  const { data: misRegistrosData, isLoading, error } = useMisRegistros();
+  const registrosFilter =
+    canViewOthersHours && registrosFilterUserId !== '__todos__'
+      ? { usuarioId: registrosFilterUserId }
+      : undefined;
+  const { data: registrosData, isLoading, error } = useTimeEntries(registrosFilter);
   const { data: resumen } = useResumenTimetracking();
   const createEntry = useCreateTimeEntry();
   const updateEntry = useUpdateTimeEntry();
@@ -90,11 +106,28 @@ export default function TimetrackingPage() {
 
   const proyectos = proyectosData?.data ?? [];
   const misProyectos = useMemo(() => misProyectosData?.data ?? [], [misProyectosData]);
-  const registros = misRegistrosData?.data ?? [];
+  const registros = registrosData?.data ?? [];
+
+  /** Mapa proyectoId → nombre para los registros del listado. */
+  const proyectoNombreMap = useMemo(
+    () => new Map(proyectos.map((p) => [p.id, p.nombre])),
+    [proyectos]
+  );
+
+  // Employee lists for user selector
+  const canFetchAll = canViewOthersHours && !isManager;
+  const { data: todosEmpleadosData } = useEmpleados({ activo: true }, canFetchAll);
+  const { data: equipoData } = useEmpleadosByManager(
+    user?.id ?? '',
+    isManager
+  );
+  const empleadosParaSelector = isManager
+    ? (equipoData ?? [])
+    : (todosEmpleadosData?.data ?? []);
 
   // Timesheet data
   const weekStartStr = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-  const { data: semanaData, isLoading: isLoadingSemana } = useTimeEntriesSemana(weekStartStr);
+  const { data: semanaData, isLoading: isLoadingSemana } = useTimeEntriesSemana(weekStartStr, selectedUserId);
   const registrosSemana = useMemo(() => semanaData?.data ?? [], [semanaData]);
 
   const handleCellChange = useCallback(
@@ -117,6 +150,8 @@ export default function TimetrackingPage() {
             fecha,
             horas,
             descripcion: 'Registro desde timesheet',
+            // Pass usuarioId if a different user is selected (privileged roles only)
+            ...(canWriteOthersHours && selectedUserId ? { usuarioId: selectedUserId } : {}),
           });
         }
         toast.success('Horas actualizadas');
@@ -124,7 +159,7 @@ export default function TimetrackingPage() {
         toast.error('Error al actualizar horas');
       }
     },
-    [registrosSemana, updateEntry, createEntry]
+    [registrosSemana, updateEntry, createEntry, selectedUserId, canWriteOthersHours]
   );
 
   const handleCopyWeek = useCallback(async () => {
@@ -214,7 +249,7 @@ export default function TimetrackingPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="registros">Mis Registros</TabsTrigger>
+          <TabsTrigger value="registros">{canViewOthersHours ? 'Registros' : 'Mis Registros'}</TabsTrigger>
           <TabsTrigger value="timesheet">Timesheet Semanal</TabsTrigger>
           <TabsTrigger value="gantt">Diagrama Gantt</TabsTrigger>
         </TabsList>
@@ -222,8 +257,33 @@ export default function TimetrackingPage() {
         <TabsContent value="registros">
           <Card>
             <CardHeader>
-              <CardTitle>Mis registros</CardTitle>
-              <CardDescription>Listado de entradas de tiempo</CardDescription>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>{canViewOthersHours ? 'Registros' : 'Mis registros'}</CardTitle>
+                  <CardDescription>Listado de entradas de tiempo</CardDescription>
+                </div>
+                {canViewOthersHours && empleadosParaSelector.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
+                    <Select
+                      value={registrosFilterUserId}
+                      onValueChange={setRegistrosFilterUserId}
+                    >
+                      <SelectTrigger className="w-56">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__todos__">Todos</SelectItem>
+                        {empleadosParaSelector.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.nombre} {emp.apellidos}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -244,25 +304,71 @@ export default function TimetrackingPage() {
                   </Button>
                 </div>
               ) : (
-                <ul className="divide-y divide-slate-200">
-                  {registros.slice(0, 50).map((r) => (
-                    <li key={r.id} className="flex items-center justify-between py-3">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}</span>
-                        <span className="text-muted-foreground">{r.horas}h</span>
-                        <span className="text-sm text-muted-foreground truncate max-w-[200px]">{r.descripcion}</span>
-                      </div>
-                      <Badge
-                        variant={getRegistroEstadoVariant(r.estado)}
+                <div className="divide-y divide-border">
+                  {registros.slice(0, 50).map((r) => {
+                    const estadoStyle = getEstadoStyle(r.estado);
+                    const proyectoNombre = proyectoNombreMap.get(r.proyectoId);
+                    const horas = Number(r.horas ?? 0);
+                    return (
+                      <div
+                        key={r.id}
+                        className="group flex items-center gap-4 px-1 py-3.5 hover:bg-muted/40 transition-colors"
                       >
-                        {r.estado === 'APROBADO' && <CheckCircle className="mr-1 h-3 w-3" />}
-                        {r.estado === 'RECHAZADO' && <XCircle className="mr-1 h-3 w-3" />}
-                        {r.estado}
-                      </Badge>
-                    </li>
-                  ))}
-                </ul>
+                        {/* Estado — barra lateral de color */}
+                        <div className={`h-8 w-1 rounded-full flex-shrink-0 ${estadoStyle.dot}`} />
+
+                        {/* Fecha */}
+                        <div className="w-28 flex-shrink-0">
+                          <span className="text-sm font-semibold text-foreground">
+                            {format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}
+                          </span>
+                        </div>
+
+                        {/* Horas */}
+                        <div className={`flex-shrink-0 rounded-md px-2.5 py-0.5 text-sm font-bold tabular-nums ${getHorasColor(horas)}`}>
+                          {horas % 1 === 0 ? horas : horas.toFixed(1)}h
+                        </div>
+
+                        {/* Proyecto */}
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          {proyectoNombre && (
+                            <div className="flex flex-shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-0.5">
+                              <Briefcase className="h-3 w-3 text-muted-foreground" />
+                              <span className="max-w-[160px] truncate text-xs font-medium text-muted-foreground">
+                                {proyectoNombre}
+                              </span>
+                            </div>
+                          )}
+                          <span className="truncate text-sm text-muted-foreground">{r.descripcion}</span>
+                        </div>
+
+                        {/* Empleado (solo roles privilegiados) */}
+                        {canViewOthersHours && r.usuarioNombre && (
+                          <div className="flex flex-shrink-0 items-center gap-1.5">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                              {r.usuarioNombre.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="hidden text-sm font-medium text-foreground sm:inline">{r.usuarioNombre}</span>
+                          </div>
+                        )}
+
+                        {/* Facturable */}
+                        {r.facturable && (
+                          <div className="flex-shrink-0" title="Facturable">
+                            <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
+                          </div>
+                        )}
+
+                        {/* Estado badge */}
+                        <div className={`flex-shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${estadoStyle.bg} ${estadoStyle.text}`}>
+                          {r.estado === 'APROBADO'  && <CheckCircle className="h-3 w-3" />}
+                          {r.estado === 'RECHAZADO' && <XCircle     className="h-3 w-3" />}
+                          {r.estado}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -275,6 +381,27 @@ export default function TimetrackingPage() {
               <CardDescription>Vista de horas por proyecto y día de la semana</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {canViewOthersHours && empleadosParaSelector.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
+                  <Select
+                    value={selectedUserId ?? '__propio__'}
+                    onValueChange={(v) => setSelectedUserId(v === '__propio__' ? undefined : v)}
+                  >
+                    <SelectTrigger className="w-56">
+                      <SelectValue placeholder="Mis horas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__propio__">Mis horas</SelectItem>
+                      {empleadosParaSelector.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.nombre} {emp.apellidos}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <WeekNavigation
                 currentDate={timesheetDate}
                 onDateChange={setTimesheetDate}

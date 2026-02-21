@@ -65,10 +65,10 @@ export function useMisRegistros() {
   });
 }
 
-export function useTimeEntriesSemana(fecha: string, enabled = true) {
+export function useTimeEntriesSemana(fecha: string, usuarioId?: string, enabled = true) {
   return useQuery({
-    queryKey: timetrackingKeys.semana(fecha),
-    queryFn: () => fetchSemana(fecha),
+    queryKey: timetrackingKeys.semana(fecha, usuarioId),
+    queryFn: () => fetchSemana(fecha, usuarioId),
     enabled: enabled && !!fecha,
     staleTime: STALE_TIME.MEDIUM,
   });

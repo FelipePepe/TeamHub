@@ -31,6 +31,7 @@ export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
  * Hook para listar empleados con filtros opcionales y paginación
  *
  * @param filters - Filtros opcionales (búsqueda, rol, departamento, activo, paginación)
+ * @param enabled - Si debe ejecutarse la query (por defecto true)
  * @returns Query result con lista de empleados y metadata de paginación
  *
  * @example

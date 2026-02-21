@@ -24,6 +24,8 @@ const eslintConfig = [
     },
     rules: {
       ...tsPlugin.configs['recommended'].rules,
+      // Prohíbe claves duplicadas en object literals (ej: { enabled, enabled })
+      'no-dupe-keys': 'error',
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',

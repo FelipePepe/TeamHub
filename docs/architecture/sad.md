@@ -54,7 +54,7 @@ flowchart LR
 ### 5.3 Base de datos
 - PostgreSQL 16.
 - Soft delete en entidades criticas.
-- Relaciones clave: usuarios -> departamentos/manager, procesos -> plantillas, proyectos -> asignaciones.
+- Relaciones clave: usuarios -> departamentos/manager, procesos -> plantillas, proyectos -> asignaciones, proyectos ↔ departamentos (N:M via `proyectos_departamentos`).
 
 ## 6. Modelo de datos (resumen)
 - Usuarios y roles: ADMIN, RRHH, MANAGER, EMPLEADO.

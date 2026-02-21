@@ -276,10 +276,12 @@ export function TaskFormModal({
                   <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
                   {empleados.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id}>
-                      <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
-                      {emp.rol && (
-                        <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
-                      )}
+                      <span>
+                        <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
+                        {emp.rol && (
+                          <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                        )}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>

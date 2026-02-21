@@ -232,64 +232,63 @@ export function TaskFormModal({
             )}
           </div>
 
-          {/* Prioridad y Usuario */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="prioridad">Prioridad</Label>
-              <Select
-                value={prioridad}
-                onValueChange={(value) => setValue('prioridad', value as PrioridadTarea)}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger id="prioridad">
-                  <SelectValue placeholder="Seleccionar prioridad" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRIORIDADES.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.prioridad && (
-                <p className="text-sm text-red-500">{errors.prioridad.message}</p>
-              )}
-            </div>
+          {/* Prioridad */}
+          <div className="space-y-2">
+            <Label htmlFor="prioridad">Prioridad</Label>
+            <Select
+              value={prioridad}
+              onValueChange={(value) => setValue('prioridad', value as PrioridadTarea)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="prioridad">
+                <SelectValue placeholder="Seleccionar prioridad" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRIORIDADES.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.prioridad && (
+              <p className="text-sm text-red-500">{errors.prioridad.message}</p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
-              <Select
-                value={usuarioAsignadoId || USUARIO_SIN_ASIGNAR_VALUE}
-                onValueChange={(value) =>
-                  setValue(
-                    'usuarioAsignadoId',
-                    value === USUARIO_SIN_ASIGNAR_VALUE ? undefined : value
-                  )
-                }
-                disabled={isSubmitting}
-              >
-                <SelectTrigger id="usuarioAsignadoId">
-                  <SelectValue placeholder="Seleccionar usuario" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
-                  {empleados.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      <span>
-                        <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
-                        {emp.rol && (
-                          <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
-                        )}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.usuarioAsignadoId && (
-                <p className="text-sm text-red-500">{errors.usuarioAsignadoId.message}</p>
-              )}
-            </div>
+          {/* Asignado a */}
+          <div className="space-y-2">
+            <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
+            <Select
+              value={usuarioAsignadoId || USUARIO_SIN_ASIGNAR_VALUE}
+              onValueChange={(value) =>
+                setValue(
+                  'usuarioAsignadoId',
+                  value === USUARIO_SIN_ASIGNAR_VALUE ? undefined : value
+                )
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="usuarioAsignadoId">
+                <SelectValue placeholder="Seleccionar usuario" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
+                {empleados.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    <span>
+                      <span className="uppercase">{emp.nombre} {emp.apellidos || ''}</span>
+                      {emp.rol && (
+                        <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                      )}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.usuarioAsignadoId && (
+              <p className="text-sm text-red-500">{errors.usuarioAsignadoId.message}</p>
+            )}
           </div>
 
           {/* Fechas */}

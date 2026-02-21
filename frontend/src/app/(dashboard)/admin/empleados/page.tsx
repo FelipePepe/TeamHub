@@ -292,7 +292,7 @@ export default function EmpleadosPage() {
                               {empleado.apellidos?.charAt(0) ?? ''}
                             </div>
                             <div>
-                              <p className="font-medium text-slate-900 dark:text-slate-100">
+                              <p className="font-medium uppercase text-slate-900 dark:text-slate-100">
                                 {empleado.nombre} {empleado.apellidos}
                               </p>
                               {empleado.departamentoNombre && (

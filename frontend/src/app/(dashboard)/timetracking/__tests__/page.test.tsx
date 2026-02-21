@@ -110,6 +110,10 @@ vi.mock('@/hooks/use-timetracking', () => ({
   useUpdateTimeEntry: () => ({
     mutateAsync: timetrackingMocks.updateMutateAsync,
   }),
+  useDeleteTimeEntry: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
   useCopiarRegistros: () => ({
     mutateAsync: timetrackingMocks.copyMutateAsync,
     isPending: timetrackingMocks.copyPending,
@@ -127,6 +131,10 @@ vi.mock('@/hooks/use-proyectos', () => ({
   }),
   useMisProyectos: () => ({
     data: { data: [{ id: 'p-1', nombre: 'Atlas', codigo: 'ATL', fechaInicio: '2026-01-01', fechaFinEstimada: '2026-03-01' }] },
+    isLoading: false,
+  }),
+  useAsignaciones: () => ({
+    data: { data: [] },
     isLoading: false,
   }),
 }));

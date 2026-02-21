@@ -39,6 +39,11 @@ vi.mock('@/hooks/use-proyectos', () => ({
   useDeleteProyecto: () => ({ mutateAsync: mutMocks.deleteProyecto, isPending: false }),
   useCreateAsignacion: () => ({ mutateAsync: mutMocks.createAsig, isPending: false }),
   useDeleteAsignacion: () => ({ mutateAsync: mutMocks.deleteAsig, isPending: false }),
+  useCreateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+vi.mock('@/hooks/use-departamentos', () => ({
+  useDepartamentos: () => ({ data: { data: [] }, isLoading: false }),
 }));
 vi.mock('@/hooks/use-empleados', () => ({ useEmpleados: () => dataMocks.empleados }));
 vi.mock('@/hooks/use-tareas', () => ({ useTareasByProyecto: () => dataMocks.tareas }));
@@ -144,7 +149,8 @@ describe('Proyectos/[id] page', () => {
 
     await waitFor(() => {
       expect(mutMocks.deleteProyecto).toHaveBeenCalledWith('p1');
-      expect(routerMocks.push).toHaveBeenCalledWith('/proyectos?editar=p1');
+      // After delete, navigates to projects list (edit opens modal, not a navigation)
+      expect(routerMocks.push).toHaveBeenCalledWith('/proyectos');
     });
   });
 

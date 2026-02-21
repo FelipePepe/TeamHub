@@ -15,6 +15,8 @@ const toastMocks = vi.hoisted(() => ({
 
 vi.mock('@/hooks/use-proyectos', () => ({
   useCreateProyecto: () => ({ mutateAsync: proyectoMocks.create, isPending: false }),
+  useUpdateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useProyecto: () => ({ data: null }),
 }));
 
 vi.mock('@/hooks/use-departamentos', () => ({

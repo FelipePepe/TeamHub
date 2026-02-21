@@ -75,6 +75,12 @@ vi.mock('@/components/ui/select', async () => {
   };
 });
 
+vi.mock('@radix-ui/react-select', () => ({
+  Item: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ItemIndicator: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  ItemText: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+}));
+
 describe('TaskFormModal', () => {
   beforeEach(() => {
     tareasMocks.create.mockReset();

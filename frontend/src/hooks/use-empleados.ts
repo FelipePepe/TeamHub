@@ -30,6 +30,7 @@ export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
  * Hook para listar empleados con filtros opcionales y paginación
  *
  * @param filters - Filtros opcionales (búsqueda, rol, departamento, activo, paginación)
+ * @param enabled - Si debe ejecutarse la query (por defecto true)
  * @returns Query result con lista de empleados y metadata de paginación
  *
  * @example
@@ -42,11 +43,12 @@ export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
  * });
  * ```
  */
-export function useEmpleados(filters?: EmpleadoFilters) {
+export function useEmpleados(filters?: EmpleadoFilters, enabled = true) {
   return useQuery({
     queryKey: empleadosKeys.list(filters),
     queryFn: () => fetchEmpleados(filters),
     staleTime: STALE_TIME.LONG,
+    enabled,
   });
 }
 

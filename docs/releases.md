@@ -6,6 +6,38 @@ Para ver el historial completo de decisiones arquitecturales, consultar [docs/de
 
 ---
 
+## v1.7.0 - Proyectos Multi-departamento + Bugfixes (2026-02-21)
+
+**N:M Proyectos ↔ Departamentos, filtro de empleados, fixes de calidad**
+
+### 🎯 Features y Fixes
+- ✅ **N:M Proyectos-Departamentos** (ADR-113)
+  - Tabla pivote `proyectos_departamentos` con relación many-to-many
+  - Proyectos pueden pertenecer a múltiples departamentos simultáneamente
+  - Script de migración `migrate-proyectos-departamentos.ts` (workaround Node 25 / drizzle-kit)
+  - Nuevas funciones de repositorio: `addDepartamentoToProyecto`, `removeDepartamentoFromProyecto`, `getProyectosByDepartamento`
+  - Frontend: selector multi-departamento en formulario de proyecto
+  - Filtro de empleados en "Añadir asignación" limitado por departamentos del proyecto
+
+- ✅ **Fix uppercase nombres de usuario** (ADR-111, PR #137)
+  - Corrección en endpoint de actualización de perfil: nombres se guardan con case original
+
+- ✅ **Fix totalTareas en plantillas onboarding** (ADR-112, PR #138)
+  - Cambio de `inner join` → `left join` + `countDistinct` en consulta de plantillas
+  - Corregía conteo incorrecto cuando una plantilla no tenía tareas asignadas
+
+### 📊 Métricas
+- Tests: **1,046 pasando** (663 backend + 383 frontend)
+- Coverage: Backend ≥81%, Frontend ≥90%
+- SonarQube: 0 bugs, 0 vulnerabilities, 0 hotspots
+
+### 🔗 Referencias
+- Branch: `feature/proyectos-departamentos` (commit `0fdc618`)
+- PRs: #137 (uppercase fix), #138 (totalTareas fix), PR pendiente (N:M)
+- ADR-111, ADR-112, ADR-113
+
+---
+
 ## v1.6.1 - CORS Dynamic Validation & Docs Modularization (2026-02-14)
 
 **Mejoras de Configuración y Documentación**

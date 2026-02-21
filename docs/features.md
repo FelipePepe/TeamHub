@@ -70,10 +70,12 @@ Este documento detalla las funcionalidades implementadas en TeamHub, organizadas
 - Estados: Planificación, Activo, Pausado, Completado, Cancelado
 - Código automático (PRJ-001, PRJ-002, etc.)
 - Asignación de manager responsable
+- **Proyectos multi-departamento:** relación N:M con tabla pivote `proyectos_departamentos`
 - Estadísticas de horas consumidas vs presupuesto
 
 ### Asignaciones
 - Asignar empleados a proyectos
+- **Filtro de candidatos** por departamentos del proyecto (sólo muestra empleados de los departamentos asignados)
 - Definir rol en el proyecto
 - Dedicación (% o horas semanales)
 - Fechas de inicio y fin

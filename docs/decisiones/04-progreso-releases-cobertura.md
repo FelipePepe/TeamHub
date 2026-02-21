@@ -1091,12 +1091,234 @@ cors({
 - **Linting:** 49 warnings (solo `any` en tests, no bloquea)
 
 #### Versión Actual
-- **Production (main):** v1.6.0
-- **Development (develop):** Sincronizado con v1.6.0
-- **Última release:** 2026-02-14 (Code Quality & Security)
+- **Production (main):** v1.6.1
+- **Development (develop):** v1.7.0 (en feature branch)
+- **Última release:** 2026-02-14 (CORS + Docs Modularization)
 
 #### Próxima Milestone
-- TFM Presentation preparación
+- ✅ N:M proyectos-departamentos (feature/proyectos-departamentos → v1.7.0)
+- Preparación presentación TFM
 - Monitoreo producción
 - Mejoras continuas de calidad
+
+---
+
+## ADRs Recientes (2026-02-21)
+
+### ADR-111: Fix Uppercase Nombres de Usuario
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/uppercase-nombres-usuarios`
+**PR:** #137 → develop
+
+#### Contexto
+Los nombres de usuario aparecían sin formato capitalizado en múltiples pantallas (timetracking, proyectos, dashboard), generando inconsistencia visual. El nombre venía directamente de la base de datos en minúsculas.
+
+#### Decisión
+Aplicar transformación CSS `text-transform: uppercase` (o equivalente con `capitalize`) de forma consistente en **todos los componentes** que muestran nombres de usuario, en lugar de hacerlo solo en algunos sitios.
+
+#### Implementación
+- `frontend/src/app/(dashboard)/timetracking/page.tsx`: Capitalización en tabla de registros
+- `frontend/src/app/(dashboard)/timetracking/aprobacion/page.tsx`: Capitalización en columna empleado
+- Revisión global de pantallas que renderizan `nombre + apellidos`
+
+#### Consecuencias
+- ✅ Presentación visual consistente en todas las pantallas
+- ✅ Sin cambios en base de datos ni API (solo UI)
+- ✅ Sin impacto en tests existentes
+- 📊 Cambio puro de presentación: ~10 líneas modificadas
+
+---
+
+### ADR-112: Fix totalTareas en Listado de Plantillas (LEFT JOIN)
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/plantillas-totalTareas-count`
+**PR:** #138 → develop
+
+#### Contexto
+El endpoint `GET /plantillas` devolvía `totalTareas: 0` para todas las plantillas aunque tuvieran tareas. La causa era una subconsulta correlacionada que no se ejecutaba correctamente con el JOIN existente.
+
+#### Decisión
+Reemplazar la subconsulta correlacionada por un `LEFT JOIN` con `count()` usando la función `countDistinct` de Drizzle ORM. Esto garantiza que cada plantilla incluya el conteo real de tareas asociadas.
+
+#### Implementación
+```typescript
+// backend/src/services/plantillas-repository.ts
+// ANTES: subconsulta correlacionada (buggy)
+// DESPUÉS: LEFT JOIN con count
+const result = await db
+  .select({
+    ...plantillasFields,
+    totalTareas: countDistinct(tareaPlantillas.id),
+  })
+  .from(plantillas)
+  .leftJoin(tareaPlantillas, eq(tareaPlantillas.plantillaId, plantillas.id))
+  .groupBy(plantillas.id);
+```
+
+#### Consecuencias
+- ✅ `totalTareas` refleja el conteo real en el listado
+- ✅ Rendimiento igual o mejor que la subconsulta correlacionada
+- ✅ Tests actualizados para validar el conteo correcto
+- ✅ Compatible con paginación y filtros existentes
+- 📊 Cambio mínimo: 1 función modificada, tests actualizados
+
+---
+
+### ADR-113: N:M Proyectos-Departamentos + Filtro de Empleados
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**Commit:** `0fdc618`
+
+#### Contexto
+Los proyectos solo podían pertenecer a un único departamento (FK simple). Surgió la necesidad de proyectos interdepartamentales. Además, el modal "Añadir asignación" mostraba todos los empleados de la empresa, dificultando la selección cuando el proyecto tiene departamentos bien definidos.
+
+#### Decisión
+Implementar relación **N:M entre proyectos y departamentos** mediante tabla pivote `proyectos_departamentos`. Al añadir empleados a un proyecto, filtrar la lista de candidatos a los empleados de los departamentos del proyecto.
+
+**Alternativas consideradas:**
+1. FK simple `departamento_id` en proyectos — descartado: no cubre proyectos mixtos
+2. Array de IDs en columna JSON — descartado: pierde integridad referencial
+3. **Tabla pivote `proyectos_departamentos`** — elegida: normalización correcta, FK con CASCADE
+
+#### Implementación
+
+**DB Migration:**
+```sql
+CREATE TABLE proyectos_departamentos (
+  proyecto_id  uuid NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,
+  departamento_id uuid NOT NULL REFERENCES departamentos(id) ON DELETE CASCADE,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (proyecto_id, departamento_id)
+);
+CREATE INDEX proyectos_departamentos_proyecto_idx    ON proyectos_departamentos (proyecto_id);
+CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos (departamento_id);
+```
+
+> **Nota técnica:** `drizzle-kit generate` y `db:push` fallan en Node.js 25 con `ERR_PACKAGE_PATH_NOT_EXPORTED` para `./_relations`. Solución: script de migración manual `backend/scripts/migrate-proyectos-departamentos.ts` aplicado directamente a Aiven y a `teamhub_test`.
+
+**Backend (`backend/src/db/schema/proyectos.ts`):**
+- Tabla `proyectosDepartamentos` con `primaryKey`, índices y CASCADE
+
+**Repository (`backend/src/services/proyectos-repository.ts`):**
+- `getDepartamentosForProyecto(proyectoId)`: retorna `string[]` de IDs
+- `setDepartamentosForProyecto(proyectoId, deptIds[])`: delete + insert
+- `findProyectoWithDepartamentos(id)`: `findProyectoById` + `getDepartamentosForProyecto`
+
+**Mappers y Handlers:**
+- `departamentoIds?: string[]` añadido al response del mapper
+- `departamentoIds` opcional en schemas Zod de `POST /proyectos` y `PUT /proyectos/:id`
+- `GET /proyectos/:id` usa `findProyectoWithDepartamentos`
+
+**Frontend:**
+- `frontend/src/hooks/proyectos/types.ts`: `departamentoIds?: string[]` en `Proyecto`, `CreateProyectoData`, `UpdateProyectoData`
+- `frontend/src/components/forms/proyecto-form.tsx`: checkbox list para selección múltiple de departamentos usando `useDepartamentos`
+- `frontend/src/app/(dashboard)/proyectos/[id]/page.tsx`: `empleadosParaAsignacion` filtra empleados por `departamentoId` ∈ `proyecto.departamentoIds`; fallback a todos si el proyecto no tiene departamentos configurados
+
+#### Tests añadidos
+- Backend: 6 nuevos tests en `proyectos-repository.test.ts` (getDepartamentos, setDepartamentos, findProyectoWithDepartamentos)
+- Backend: 2 nuevos tests en `mappers.test.ts` (departamentoIds presente/ausente)
+- Frontend: mock `useDepartamentos` en `proyecto-form.test.tsx`
+
+#### Consecuencias
+- ✅ Proyectos pueden pertenecer a múltiples departamentos
+- ✅ Modal "Añadir asignación" muestra solo empleados relevantes
+- ✅ Backward compatible: proyectos existentes tienen `departamentoIds: []`
+- ✅ 663 backend tests + 383 frontend tests pasando
+- ✅ Linting: 0 errores
+- 📊 15 ficheros modificados (+nueva tabla + nuevas funciones de repositorio)
+- ⚠️ drizzle-kit CLI roto en Node.js 25: workaround documentado en `backend/scripts/migrate-proyectos-departamentos.ts`
+
+---
+
+## Release v1.7.0 (2026-02-21)
+
+**Branch de Release:** `feature/proyectos-departamentos` → develop → main  
+**Descripción:** Proyectos Multi-departamento + Bugfixes
+
+### Features y Fixes
+
+#### ✅ ADR-113: N:M Proyectos-Departamentos (feature)
+- Nueva tabla `proyectos_departamentos` con relación N:M
+- Formulario de proyecto con selector múltiple de departamentos
+- Filtro de empleados en "Añadir asignación" según departamentos del proyecto
+- 6 nuevos tests de repositorio + 2 en mappers
+
+#### ✅ ADR-112: Fix totalTareas en Plantillas (bugfix)
+- `listPlantillas` devolvía siempre `totalTareas: 0`
+- Corregido con LEFT JOIN + countDistinct
+- PR #138 mergeado a develop
+
+#### ✅ ADR-111: Fix Uppercase Nombres (bugfix)
+- Capitalización inconsistente en timetracking y otras pantallas
+- Aplicado en todos los componentes afectados
+- PR #137 mergeado a develop
+
+### Métricas v1.7.0
+
+| Componente | Tests | Cobertura |
+|------------|-------|-----------|
+| Backend | **663** (+8 vs v1.6.1) | 81.01% |
+| Frontend | **383** (estable) | 90.07% |
+| **Total** | **1,046** (+8) | **85.54%** |
+
+### Calidad
+- SonarQube: 0 bugs · 0 vulnerabilities · 0 hotspots
+- Linting: 0 errores · 49 warnings (pre-existentes, solo `any` en tests)
+- Security audit: 0 high-severity CVEs
+
+### Releases Historial Actualizado
+
+| Versión | Fecha | Descripción | PRs |
+|---------|-------|-------------|-----|
+| **1.7.0** | 2026-02-21 | N:M Proyectos-Deps + uppercase fix + totalTareas fix | feature/proyectos-departamentos, #137, #138 |
+| **1.6.1** | 2026-02-14 | CORS Dynamic Validation + Docs Modularization | #125, #126, #127 |
+| **1.6.0** | 2026-02-14 | Code Quality & Security: Optimization, Coverage 81%/90%, SonarQube clean | #115–#123 |
+| **1.5.1** | 2026-02-14 | Bump version tras merge de features | #119, #121 |
+| **1.5.0** | 2026-02-10 | Security hardening: Secrets, CVE audit, CSRF, httpOnly cookies | #106, #107 |
+| **1.4.0** | 2026-02-07 | E2E testing + managerId filter + D3 charts D3.js completo | #92, #93 |
+| **1.3.0** | 2026-01-31 | Sistema de tareas + modularización backend + dark mode | — |
+| **1.2.x** | 2026-01-31 | Gantt responsive, hotfixes SelectItem, limpieza Husky | — |
+| **1.1.0** | 2026-01-30 | Seed data scripts + fix formateo decimal | — |
+| **1.0.0** | 2026-01-30 | Primera release con fases 1-5 completas | — |
+
+---
+
+### Estado Actual del Proyecto (2026-02-21)
+
+#### Versión Actual: **v1.7.0** (feature branch, pendiente merge a develop/main)
+
+#### Fases Funcionales
+- **Todas las fases completadas:** 100%
+  - Autenticación & Seguridad ✅
+  - Gestión de Empleados y Departamentos ✅
+  - Onboarding (plantillas + procesos) ✅
+  - Proyectos y Asignaciones ✅ (ahora con N:M departamentos)
+  - Timetracking + Aprobación ✅
+  - Sistema de Tareas Jerárquico ✅
+  - Dashboards por Rol ✅
+
+#### Métricas de Calidad
+- **Tests:** **1,046 tests passing** ✅
+  - Backend: 663 tests
+  - Frontend: 383 tests
+  - Cobertura: Backend 81.01%, Frontend 90.07%
+- **Seguridad:**
+  - OWASP 96.5%
+  - SonarQube: 0 bugs, 0 vulnerabilities, 0 hotspots
+  - Security audit: 0 high-severity CVEs
+  - Secrets detection: gitleaks activo
+- **API:** OpenAPI v1.0.0 con 157 endpoints
+- **E2E:** Playwright con suite completa de tests MFA
+- **Linting:** 49 warnings (solo `any` en tests, no bloquea)
+
+#### Próximos Pasos
+- Mergear `feature/proyectos-departamentos` → develop → release/1.7.0 → main
+- Preparación presentación TFM
+- Monitoreo de producción post-deploy v1.7.0
 

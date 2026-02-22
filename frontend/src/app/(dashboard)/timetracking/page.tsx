@@ -93,19 +93,6 @@ const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
 const LOADING_REGISTROS_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
 /**
- * Resuelve el variant visual para el estado de un registro.
- */
-function getRegistroEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' {
-  if (estado === 'APROBADO') {
-    return 'default';
-  }
-  if (estado === 'RECHAZADO') {
-    return 'destructive';
-  }
-  return 'secondary';
-}
-
-/**
  * Extrae un mensaje de error de API sin type assertions.
  */
 function getApiErrorMessage(error: unknown, fallback: string): string {

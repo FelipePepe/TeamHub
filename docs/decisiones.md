@@ -23,6 +23,9 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 | ADR | Fecha | Título | Estado |
 |-----|-------|--------|--------|
+| [ADR-119](decisiones/04-progreso-releases-cobertura.md#adr-119) | 2026-02-22 | Skill rule-boy-scout — Protocolo de Diagnósticos VS Code | ✅ Implementado |
+| [ADR-118](decisiones/04-progreso-releases-cobertura.md#adr-118) | 2026-02-22 | Fix Completo de Lint Warnings — 0 errores / 0 warnings | ✅ Implementado |
+| [ADR-117](decisiones/04-progreso-releases-cobertura.md#adr-117) | 2026-02-22 | Modularización de Agent Instructions en Skills | ✅ Implementado |
 | [ADR-116](decisiones/04-progreso-releases-cobertura.md#adr-116) | 2026-02-22 | Fix Unicidad Código Proyecto tras Soft-Delete | ✅ Implementado |
 | [ADR-115](decisiones/04-progreso-releases-cobertura.md#adr-115) | 2026-02-22 | Filtro de Empleados por Proyecto y Rol en Tareas | ✅ Implementado |
 | [ADR-114](decisiones/04-progreso-releases-cobertura.md#adr-114) | 2026-02-22 | Dashboard KPI — Proyectos con Desviación Presupuestaria | ✅ Implementado |
@@ -46,7 +49,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 **Calidad:**
 - SonarQube: 0 bugs · 0 vulnerabilities · 0 hotspots
-- Linting: 0 errores (2 warnings, solo `<img>` en tests)
+- Linting: 0 errores · **0 warnings** ✅
 - API: OpenAPI v1.0.0 con 157 endpoints
 
 **Features destacadas completadas en v1.7.0:**
@@ -55,6 +58,9 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 - ✅ Selector de empleados en tareas filtrado por proyecto + muestra de rol
 - ✅ Fix unicidad código proyecto tras soft-delete (constraint parcial DB)
 - ✅ Fix onboarding cache + correcciones de mocks de tests
+- ✅ Modularización agent instructions en skills (PR #141)
+- ✅ Fix completo 0 warnings lint (PR #143)
+- ✅ Skill rule-boy-scout — protocolo diagnósticos VS Code (PR #144)
 
 ---
 
@@ -65,7 +71,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 | ADR-001 a ADR-050 | Setup inicial, arquitectura, seguridad, autenticación, API  → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
 | ADR-048 a ADR-069 | GitFlow, Husky, colaboración LLM, D3.js, dark mode → [02-adrs-registro-ejecucion.md](decisiones/02-adrs-registro-ejecucion.md) |
 | ADR-071 a ADR-079 | Sistema de tareas jerárquico (Jira-like), dashboards → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
-| ADR-092 a ADR-116 | Optimización, SonarQube, cobertura, CORS, bugfixes, KPIs, tareas → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
+| ADR-092 a ADR-119 | Optimización, SonarQube, cobertura, CORS, bugfixes, KPIs, tareas, agents/skills → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
 
 ---
 

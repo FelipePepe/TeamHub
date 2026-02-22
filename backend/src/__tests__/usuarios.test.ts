@@ -11,7 +11,8 @@ import {
 } from '../test-utils/index.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = 'ValidPassword1!';
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD ?? 'ValidPassword1!';
+const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD ?? 'StrongPassword1!';
 let app: Hono<HonoEnv>;
 
 const loginAsAdmin = async () => {
@@ -49,7 +50,7 @@ describe('usuarios routes', () => {
 
     const payload = {
       email: 'ana@example.com',
-      password: 'StrongPassword1!',
+      password: TEST_USER_PASSWORD,
       nombre: 'Ana',
       rol: 'EMPLEADO',
     };
@@ -84,7 +85,7 @@ describe('usuarios routes', () => {
 
     const payload = {
       email: 'dup@example.com',
-      password: 'StrongPassword1!',
+      password: TEST_USER_PASSWORD,
       nombre: 'Dup',
     };
 

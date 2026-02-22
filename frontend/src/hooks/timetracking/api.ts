@@ -50,7 +50,7 @@ export function deleteTimeEntry(id: string): Promise<{ message: string }> {
 }
 
 export function aprobarTimeEntry(id: string, comentario?: string): Promise<TimeEntry> {
-  return patch<TimeEntry>(`/timetracking/${id}/aprobar`, comentario != null ? { comentario } : {});
+  return patch<TimeEntry>(`/timetracking/${id}/aprobar`, comentario == null ? {} : { comentario });
 }
 
 export function rechazarTimeEntry(id: string, comentario: string): Promise<TimeEntry> {

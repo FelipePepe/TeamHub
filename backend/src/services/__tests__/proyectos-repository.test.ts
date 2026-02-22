@@ -7,6 +7,7 @@ const {
   mockDelete,
   mockFrom,
   mockWhere,
+  mockOrderBy,
   mockLimit,
   mockValues,
   mockReturning,
@@ -18,6 +19,7 @@ const {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
   const mockGroupBy = vi.fn();
+  const mockOrderBy = vi.fn();
   const mockWhere = vi.fn();
   const mockLeftJoin = vi.fn();
   const mockFrom = vi.fn();
@@ -36,6 +38,7 @@ const {
     mockDelete,
     mockFrom,
     mockWhere,
+    mockOrderBy,
     mockLimit,
     mockValues,
     mockReturning,
@@ -120,10 +123,11 @@ describe('proyectos-repository', () => {
 
   /**
    * Helper para configurar la cadena de mocks de listProyectos:
-   * db.select({...}).from(proyectos).leftJoin(asignaciones, ...).where(clause).groupBy(proyectos.id)
+   * db.select({...}).from(proyectos).leftJoin(asignaciones, ...).where(clause).groupBy(proyectos.id).orderBy(asc(proyectos.nombre))
    */
   const setupListProyectosChain = (result: unknown[]) => {
-    mockGroupBy.mockResolvedValue(result);
+    mockOrderBy.mockResolvedValue(result);
+    mockGroupBy.mockReturnValue({ orderBy: mockOrderBy });
     mockWhere.mockReturnValue({ groupBy: mockGroupBy });
     mockLeftJoin.mockReturnValue({ where: mockWhere });
     mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
@@ -143,6 +147,7 @@ describe('proyectos-repository', () => {
       expect(mockLeftJoin).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
       expect(mockGroupBy).toHaveBeenCalled();
+      expect(mockOrderBy).toHaveBeenCalled();
     });
 
     it('should filter by estado', async () => {

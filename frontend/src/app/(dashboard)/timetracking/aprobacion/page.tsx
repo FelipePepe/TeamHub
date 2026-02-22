@@ -107,6 +107,94 @@ export default function TimetrackingAprobacionPage() {
     }
   };
 
+  let pendientesContent: React.ReactNode;
+  if (isLoading) {
+    pendientesContent = (
+      <div className="space-y-4">
+        {LOADING_GROUP_KEYS.map((key) => (
+          <Skeleton key={key} className="h-24" />
+        ))}
+      </div>
+    );
+  } else if (error) {
+    pendientesContent = (
+      <p className="text-sm text-red-600">Error al cargar pendientes</p>
+    );
+  } else if (grupos.length === 0) {
+    pendientesContent = (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <CheckCircle className="mb-4 h-12 w-12 text-green-500" />
+        <p className="text-sm text-slate-500">No hay registros pendientes de aprobación</p>
+        <Button variant="outline" onClick={() => router.push('/timetracking')} className="mt-4">
+          Volver a Timetracking
+        </Button>
+      </div>
+    );
+  } else {
+    pendientesContent = (
+      <ul className="space-y-6">
+        {grupos.map((grupo) => (
+          <li key={`${grupo.usuarioId}-${grupo.proyectoId}`} className="border-b border-slate-200 pb-4 last:border-0">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-medium uppercase">{grupo.usuarioNombre ?? grupo.usuarioId}</p>
+                <p className="text-sm text-slate-500">{grupo.proyectoNombre ?? grupo.proyectoId}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{grupo.totalHoras}h total</Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleSelectGroup(grupo.registros.map((r) => r.id))}
+                >
+                  {grupo.registros.every((r) => selectedIds.has(r.id)) ? 'Quitar' : 'Seleccionar todo'}
+                </Button>
+              </div>
+            </div>
+            <ul className="space-y-2">
+              {grupo.registros.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between rounded-md border border-slate-100 px-3 py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(r.id)}
+                      onChange={() => toggleSelect(r.id)}
+                      aria-label={`Seleccionar ${r.id}`}
+                    />
+                    <span className="text-sm">{format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}</span>
+                    <span className="font-medium">{r.horas}h</span>
+                    <span className="text-slate-600 truncate max-w-[200px]">{r.descripcion}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleAprobar(r.id)}
+                      disabled={aprobar.isPending}
+                    >
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRechazarModal({ id: r.id, comentario: '' })}
+                      disabled={rechazar.isPending}
+                    >
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -141,86 +229,7 @@ export default function TimetrackingAprobacionPage() {
           </CardTitle>
           <CardDescription>Por usuario y proyecto</CardDescription>
         </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {LOADING_GROUP_KEYS.map((key) => (
-                <Skeleton key={key} className="h-24" />
-              ))}
-            </div>
-          ) : error ? (
-            <p className="text-sm text-red-600">Error al cargar pendientes</p>
-          ) : grupos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle className="mb-4 h-12 w-12 text-green-500" />
-              <p className="text-sm text-slate-500">No hay registros pendientes de aprobación</p>
-              <Button variant="outline" onClick={() => router.push('/timetracking')} className="mt-4">
-                Volver a Timetracking
-              </Button>
-            </div>
-          ) : (
-            <ul className="space-y-6">
-              {grupos.map((grupo) => (
-                <li key={`${grupo.usuarioId}-${grupo.proyectoId}`} className="border-b border-slate-200 pb-4 last:border-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-medium uppercase">{grupo.usuarioNombre ?? grupo.usuarioId}</p>
-                      <p className="text-sm text-slate-500">{grupo.proyectoNombre ?? grupo.proyectoId}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{grupo.totalHoras}h total</Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleSelectGroup(grupo.registros.map((r) => r.id))}
-                      >
-                        {grupo.registros.every((r) => selectedIds.has(r.id)) ? 'Quitar' : 'Seleccionar todo'}
-                      </Button>
-                    </div>
-                  </div>
-                  <ul className="space-y-2">
-                    {grupo.registros.map((r) => (
-                      <li
-                        key={r.id}
-                        className="flex items-center justify-between rounded-md border border-slate-100 px-3 py-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(r.id)}
-                            onChange={() => toggleSelect(r.id)}
-                            aria-label={`Seleccionar ${r.id}`}
-                          />
-                          <span className="text-sm">{format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}</span>
-                          <span className="font-medium">{r.horas}h</span>
-                          <span className="text-slate-600 truncate max-w-[200px]">{r.descripcion}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleAprobar(r.id)}
-                            disabled={aprobar.isPending}
-                          >
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setRechazarModal({ id: r.id, comentario: '' })}
-                            disabled={rechazar.isPending}
-                          >
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
+        <CardContent>{pendientesContent}</CardContent>
       </Card>
 
       {rechazarModal && (

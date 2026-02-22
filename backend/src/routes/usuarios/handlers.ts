@@ -128,7 +128,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.put('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const currentUser = c.get('user') as User;
+    const currentUser = c.get('user');
     const payload = await parseJson(c, updateUserSchema);
     const user = await findUserById(id);
     if (!user) {
@@ -182,7 +182,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.patch('/:id/password', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const currentUser = c.get('user') as User;
+    const currentUser = c.get('user');
 
     // Only the user themselves can change their password
     if (currentUser.id !== id) {

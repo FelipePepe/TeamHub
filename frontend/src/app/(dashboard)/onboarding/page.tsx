@@ -2,6 +2,7 @@
 import type { Departamento } from '@/types';
 
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ClipboardList,
@@ -170,6 +171,177 @@ export default function ProcesosPage() {
     );
   };
 
+  let procesosContent: ReactNode;
+  if (isLoading) {
+    procesosContent = (
+      <div className="space-y-4">
+        {SKELETON_CARD_KEYS.map((key) => (
+          <div key={key} className="flex items-center gap-4">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+            <Skeleton className="h-8 w-24" />
+          </div>
+        ))}
+      </div>
+    );
+  } else if (error) {
+    procesosContent = (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-sm text-red-600">Error al cargar procesos</p>
+        <Button
+          variant="outline"
+          onClick={() => globalThis.location.reload()}
+          className="mt-4"
+        >
+          Reintentar
+        </Button>
+      </div>
+    );
+  } else if (filteredProcesos.length === 0) {
+    procesosContent = (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          {hasFiltersApplied
+            ? 'No se encontraron procesos con los filtros seleccionados'
+            : 'No hay procesos iniciados. Inicia tu primer proceso de onboarding.'}
+        </p>
+        {canCreateOnboarding &&
+          !hasFiltersApplied && (
+            <Button
+              onClick={() => setShowIniciarModal(true)}
+              className="mt-4"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Iniciar primer proceso
+            </Button>
+          )}
+      </div>
+    );
+  } else {
+    procesosContent = (
+      <div className="space-y-4">
+        {filteredProcesos.map((proceso) => {
+          const progreso = Number.parseFloat(proceso.progreso || '0');
+          const mostrarAcciones =
+            canCreateOnboarding &&
+            (proceso.estado === 'EN_CURSO' || proceso.estado === 'PAUSADO');
+
+          return (
+            <Card
+              key={proceso.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => router.push(`/onboarding/${proceso.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push(`/onboarding/${proceso.id}`);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base mb-1">
+                      {proceso.empleadoNombre || 'Empleado'}
+                    </CardTitle>
+                    <CardDescription className="flex flex-wrap gap-2 items-center">
+                      <span>{proceso.plantillaNombre || 'Plantilla'}</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span>
+                        Inicio:{' '}
+                        {new Date(proceso.fechaInicio).toLocaleDateString('es-ES')}
+                      </span>
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getEstadoBadge(proceso.estado)}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Progress bar */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Progreso</span>
+                    <span className="font-medium">{Math.round(progreso)}%</span>
+                  </div>
+                  <Progress value={progreso} className="h-2" />
+                </div>
+
+                {/* Acciones */}
+                {mostrarAcciones && (
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/onboarding/${proceso.id}`);
+                      }}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver detalle
+                    </Button>
+
+                    {proceso.estado === 'EN_CURSO' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={`Pausar proceso de ${proceso.empleadoNombre || 'empleado'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePausar(proceso.id, proceso.empleadoNombre || '');
+                        }}
+                        disabled={pausarProceso.isPending}
+                      >
+                        <Pause className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    {proceso.estado === 'PAUSADO' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={`Reanudar proceso de ${proceso.empleadoNombre || 'empleado'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReanudar(proceso.id, proceso.empleadoNombre || '');
+                        }}
+                        disabled={reanudarProceso.isPending}
+                      >
+                        <Play className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      aria-label={`Cancelar proceso de ${proceso.empleadoNombre || 'empleado'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelar(proceso.id, proceso.empleadoNombre || '');
+                      }}
+                      disabled={cancelarProceso.isPending}
+                    >
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -299,167 +471,7 @@ export default function ProcesosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {SKELETON_CARD_KEYS.map((key) => (
-                <div key={key} className="flex items-center gap-4">
-                  <Skeleton className="h-16 w-16 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                  <Skeleton className="h-8 w-24" />
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-red-600">Error al cargar procesos</p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="mt-4"
-              >
-                Reintentar
-              </Button>
-            </div>
-          ) : filteredProcesos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                {hasFiltersApplied
-                  ? 'No se encontraron procesos con los filtros seleccionados'
-                  : 'No hay procesos iniciados. Inicia tu primer proceso de onboarding.'}
-              </p>
-              {canCreateOnboarding &&
-                !hasFiltersApplied && (
-                  <Button
-                    onClick={() => setShowIniciarModal(true)}
-                    className="mt-4"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Iniciar primer proceso
-                  </Button>
-                )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredProcesos.map((proceso) => {
-                const progreso = parseFloat(proceso.progreso || '0');
-                const mostrarAcciones =
-                  canCreateOnboarding &&
-                  (proceso.estado === 'EN_CURSO' || proceso.estado === 'PAUSADO');
-
-                return (
-                  <Card
-                    key={proceso.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => router.push(`/onboarding/${proceso.id}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        router.push(`/onboarding/${proceso.id}`);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base mb-1">
-                            {proceso.empleadoNombre || 'Empleado'}
-                          </CardTitle>
-                          <CardDescription className="flex flex-wrap gap-2 items-center">
-                            <span>{proceso.plantillaNombre || 'Plantilla'}</span>
-                            <span className="text-muted-foreground">•</span>
-                            <span>
-                              Inicio:{' '}
-                              {new Date(proceso.fechaInicio).toLocaleDateString('es-ES')}
-                            </span>
-                          </CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getEstadoBadge(proceso.estado)}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {/* Progress bar */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Progreso</span>
-                          <span className="font-medium">{Math.round(progreso)}%</span>
-                        </div>
-                        <Progress value={progreso} className="h-2" />
-                      </div>
-
-                      {/* Acciones */}
-                      {mostrarAcciones && (
-                        <div className="flex gap-2 pt-4 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/onboarding/${proceso.id}`);
-                            }}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver detalle
-                          </Button>
-
-                          {proceso.estado === 'EN_CURSO' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              aria-label={`Pausar proceso de ${proceso.empleadoNombre || 'empleado'}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePausar(proceso.id, proceso.empleadoNombre || '');
-                              }}
-                              disabled={pausarProceso.isPending}
-                            >
-                              <Pause className="h-4 w-4" />
-                            </Button>
-                          )}
-
-                          {proceso.estado === 'PAUSADO' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              aria-label={`Reanudar proceso de ${proceso.empleadoNombre || 'empleado'}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleReanudar(proceso.id, proceso.empleadoNombre || '');
-                              }}
-                              disabled={reanudarProceso.isPending}
-                            >
-                              <Play className="h-4 w-4" />
-                            </Button>
-                          )}
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={`Cancelar proceso de ${proceso.empleadoNombre || 'empleado'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCancelar(proceso.id, proceso.empleadoNombre || '');
-                            }}
-                            disabled={cancelarProceso.isPending}
-                          >
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+          {procesosContent}
         </CardContent>
       </Card>
 

@@ -15,6 +15,8 @@ const toastMocks = vi.hoisted(() => ({
 
 vi.mock('@/hooks/use-proyectos', () => ({
   useCreateProyecto: () => ({ mutateAsync: proyectoMocks.create, isPending: false }),
+  useUpdateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useProyecto: () => ({ data: null }),
 }));
 
 vi.mock('@/hooks/use-departamentos', () => ({
@@ -38,9 +40,10 @@ vi.mock('@/components/ui/dialog', () => ({
 vi.mock('@/components/ui/select', async () => {
   const ReactModule = await import('react');
   const Ctx = ReactModule.createContext<(v: string) => void>(() => undefined);
+  const noop = () => undefined;
   return {
     Select: ({ children, onValueChange }: { children: React.ReactNode; onValueChange?: (v: string) => void }) => (
-      <Ctx.Provider value={onValueChange || (() => undefined)}>{children}</Ctx.Provider>
+      <Ctx.Provider value={onValueChange ?? noop}>{children}</Ctx.Provider>
     ),
     SelectTrigger: ({ children }: { children: React.ReactNode }) => {
       const set = ReactModule.useContext(Ctx);

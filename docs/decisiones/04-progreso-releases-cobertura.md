@@ -1236,7 +1236,133 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
 
 ---
 
-## Release v1.7.0 (2026-02-21)
+### ADR-114: Dashboard KPI — Proyectos con Desviación Presupuestaria
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+Los dashboards de Admin y Manager mostraban KPIs de volumen (nº proyectos, empleados, etc.) pero ninguno alertaba sobre proyectos que habían superado su presupuesto de horas. Era necesario un indicador de desviación visible directamente en el panel de control.
+
+#### Decisión
+Añadir un KPI `proyectosConDesviacion` que muestra el **número de proyectos activos cuyas `horasConsumidas` superan `presupuestoHoras`**. El KPI se renderiza en rojo (`variant: 'danger'`) cuando el valor es > 0.
+
+#### Implementación
+
+**Backend:**
+```sql
+-- admin.ts y manager.ts (scope filtrado por managerId)
+SELECT COUNT(*)
+FROM proyectos
+WHERE deleted_at IS NULL
+  AND presupuesto_horas IS NOT NULL
+  AND horas_consumidas IS NOT NULL
+  AND CAST(horas_consumidas AS DECIMAL) > CAST(presupuesto_horas AS DECIMAL)
+```
+- `backend/src/routes/dashboard/admin.ts`: nueva query en `Promise.all`, campo `proyectosConDesviacion` en la respuesta
+- `backend/src/routes/dashboard/manager.ts`: idem, con `WHERE managerId = user.id` adicional; early return incluye `proyectosConDesviacion: 0`
+
+**Frontend:**
+- `frontend/src/types/dashboard.ts`: `proyectosConDesviacion: number` en `AdminDashboardData.kpis` y `ManagerDashboardData.kpis`
+- `frontend/src/components/dashboard/admin-dashboard.tsx`: 7ª KpiCard con icono `TrendingDown`, `variant: 'danger'` cuando > 0; grid `xl:grid-cols-7` para fila única en pantallas grandes
+- `frontend/src/components/dashboard/manager-dashboard.tsx`: 5ª KpiCard; grid `xl:grid-cols-5`
+
+**Tests:**
+- `role-dashboards.test.tsx`: mock kpis actualizado con `proyectosConDesviacion: 0`
+
+#### Consecuencias
+- ✅ Admin y Manager ven al instante cuántos proyectos tienen coste excedido
+- ✅ Indicador ausente → `variant: 'default'`; indicador positivo → `variant: 'danger'` (rojo)
+- ✅ Sin cambios en schema DB ni en OpenAPI (calculado on-the-fly)
+- ✅ 664 tests backend + 383 frontend pasando
+- 📊 6 ficheros modificados
+
+---
+
+### ADR-115: Filtro de Empleados por Proyecto y Visualización de Rol en Tareas
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+El selector "Asignado a" en el modal de creación/edición de tareas mostraba todos los empleados activos de la empresa (hasta 500), ignorando la pertenencia al proyecto. Esto dificultaba la selección y mostraba empleados que no podían trabajar en el proyecto.
+
+#### Decisión
+Filtrar el selector de empleados a los **miembros activos del proyecto** (obtenidos de `asignaciones`) y mostrar el **rol de cada empleado en el proyecto** junto a su nombre en el dropdown.
+
+#### Implementación
+- `TaskFormModalProps` y `TaskListProps`: nueva prop optional `empleadosAsignados?: EmpleadoAsignado[]`
+- `EmpleadoAsignado interface`: añadido `rol?: string`
+- `page.tsx`: construye `empleadosAsignados` cruzando `asignaciones.data` con mapa de empleados; pasa la prop a `TaskList`
+- `TaskList`: propaga `empleadosAsignados` a `TaskFormModal` y a `ReasignarModal`
+- Selector: muestra nombre en mayúsculas + rol en muted (`(Tech Lead)`) en el dropdown; trigger solo muestra el nombre vía `textValue` prop para evitar truncado
+- Layout: "Asignado a" ocupa fila completa (eliminado grid-cols-2 compartido con Prioridad)
+- Fallback: si `empleadosAsignados` es `undefined`, se carga la lista completa con `useEmpleados`
+
+#### Consecuencias
+- ✅ Selector muestra solo candidatos válidos para el proyecto
+- ✅ Contexto de rol visible durante la selección, sin truncado en el trigger
+- ✅ Backward-compatible: componentes sin prop `empleadosAsignados` usan el fallback
+- ✅ Sin cambios en backend ni OpenAPI
+- 📊 3 ficheros de componente modificados
+
+---
+
+### ADR-116: Fix Unicidad de Código de Proyecto tras Soft-Delete
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+Al intentar crear un proyecto con un código que había sido usado por un proyecto eliminado (soft-delete), la aplicación devolvía un error 400 "El proyecto ya existe" (o 500 por violación de constraint DB). La causa: `findProyectoByCodigo` no filtraba `deletedAt IS NULL`, y la constraint UNIQUE en la columna `codigo` era incondicional (no parcial).
+
+#### Decisión
+Resolver el problema en dos capas:
+1. **Lógica de aplicación**: añadir `AND deletedAt IS NULL` al WHERE de `findProyectoByCodigo`
+2. **Constraint de base de datos**: reemplazar `UNIQUE (codigo)` por un **índice único parcial** `WHERE deleted_at IS NULL`
+
+**Alternativas consideradas:**
+- Solo fix de aplicación sin cambiar DB — descartado: la constraint DB seguiría bloqueando a nivel de motor
+- Eliminación física de proyectos — descartado: rompe trazabilidad e historial de timetracking
+
+#### Implementación
+
+**Fix de aplicación (`proyectos-repository.ts`):**
+```typescript
+// ANTES:
+where(eq(proyectos.codigo, codigo))
+// DESPUÉS:
+where(and(eq(proyectos.codigo, codigo), isNull(proyectos.deletedAt)))
+```
+
+**Migración DB (`0005_partial_unique_codigo_proyectos.sql`):**
+```sql
+ALTER TABLE proyectos DROP CONSTRAINT proyectos_codigo_unique;
+DROP INDEX IF EXISTS proyectos_codigo_idx;
+CREATE UNIQUE INDEX proyectos_codigo_active_idx
+  ON proyectos (codigo)
+  WHERE deleted_at IS NULL;
+```
+- Schema Drizzle actualizado: `uniqueIndex('proyectos_codigo_active_idx').on(t.codigo).where(sql\`deleted_at IS NULL\`)`
+- Script de migración manual: `backend/scripts/migrate-partial-unique-codigo.ts`
+
+#### Consecuencias
+- ✅ Se puede reutilizar el código de un proyecto tras eliminarlo
+- ✅ La unicidad entre proyectos activos sigue garantizada a nivel de BD
+- ✅ Error cambia de 500 (violación DB) a 400 (validación de aplicación) en casos de duplicado real
+- ✅ Tests actualizados para reflejar el nuevo comportamiento
+- 📊 2 ficheros de código + 2 ficheros de migración
+- ⚠️ Requiere ejecutar migración manual en Aiven (drizzle-kit CLI roto en Node.js 25)
+
+---
+
+## Release v1.7.0 (2026-02-22)
 
 **Branch de Release:** `feature/proyectos-departamentos` → develop → main  
 **Descripción:** Proyectos Multi-departamento + Bugfixes
@@ -1249,6 +1375,18 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
 - Filtro de empleados en "Añadir asignación" según departamentos del proyecto
 - 6 nuevos tests de repositorio + 2 en mappers
 
+#### ✅ ADR-114: Dashboard KPI proyectosConDesviación (feature)
+- Nueva KPI card en Admin (7ª) y Manager (5ª): proyectos con horas consumidas > presupuesto
+- Rojo automático cuando > 0; Admin dashboard en fila única `xl:grid-cols-7`
+
+#### ✅ ADR-115: Filtro y rol de empleados en selectors de tareas (feature)
+- Modal de tarea muestra solo miembros del proyecto con su rol
+- Trigger muestra solo el nombre; dropdown muestra nombre + rol
+
+#### ✅ ADR-116: Fix unicidad código proyecto tras soft-delete (bugfix)
+- `findProyectoByCodigo` excluye proyectos eliminados
+- Constraint DB reemplazada por índice único parcial `WHERE deleted_at IS NULL`
+
 #### ✅ ADR-112: Fix totalTareas en Plantillas (bugfix)
 - `listPlantillas` devolvía siempre `totalTareas: 0`
 - Corregido con LEFT JOIN + countDistinct
@@ -1259,24 +1397,29 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
 - Aplicado en todos los componentes afectados
 - PR #137 mergeado a develop
 
+#### ✅ Correcciones adicionales (bundled en PR #140)
+- **Fix onboarding cache**: `useCompletarTarea` y `useUpdateTareaProceso` ahora invalidan `procesosKeys.lists()` al completar una tarea
+- **Versión desde package.json**: `next.config.mjs` inyecta `NEXT_PUBLIC_APP_VERSION` en build; `version-display.tsx` lee el env var
+- **Test mock fixes**: mocks actualizados para `useUpdateProyecto`, `useDeleteTimeEntry`, `useAsignaciones`, `@radix-ui/react-select.Item`; aserción `router.push` corregida en proyectos/[id]
+
 ### Métricas v1.7.0
 
 | Componente | Tests | Cobertura |
 |------------|-------|-----------|
-| Backend | **663** (+8 vs v1.6.1) | 81.01% |
+| Backend | **664** (+9 vs v1.6.1) | 81.01% |
 | Frontend | **383** (estable) | 90.07% |
-| **Total** | **1,046** (+8) | **85.54%** |
+| **Total** | **1,047** (+9) | **85.54%** |
 
 ### Calidad
 - SonarQube: 0 bugs · 0 vulnerabilities · 0 hotspots
-- Linting: 0 errores · 49 warnings (pre-existentes, solo `any` en tests)
+- Linting: 0 errores · 2 warnings (`<img>` en tests, no bloquea)
 - Security audit: 0 high-severity CVEs
 
 ### Releases Historial Actualizado
 
 | Versión | Fecha | Descripción | PRs |
 |---------|-------|-------------|-----|
-| **1.7.0** | 2026-02-21 | N:M Proyectos-Deps + uppercase fix + totalTareas fix | feature/proyectos-departamentos, #137, #138 |
+| **1.7.0** | 2026-02-22 | N:M Proyectos-Deps + Dashboard KPI desviación + Task employee filter + Soft-delete code fix | feature/proyectos-departamentos, #137, #138, #140 |
 | **1.6.1** | 2026-02-14 | CORS Dynamic Validation + Docs Modularization | #125, #126, #127 |
 | **1.6.0** | 2026-02-14 | Code Quality & Security: Optimization, Coverage 81%/90%, SonarQube clean | #115–#123 |
 | **1.5.1** | 2026-02-14 | Bump version tras merge de features | #119, #121 |
@@ -1289,9 +1432,9 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
 
 ---
 
-### Estado Actual del Proyecto (2026-02-21)
+### Estado Actual del Proyecto (2026-02-22)
 
-#### Versión Actual: **v1.7.0** (feature branch, pendiente merge a develop/main)
+#### Versión Actual: **v1.7.0** (feature branch `feature/proyectos-departamentos`, PR #140 → develop)
 
 #### Fases Funcionales
 - **Todas las fases completadas:** 100%
@@ -1304,8 +1447,8 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
   - Dashboards por Rol ✅
 
 #### Métricas de Calidad
-- **Tests:** **1,046 tests passing** ✅
-  - Backend: 663 tests
+- **Tests:** **1,047 tests passing** ✅
+  - Backend: 664 tests
   - Frontend: 383 tests
   - Cobertura: Backend 81.01%, Frontend 90.07%
 - **Seguridad:**
@@ -1315,10 +1458,10 @@ CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos
   - Secrets detection: gitleaks activo
 - **API:** OpenAPI v1.0.0 con 157 endpoints
 - **E2E:** Playwright con suite completa de tests MFA
-- **Linting:** 49 warnings (solo `any` en tests, no bloquea)
+- **Linting:** 0 errores · 2 warnings (`<img>` en tests, no bloquea)
 
 #### Próximos Pasos
-- Mergear `feature/proyectos-departamentos` → develop → release/1.7.0 → main
+- Mergear `feature/proyectos-departamentos` (PR #140) → develop → release/1.7.0 → main
 - Preparación presentación TFM
 - Monitoreo de producción post-deploy v1.7.0
 

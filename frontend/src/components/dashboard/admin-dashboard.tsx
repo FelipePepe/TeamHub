@@ -9,6 +9,7 @@ import {
   Clock,
   ClipboardList,
   AlertTriangle,
+  TrendingDown,
 } from 'lucide-react';
 import { KpiCard, BarChart, ActivityList, AlertList } from '@/components/dashboard';
 import { getAdminDashboard } from '@/lib/dashboard';
@@ -42,7 +43,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         <KpiCard
           title="Usuarios activos"
           value={data?.kpis.usuariosActivos ?? 0}
@@ -79,6 +80,13 @@ export function AdminDashboard() {
           value={data?.kpis.tareasVencidas ?? 0}
           icon={AlertTriangle}
           variant={data?.kpis.tareasVencidas ? 'danger' : 'default'}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          title="Proyectos con desviacion"
+          value={data?.kpis.proyectosConDesviacion ?? 0}
+          icon={TrendingDown}
+          variant={data?.kpis.proyectosConDesviacion ? 'danger' : 'default'}
           isLoading={isLoading}
         />
       </div>

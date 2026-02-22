@@ -7,8 +7,8 @@ import { toTimetrackingResponse } from '../../../services/mappers.js';
 import { db } from '../../../db/index.js';
 import { timetracking } from '../../../db/schema/timetracking.js';
 import { proyectos } from '../../../db/schema/proyectos.js';
-import type { User } from '../../../db/schema/users.js';
 import { createTimetracking, listTimetracking } from '../../../services/timetracking-repository.js';
+import { syncHorasConsumidas } from '../../../services/proyectos-repository.js';
 import {
   copySchema,
   createRegistroSchema,
@@ -43,7 +43,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
    */
   router.get('/', async (c) => {
     const query = parseQuery(c, listQuerySchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const teamIds = user.rol === 'MANAGER' ? await getTeamMemberIds(user.id) : [];
     const allowedIds = resolveAllowedUserIds(user, query.usuarioId, teamIds);
 
@@ -65,7 +65,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
    */
   router.post('/', async (c) => {
     const payload = await parseJson(c, createRegistroSchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const targetUserId = payload.usuarioId ?? user.id;
     const teamIds = user.rol === 'MANAGER' ? await getTeamMemberIds(user.id) : [];
     assertCanWrite(user, targetUserId, teamIds);
@@ -85,7 +85,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
     if (!registro) {
       throw new HTTPException(500, { message: 'Error al crear registro' });
     }
-
+    await syncHorasConsumidas(registro.proyectoId);
     return c.json(toTimetrackingResponse(registro), 201);
   });
 
@@ -94,7 +94,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
    * Siempre devuelve los registros del usuario autenticado.
    */
   router.get('/mis-registros', async (c) => {
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const registros = await listTimetracking({ usuarioId: user.id });
     return c.json({ data: registros.map(toTimetrackingResponse) });
   });
@@ -108,7 +108,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
   router.get('/semana/:fecha', async (c) => {
     const { fecha } = parseParams(c, semanaParamsSchema);
     const { usuarioId: requestedUserId } = parseQuery(c, semanaQuerySchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const teamIds = user.rol === 'MANAGER' ? await getTeamMemberIds(user.id) : [];
     const allowedIds = resolveAllowedUserIds(user, requestedUserId, teamIds);
     const fechaFin = calcularFinSemana(fecha);
@@ -128,7 +128,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
    */
   router.get('/resumen', async (c) => {
     const query = parseQuery(c, listQuerySchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const teamIds = user.rol === 'MANAGER' ? await getTeamMemberIds(user.id) : [];
     const allowedIds = resolveAllowedUserIds(user, query.usuarioId, teamIds);
 
@@ -137,12 +137,14 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
       .from(timetracking)
       .innerJoin(proyectos, eq(timetracking.proyectoId, proyectos.id));
 
-    const userClause =
-      allowedIds === 'ALL'
-        ? undefined
-        : allowedIds.length === 1
-          ? eq(timetracking.usuarioId, allowedIds[0])
-          : inArray(timetracking.usuarioId, allowedIds);
+    let userClause;
+    if (allowedIds === 'ALL') {
+      userClause = undefined;
+    } else if (allowedIds.length === 1) {
+      userClause = eq(timetracking.usuarioId, allowedIds[0]);
+    } else {
+      userClause = inArray(timetracking.usuarioId, allowedIds);
+    }
     const proyectoClause = query.proyectoId ? eq(timetracking.proyectoId, query.proyectoId) : undefined;
     const whereClause = userClause && proyectoClause ? and(userClause, proyectoClause) : (userClause ?? proyectoClause);
 
@@ -199,7 +201,7 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
    */
   router.post('/copiar', async (c) => {
     const payload = await parseJson(c, copySchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const registros = await db
       .select()
       .from(timetracking)
@@ -226,6 +228,8 @@ export const registerTimetrackingListingRoutes = (router: Hono<HonoEnv>) => {
           updatedAt: now,
         }))
       );
+      const uniqueProyectoIds = [...new Set(registros.map((r) => r.proyectoId))];
+      await Promise.all(uniqueProyectoIds.map(syncHorasConsumidas));
     }
 
     return c.json({ copied: registros.length, message: 'Registros copiados' });

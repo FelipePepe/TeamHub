@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { timetracking, type NewTimetracking } from '../db/schema/timetracking.js';
 import { users } from '../db/schema/users.js';
@@ -68,11 +68,12 @@ export const listTimetracking = async (
     .leftJoin(users, eq(timetracking.usuarioId, users.id));
 
   const filteredQuery = whereClause ? baseQuery.where(whereClause) : baseQuery;
+  const orderedQuery = filteredQuery.orderBy(asc(timetracking.fecha));
 
   if (pagination?.page && pagination.limit) {
-    return filteredQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
+    return orderedQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
   }
-  return filteredQuery;
+  return orderedQuery;
 };
 
 export const findTimetrackingById = async (id: string) => {

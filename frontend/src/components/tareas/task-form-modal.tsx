@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Calendar } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Loader2, Calendar, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -137,7 +138,7 @@ export function TaskFormModal({
           ? new Date(tarea.fechaInicio).toISOString().split('T')[0]
           : '',
         fechaFin: tarea.fechaFin ? new Date(tarea.fechaFin).toISOString().split('T')[0] : '',
-        horasEstimadas: tarea.horasEstimadas ? parseFloat(tarea.horasEstimadas) : undefined,
+        horasEstimadas: tarea.horasEstimadas ? Number.parseFloat(tarea.horasEstimadas) : undefined,
       });
     } else {
       reset({
@@ -276,18 +277,23 @@ export function TaskFormModal({
                 <SelectContent>
                   <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
                   {empleados.map((emp) => (
-                    <SelectItem
+                    <SelectPrimitive.Item
                       key={emp.id}
                       value={emp.id}
-                      textValue={`${emp.nombre}${emp.apellidos ? ` ${emp.apellidos}` : ''}`}
+                      className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-slate-800 dark:focus:text-slate-50"
                     >
-                      <span className="uppercase">
-                        {emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        <SelectPrimitive.ItemIndicator>
+                          <Check className="h-4 w-4" />
+                        </SelectPrimitive.ItemIndicator>
                       </span>
+                      <SelectPrimitive.ItemText>
+                        <span className="uppercase">{emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}</span>
+                      </SelectPrimitive.ItemText>
                       {emp.rol && (
-                        <span className="ml-1 text-xs text-muted-foreground">({emp.rol})</span>
+                        <span className="ml-2 text-xs text-muted-foreground">({emp.rol})</span>
                       )}
-                    </SelectItem>
+                    </SelectPrimitive.Item>
                   ))}
                 </SelectContent>
               </Select>

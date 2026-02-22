@@ -21,9 +21,8 @@ export function UserNav() {
     ? `${user.nombre.charAt(0)}${user.apellidos?.charAt(0) || ''}`.toUpperCase()
     : '?';
 
-  const displayName = user
-    ? `${user.nombre}${user.apellidos ? ` ${user.apellidos}` : ''}`
-    : 'Usuario';
+  const apellidos = user?.apellidos ? ` ${user.apellidos}` : '';
+  const displayName = user ? `${user.nombre}${apellidos}` : 'Usuario';
 
   return (
     <div className="relative">

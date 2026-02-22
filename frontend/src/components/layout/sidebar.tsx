@@ -35,7 +35,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4" aria-label="Navegación principal">
-        <ul className="space-y-1" role="list">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = isNavItemActive(item.href, pathname);
             const Icon = item.icon;

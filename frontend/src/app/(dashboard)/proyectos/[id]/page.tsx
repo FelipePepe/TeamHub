@@ -52,6 +52,7 @@ import { usePermissions } from '@/hooks/use-permissions';
 import { useTareasByProyecto } from '@/hooks/use-tareas';
 import { TaskList } from '@/components/tareas/task-list';
 import { TaskGanttChart } from '@/components/tareas/task-gantt-chart';
+import { ProyectoForm } from '@/components/forms/proyecto-form';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -105,6 +106,8 @@ export default function ProyectoDetailPage({
       return { id: e.id, nombre: e.nombre, apellidos: e.apellidos, rol: a.rol };
     })
     .filter((e): e is NonNullable<typeof e> => e !== null);
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!proyecto || !confirm(`¿Eliminar el proyecto "${proyecto.nombre}"?`)) return;
@@ -188,7 +191,7 @@ export default function ProyectoDetailPage({
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" onClick={() => router.push(`/proyectos?editar=${proyecto.id}`)}>
+              <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
                 <Edit2 className="mr-1 h-4 w-4" />
                 Editar
               </Button>
@@ -259,7 +262,7 @@ export default function ProyectoDetailPage({
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Progreso</p>
-                  <p className="text-xl font-semibold">{stats.progreso != null ? `${Math.round(stats.progreso * 100)}%` : '—'}</p>
+                  <p className="text-xl font-semibold">{stats.progreso == null ? '—' : `${Math.round(stats.progreso * 100)}%`}</p>
                 </div>
               </div>
             ) : (
@@ -320,6 +323,12 @@ export default function ProyectoDetailPage({
           <TaskGanttChart tareas={tareas} isLoading={tareasLoading} />
         </TabsContent>
       </Tabs>
+
+      <ProyectoForm
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        proyecto={proyecto}
+      />
     </div>
   );
 }

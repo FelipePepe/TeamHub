@@ -23,36 +23,38 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 | ADR | Fecha | Título | Estado |
 |-----|-------|--------|--------|
+| [ADR-116](decisiones/04-progreso-releases-cobertura.md#adr-116) | 2026-02-22 | Fix Unicidad Código Proyecto tras Soft-Delete | ✅ Implementado |
+| [ADR-115](decisiones/04-progreso-releases-cobertura.md#adr-115) | 2026-02-22 | Filtro de Empleados por Proyecto y Rol en Tareas | ✅ Implementado |
+| [ADR-114](decisiones/04-progreso-releases-cobertura.md#adr-114) | 2026-02-22 | Dashboard KPI — Proyectos con Desviación Presupuestaria | ✅ Implementado |
 | [ADR-113](decisiones/04-progreso-releases-cobertura.md#adr-113) | 2026-02-21 | N:M Proyectos-Departamentos + Employee Filter | ✅ Implementado |
 | [ADR-112](decisiones/04-progreso-releases-cobertura.md#adr-112) | 2026-02-21 | Fix totalTareas en Plantillas (LEFT JOIN) | ✅ Implementado |
 | [ADR-111](decisiones/04-progreso-releases-cobertura.md#adr-111) | 2026-02-21 | Fix Uppercase Nombres de Usuario | ✅ Implementado |
 | [ADR-110](decisiones/04-progreso-releases-cobertura.md#adr-110) | 2026-02-14 | CORS Dynamic Validation | ✅ Implementado |
 | [ADR-109](decisiones/04-progreso-releases-cobertura.md#adr-109) | 2026-02-14 | SonarQube Security Hotspots Fixed | ✅ Implementado |
-| [ADR-108](decisiones/04-progreso-releases-cobertura.md#adr-108) | 2026-02-14 | SonarQube Bug & Vulnerability Fixes | ✅ Implementado |
-| [ADR-107](decisiones/04-progreso-releases-cobertura.md#adr-107) | 2026-02-14 | Incremento de Cobertura Backend (app.ts / env.ts) | ✅ Completado |
 
 ---
 
 ## 📊 Estado Actual del Proyecto
 
-> **Versión:** v1.7.0 | **Fecha:** 21 de febrero de 2026
+> **Versión:** v1.7.0 | **Fecha:** 22 de febrero de 2026
 
 | Componente | Tests | Cobertura |
 |------------|-------|-----------|
-| Backend | 663 ✅ | 81.01% |
+| Backend | 664 ✅ | 81.01% |
 | Frontend | 383 ✅ | 90.07% |
-| **Total** | **1,046 ✅** | **85.54%** |
+| **Total** | **1,047 ✅** | **85.54%** |
 
 **Calidad:**
 - SonarQube: 0 bugs · 0 vulnerabilities · 0 hotspots
-- Linting: 0 errores (49 warnings, solo `any` en tests)
+- Linting: 0 errores (2 warnings, solo `<img>` en tests)
 - API: OpenAPI v1.0.0 con 157 endpoints
 
 **Features destacadas completadas en v1.7.0:**
 - ✅ N:M Proyectos ↔ Departamentos (tabla pivote `proyectos_departamentos`)
-- ✅ Filtro de empleados en modal "Añadir asignación" por departamentos del proyecto
-- ✅ Corrección uppercase nombres de usuario en todas las pantallas
-- ✅ Fix totalTareas en plantillas de onboarding (LEFT JOIN)
+- ✅ Dashboard KPI: proyectos con desviación presupuestaria (Admin + Manager)
+- ✅ Selector de empleados en tareas filtrado por proyecto + muestra de rol
+- ✅ Fix unicidad código proyecto tras soft-delete (constraint parcial DB)
+- ✅ Fix onboarding cache + correcciones de mocks de tests
 
 ---
 
@@ -63,7 +65,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 | ADR-001 a ADR-050 | Setup inicial, arquitectura, seguridad, autenticación, API  → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
 | ADR-048 a ADR-069 | GitFlow, Husky, colaboración LLM, D3.js, dark mode → [02-adrs-registro-ejecucion.md](decisiones/02-adrs-registro-ejecucion.md) |
 | ADR-071 a ADR-079 | Sistema de tareas jerárquico (Jira-like), dashboards → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
-| ADR-092 a ADR-113 | Optimización, SonarQube, cobertura, CORS, bugfixes → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
+| ADR-092 a ADR-116 | Optimización, SonarQube, cobertura, CORS, bugfixes, KPIs, tareas → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
 
 ---
 

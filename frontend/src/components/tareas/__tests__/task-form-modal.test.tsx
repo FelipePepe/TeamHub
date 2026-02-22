@@ -51,10 +51,11 @@ vi.mock('@/components/ui/dialog', () => ({
 vi.mock('@/components/ui/select', async () => {
   const ReactModule = await import('react');
   const Ctx = ReactModule.createContext<(value: string) => void>(() => undefined);
+  const noop = () => undefined;
 
   return {
     Select: ({ children, onValueChange }: { children: React.ReactNode; onValueChange?: (value: string) => void }) => (
-      <Ctx.Provider value={onValueChange || (() => undefined)}>{children}</Ctx.Provider>
+      <Ctx.Provider value={onValueChange ?? noop}>{children}</Ctx.Provider>
     ),
     SelectTrigger: ({ children, id }: { children: React.ReactNode; id?: string }) => {
       const set = ReactModule.useContext(Ctx);
@@ -74,6 +75,12 @@ vi.mock('@/components/ui/select', async () => {
     SelectItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   };
 });
+
+vi.mock('@radix-ui/react-select', () => ({
+  Item: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ItemIndicator: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  ItemText: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+}));
 
 describe('TaskFormModal', () => {
   beforeEach(() => {

@@ -43,6 +43,8 @@ export interface AdminDashboardData {
     horasMes: number;
     onboardingsEnCurso: number;
     tareasVencidas: number;
+    /** Nº de proyectos activos cuyas horas consumidas superan el presupuesto */
+    proyectosConDesviacion: number;
   };
   charts: {
     usuariosPorRol: ChartDataPoint[];
@@ -106,6 +108,8 @@ export interface ManagerDashboardData {
     cargaPromedio: number;
     horasPendientesAprobar: number;
     proyectosActivos: number;
+    /** Nº de proyectos cuyas horas consumidas superan el presupuesto */
+    proyectosConDesviacion: number;
   };
   charts: {
     equipoPorProyecto: ChartDataPoint[];

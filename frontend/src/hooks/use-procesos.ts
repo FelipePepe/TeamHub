@@ -262,6 +262,8 @@ export function useUpdateTareaProceso() {
       queryClient.invalidateQueries({
         queryKey: procesosKeys.detail(variables.procesoId),
       });
+      queryClient.invalidateQueries({ queryKey: procesosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
       queryClient.invalidateQueries({ queryKey: procesosKeys.misTareas() });
     },
     onError: (error: ApiError) => {
@@ -300,6 +302,7 @@ export function useCompletarTarea() {
       queryClient.invalidateQueries({
         queryKey: procesosKeys.detail(variables.procesoId),
       });
+      queryClient.invalidateQueries({ queryKey: procesosKeys.lists() });
       queryClient.invalidateQueries({ queryKey: procesosKeys.misTareas() });
       queryClient.invalidateQueries({ queryKey: procesosKeys.estadisticas() });
     },

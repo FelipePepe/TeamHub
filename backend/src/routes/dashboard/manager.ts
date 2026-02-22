@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
 import { timetracking } from '../../db/schema/timetracking.js';
@@ -24,6 +24,7 @@ export const buildManagerDashboardResponse = async (user: User) => {
         cargaPromedio: 0,
         horasPendientesAprobar: 0,
         proyectosActivos: 0,
+        proyectosConDesviacion: 0,
       },
       charts: {
         equipoPorProyecto: [],
@@ -44,6 +45,7 @@ export const buildManagerDashboardResponse = async (user: User) => {
     ocupacionRows,
     pendientesHorasRows,
     pendientesAprobacionRows,
+    proyectosConDesviacionRow,
   ] = await Promise.all([
     db
       .select({ count: sql<number>`count(*)` })
@@ -103,6 +105,18 @@ export const buildManagerDashboardResponse = async (user: User) => {
       .where(and(eq(users.managerId, user.id), eq(timetracking.estado, 'PENDIENTE')))
       .orderBy(desc(timetracking.fecha))
       .limit(MAX_ACTIVITY_ITEMS),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(proyectos)
+      .where(
+        and(
+          eq(proyectos.managerId, user.id),
+          isNull(proyectos.deletedAt),
+          isNotNull(proyectos.presupuestoHoras),
+          isNotNull(proyectos.horasConsumidas),
+          sql`CAST(${proyectos.horasConsumidas} AS DECIMAL) > CAST(${proyectos.presupuestoHoras} AS DECIMAL)`
+        )
+      ),
   ]);
 
   const ocupacionMap = new Map<string, { dedicacion: number; proyectosActivos: number }>();
@@ -148,6 +162,7 @@ export const buildManagerDashboardResponse = async (user: User) => {
       cargaPromedio: Number(cargaPromedio.toFixed(2)),
       horasPendientesAprobar: toNumber(pendientesRow[0]?.total, 0),
       proyectosActivos: toNumber(proyectosActivosRow[0]?.count, 0),
+      proyectosConDesviacion: toNumber(proyectosConDesviacionRow[0]?.count, 0),
     },
     charts: {
       equipoPorProyecto: equipoPorProyectoRows.map((row) => ({

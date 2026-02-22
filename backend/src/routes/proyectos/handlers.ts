@@ -7,7 +7,7 @@ import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { toAsignacionResponse, toProyectoResponse } from '../../services/mappers.js';
 import { db } from '../../db/index.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
-import type { User } from '../../db/schema/users.js';
+
 import {
   createAsignacion,
   createProyecto,
@@ -45,6 +45,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       cliente: query.cliente,
       fechaInicio: query.fechaInicio,
       fechaFin: query.fechaFin,
+      usuarioId: query.usuarioId,
     });
 
     return c.json({ data: list.map(toProyectoResponse) });
@@ -56,7 +57,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
     if (existing) {
       throw new HTTPException(400, { message: 'El proyecto ya existe' });
     }
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const now = new Date();
     const proyecto = await createProyecto({
       nombre: payload.nombre,
@@ -85,7 +86,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
   });
 
   router.get('/mis-proyectos', async (c) => {
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const rows = await db
       .select({ proyecto: proyectos })
       .from(asignaciones)
@@ -129,8 +130,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
     if (departamentoIds !== undefined) {
       await setDepartamentosForProyecto(id, departamentoIds);
     }
-    const resolvedDepartamentoIds =
-      departamentoIds !== undefined ? departamentoIds : await getDepartamentosForProyecto(id);
+    const resolvedDepartamentoIds = departamentoIds ?? await getDepartamentosForProyecto(id);
 
     return c.json(toProyectoResponse({ ...updated, departamentoIds: resolvedDepartamentoIds }));
   });

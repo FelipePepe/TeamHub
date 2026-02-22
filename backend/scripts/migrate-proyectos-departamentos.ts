@@ -43,4 +43,4 @@ async function runMigration() {
   }
 }
 
-runMigration();
+await runMigration();

@@ -5,6 +5,8 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 > El detalle completo está modularizado en `docs/decisiones/`. Cada subfichero agrupa un área temática.  
 > Para volver al inicio del proyecto → [README principal](../README.md)
 
+> **Nota sobre PRs documentados:** Este documento enfoca en **features funcionales significativas y decisiones arquitecturales** (PRs #30+). Los PRs #1-29 corresponden a setup inicial, fixes técnicos y configuración CI/CD, documentados implícitamente en los ADRs de infraestructura.
+
 ---
 
 ## 📁 Módulos de Decisiones

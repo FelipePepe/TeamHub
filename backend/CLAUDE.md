@@ -38,6 +38,7 @@
 | Skill | Cuándo cargarlo |
 |-------|-----------------|
 | `.agents/skills/rule-security/SKILL.md` | Al trabajar con JWT, MFA, bcrypt, Zod, headers de seguridad, SQL, secretos |
+| `.agents/skills/rule-boy-scout/SKILL.md` | **SIEMPRE** al generar o modificar código: limpiar diagnósticos VS Code del archivo tocado |
 | `.agents/skills/rule-clean-code/SKILL.md` | Al implementar handlers, services, repositories o hacer code review |
 | `.agents/skills/rule-testing/SKILL.md` | Al escribir tests Vitest |
 | `.agents/skills/rule-docs/SKILL.md` | Al completar un endpoint o decisión arquitectural |

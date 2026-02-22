@@ -77,6 +77,7 @@ Carga el skill correspondiente cuando la tarea lo requiera:
 |-------|-----------------|
 | `.agents/skills/vercel-react-best-practices/SKILL.md` | Al trabajar en `frontend/`: componentes React, hooks, RSC, rendimiento |
 | `.agents/skills/frontend-design/SKILL.md` | Al crear o modificar UI: componentes, páginas, layouts, estilos |
+| `.agents/skills/rule-boy-scout/SKILL.md` | **SIEMPRE** al generar o modificar código: limpiar diagnósticos VS Code del archivo tocado |
 | `.agents/skills/rule-clean-code/SKILL.md` | Al implementar features, funciones, componentes o hacer code review |
 | `.agents/skills/rule-no-lint-suppress/SKILL.md` | Ante cualquier error de lint, TypeScript o warning |
 | `.agents/skills/rule-security/SKILL.md` | Al trabajar con auth, env vars, secretos, MFA, headers, SQL/XSS |

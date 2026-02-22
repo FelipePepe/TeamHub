@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 // ── Hoisted mocks ───────────────────────────────────────────────────
@@ -47,7 +48,7 @@ const createMockContext = (overrides: Record<string, unknown> = {}) => {
     _headers: headers,
     _resHeaders: resHeaders,
     _variables: variables,
-  } as any;
+  } as unknown as Context;
 };
 
 const mockUser = {

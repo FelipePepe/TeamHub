@@ -205,7 +205,7 @@ describe('departamentos-repository', () => {
       const created = { id: 'd3', ...payload };
       setupInsertChain([created]);
 
-      const result = await createDepartamento(payload as any);
+      const result = await createDepartamento(payload as Parameters<typeof createDepartamento>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -217,7 +217,7 @@ describe('departamentos-repository', () => {
       const payload = { nombre: 'New Dept', codigo: 'ND' };
       setupInsertChain([]);
 
-      const result = await createDepartamento(payload as any);
+      const result = await createDepartamento(payload as Parameters<typeof createDepartamento>[0]);
 
       expect(result).toBeNull();
     });

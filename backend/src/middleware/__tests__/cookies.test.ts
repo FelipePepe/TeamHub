@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Context } from 'hono';
 
 // ── Hoisted mocks ───────────────────────────────────────────────────
 const mockSetCookie = vi.hoisted(() => vi.fn());
@@ -40,7 +41,7 @@ const createMockContext = () => {
   return {
     req: { method: 'GET', path: '/', url: 'http://localhost/' },
     res: { status: 200 },
-  } as any;
+  } as unknown as Context;
 };
 
 describe('Cookie constants', () => {

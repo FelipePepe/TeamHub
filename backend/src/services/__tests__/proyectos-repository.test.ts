@@ -272,7 +272,7 @@ describe('proyectos-repository', () => {
       const created = { id: 'p2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createProyecto(payload as any);
+      const result = await createProyecto(payload as Parameters<typeof createProyecto>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -349,7 +349,7 @@ describe('proyectos-repository', () => {
       const created = { id: 'a2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createAsignacion(payload as any);
+      const result = await createAsignacion(payload as Parameters<typeof createAsignacion>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -363,7 +363,7 @@ describe('proyectos-repository', () => {
       const updated = { id: 'a1', proyectoId: 'p1', usuarioId: 'u1', rol: 'LEAD' };
       setupUpdateChain([updated]);
 
-      const result = await updateAsignacionById('a1', payload as any);
+      const result = await updateAsignacionById('a1', payload as Parameters<typeof updateAsignacionById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

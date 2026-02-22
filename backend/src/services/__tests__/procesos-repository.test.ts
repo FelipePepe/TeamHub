@@ -180,7 +180,7 @@ describe('procesos-repository', () => {
       const created = { id: 'pr2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createProceso(payload as any);
+      const result = await createProceso(payload as Parameters<typeof createProceso>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -194,7 +194,7 @@ describe('procesos-repository', () => {
       const updated = { id: 'pr1', estado: 'COMPLETADO' };
       setupUpdateChain([updated]);
 
-      const result = await updateProcesoById('pr1', payload as any);
+      const result = await updateProcesoById('pr1', payload as Parameters<typeof updateProcesoById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('procesos-repository', () => {
       ];
       setupInsertChain(created);
 
-      const result = await createTareasOnboarding(payload as any);
+      const result = await createTareasOnboarding(payload as Parameters<typeof createTareasOnboarding>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -271,7 +271,7 @@ describe('procesos-repository', () => {
       const updated = { id: 't1', titulo: 'Updated Task' };
       setupUpdateChain([updated]);
 
-      const result = await updateTareaOnboardingById('t1', payload as any);
+      const result = await updateTareaOnboardingById('t1', payload as Parameters<typeof updateTareaOnboardingById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

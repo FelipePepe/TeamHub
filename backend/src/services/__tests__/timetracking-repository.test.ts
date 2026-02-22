@@ -263,7 +263,7 @@ describe('timetracking-repository', () => {
       const created = { id: 'tt2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createTimetracking(payload as any);
+      const result = await createTimetracking(payload as Parameters<typeof createTimetracking>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -277,7 +277,7 @@ describe('timetracking-repository', () => {
       const updated = { id: 'tt1', horas: 6 };
       setupUpdateChain([updated]);
 
-      const result = await updateTimetrackingById('tt1', payload as any);
+      const result = await updateTimetrackingById('tt1', payload as Parameters<typeof updateTimetrackingById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

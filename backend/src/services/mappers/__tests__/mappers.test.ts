@@ -187,7 +187,7 @@ describe('toTimetrackingResponse', () => {
   });
 
   it('handles horas as number directly', () => {
-    const result = toTimetrackingResponse({ ...baseRegistro, horas: 7 } as any);
+    const result = toTimetrackingResponse({ ...baseRegistro, horas: 7 as unknown as string });
     expect(result.horas).toBe(7);
   });
 

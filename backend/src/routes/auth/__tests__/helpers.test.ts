@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Context } from 'hono';
+import type { User } from '../../../db/schema/users.js';
 import { HTTPException } from 'hono/http-exception';
 
 // ── Hoisted mocks ───────────────────────────────────────────────────
@@ -42,7 +44,7 @@ import {
 } from '../helpers.js';
 
 // ── Helpers ─────────────────────────────────────────────────────────
-const createMockUser = (overrides: Record<string, unknown> = {}) => ({
+const createMockUser = (overrides: Partial<User> = {}): User => ({
   id: '550e8400-e29b-41d4-a716-446655440000',
   email: 'test@example.com',
   nombre: 'Test',
@@ -63,7 +65,7 @@ const createMockUser = (overrides: Record<string, unknown> = {}) => ({
   updatedAt: new Date('2024-01-01'),
   deletedAt: null,
   ...overrides,
-});
+} as User);
 
 const createMockContext = (authHeader?: string, user?: Record<string, unknown>) => {
   const variables = new Map<string, unknown>();
@@ -78,7 +80,7 @@ const createMockContext = (authHeader?: string, user?: Record<string, unknown>) 
     },
     set: (key: string, value: unknown) => variables.set(key, value),
     get: (key: string) => variables.get(key),
-  } as any;
+  } as unknown as Context;
 };
 
 // ── Tests ───────────────────────────────────────────────────────────
@@ -181,19 +183,19 @@ describe('auth/helpers', () => {
   describe('isAccountLocked', () => {
     it('returns false when lockedUntil is null', () => {
       const user = createMockUser({ lockedUntil: null });
-      expect(isAccountLocked(user as any)).toBe(false);
+      expect(isAccountLocked(user)).toBe(false);
     });
 
     it('returns false when lockedUntil is in the past', () => {
       const pastDate = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
       const user = createMockUser({ lockedUntil: pastDate });
-      expect(isAccountLocked(user as any)).toBe(false);
+      expect(isAccountLocked(user)).toBe(false);
     });
 
     it('returns true when lockedUntil is in the future', () => {
       const futureDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
       const user = createMockUser({ lockedUntil: futureDate });
-      expect(isAccountLocked(user as any)).toBe(true);
+      expect(isAccountLocked(user)).toBe(true);
     });
   });
 
@@ -203,7 +205,7 @@ describe('auth/helpers', () => {
       const user = createMockUser({ failedLoginAttempts: 0 });
       mockUpdateUserById.mockResolvedValue(undefined);
 
-      await registerFailedLogin(user as any);
+      await registerFailedLogin(user);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith(
         user.id,
@@ -221,7 +223,7 @@ describe('auth/helpers', () => {
       const user = createMockUser({ failedLoginAttempts: 2 }); // next will be 3
       mockUpdateUserById.mockResolvedValue(undefined);
 
-      await registerFailedLogin(user as any);
+      await registerFailedLogin(user);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith(
         user.id,
@@ -244,7 +246,7 @@ describe('auth/helpers', () => {
       const user = createMockUser({ failedLoginAttempts: 5 });
       mockUpdateUserById.mockResolvedValue(undefined);
 
-      await registerFailedLogin(user as any);
+      await registerFailedLogin(user);
 
       const updateCall = mockUpdateUserById.mock.calls[0][1];
       expect(updateCall.failedLoginAttempts).toBe(6);
@@ -257,7 +259,7 @@ describe('auth/helpers', () => {
     it('returns early when failedLoginAttempts is 0 and no lockedUntil', async () => {
       const user = createMockUser({ failedLoginAttempts: 0, lockedUntil: null });
 
-      await resetLoginFailures(user as any);
+      await resetLoginFailures(user);
 
       expect(mockUpdateUserById).not.toHaveBeenCalled();
     });
@@ -266,7 +268,7 @@ describe('auth/helpers', () => {
       const user = createMockUser({ failedLoginAttempts: 2, lockedUntil: null });
       mockUpdateUserById.mockResolvedValue(undefined);
 
-      await resetLoginFailures(user as any);
+      await resetLoginFailures(user);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith(user.id, {
         failedLoginAttempts: 0,
@@ -282,7 +284,7 @@ describe('auth/helpers', () => {
       });
       mockUpdateUserById.mockResolvedValue(undefined);
 
-      await resetLoginFailures(user as any);
+      await resetLoginFailures(user);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith(user.id, {
         failedLoginAttempts: 0,

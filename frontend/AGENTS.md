@@ -40,5 +40,6 @@
 | `.agents/skills/vercel-react-best-practices/SKILL.md` | Al escribir componentes React, hooks, optimizar rendimiento, RSC vs Client Components |
 | `.agents/skills/frontend-design/SKILL.md` | Al crear o modificar UI: componentes, páginas, layouts, estilos |
 | `.agents/skills/rule-testing/SKILL.md` | Al escribir tests Vitest o Playwright E2E |
+| `.agents/skills/rule-boy-scout/SKILL.md` | **SIEMPRE** al generar o modificar código: limpiar diagnósticos VS Code del archivo tocado |
 | `.agents/skills/rule-clean-code/SKILL.md` | Al implementar features o hacer code review |
 | `.agents/skills/rule-security/SKILL.md` | Al trabajar con auth, tokens, cookies, XSS |

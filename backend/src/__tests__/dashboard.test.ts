@@ -11,6 +11,7 @@ import {
 } from '../test-utils/index.js';
 import { plantillasOnboarding } from '../db/schema/plantillas.js';
 import { procesosOnboarding, tareasOnboarding } from '../db/schema/procesos.js';
+import { tareas } from '../db/schema/tareas.js';
 
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = 'ValidPassword1!';
@@ -168,6 +169,18 @@ describe('dashboard metrics', () => {
       estado: 'PENDIENTE',
       prioridad: 'MEDIA',
       orden: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Tarea de proyecto vencida (para el KPI tareasVencidas del dashboard admin)
+    await db.insert(tareas).values({
+      proyectoId: project.id,
+      titulo: 'Tarea vencida',
+      estado: 'TODO',
+      prioridad: 'MEDIUM',
+      fechaFin: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      orden: '1',
       createdAt: new Date(),
       updatedAt: new Date(),
     });

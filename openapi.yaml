@@ -27,8 +27,8 @@ info:
     
     **Repositorio:** https://github.com/FelipePepe/TeamHub
 servers:
-  - url: https://teamhub-backend-production.up.railway.app/api
-    description: Production (Railway)
+  - url: https://teamhub-bxi0.onrender.com/api
+    description: Production (Render)
   - url: http://localhost:3001/api
     description: Local Development
 

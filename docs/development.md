@@ -194,8 +194,8 @@ npm run db:seed
 # Ver logs en desarrollo
 npm run dev
 
-# Ver logs en producción (Railway)
-railway logs
+# Ver logs en producción (Render)
+# Accede al dashboard: https://dashboard.render.com
 
 # Nivel de logs personalizado
 LOG_LEVEL=debug npm run dev

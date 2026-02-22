@@ -182,9 +182,9 @@ Ver [scripts/llm-collab/README.md](../scripts/llm-collab/README.md) para más de
 | Servicio | URL | Estado |
 |----------|-----|--------|
 | **Frontend** | https://teamhub-tfm.vercel.app | ✅ Desplegado |
-| **Backend API** | https://teamhub-backend-production.up.railway.app | ✅ Desplegado |
+| **Backend API** | https://teamhub-bxi0.onrender.com | ✅ Desplegado |
 | **Base de Datos** | Aiven PostgreSQL (managed) | ✅ Activo |
-| **Swagger UI** | https://teamhub-backend-production.up.railway.app/docs | ✅ Disponible |
+| **Swagger UI** | https://teamhub-bxi0.onrender.com/docs | ✅ Disponible |
 
 ### Frontend (Vercel)
 
@@ -205,7 +205,7 @@ Next.js
 
 #### Variables de Entorno
 ```env
-NEXT_PUBLIC_API_URL=https://teamhub-backend-production.up.railway.app/api
+NEXT_PUBLIC_API_URL=https://teamhub-bxi0.onrender.com/api
 NEXT_PUBLIC_APP_URL=https://teamhub-tfm.vercel.app
 ```
 

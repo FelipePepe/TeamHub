@@ -24,7 +24,7 @@ openapi.yaml (raíz)
 
 **Visualizar la API documentada:**
 
-- **Producción:** https://teamhub-backend-production.up.railway.app/docs
+- **Producción:** https://teamhub-bxi0.onrender.com/docs
 - **Local:** http://localhost:3001/docs
 - **OpenAPI spec:** http://localhost:3001/openapi.yaml
 

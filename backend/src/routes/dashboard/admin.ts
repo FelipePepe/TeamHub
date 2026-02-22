@@ -4,6 +4,7 @@ import { auditLog } from '../../db/schema/audit.js';
 import { departamentos } from '../../db/schema/departamentos.js';
 import { procesosOnboarding, tareasOnboarding } from '../../db/schema/procesos.js';
 import { proyectos } from '../../db/schema/proyectos.js';
+import { tareas } from '../../db/schema/tareas.js';
 import { timetracking } from '../../db/schema/timetracking.js';
 import { users } from '../../db/schema/users.js';
 import { MAX_ACTIVITY_ITEMS, MAX_ALERT_ITEMS } from './constants.js';
@@ -49,13 +50,13 @@ export const buildAdminDashboardResponse = async () => {
       .where(and(eq(procesosOnboarding.estado, 'EN_CURSO'), isNull(procesosOnboarding.deletedAt))),
     db
       .select({ count: sql<number>`count(*)` })
-      .from(tareasOnboarding)
+      .from(tareas)
       .where(
         and(
-          isNotNull(tareasOnboarding.fechaLimite),
-          lt(tareasOnboarding.fechaLimite, today),
-          ne(tareasOnboarding.estado, 'COMPLETADA'),
-          ne(tareasOnboarding.estado, 'CANCELADA')
+          isNotNull(tareas.fechaFin),
+          lt(tareas.fechaFin, now),
+          ne(tareas.estado, 'DONE'),
+          isNull(tareas.deletedAt)
         )
       ),
     db

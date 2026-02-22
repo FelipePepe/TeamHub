@@ -184,8 +184,8 @@ La documentación está modularizada para facilitar su navegación:
 | Servicio | URL | Estado |
 |----------|-----|--------|
 | **Frontend** | https://teamhub-tfm.vercel.app | ✅ Desplegado |
-| **Backend API** | https://teamhub-backend-production.up.railway.app | ✅ Desplegado |
-| **Swagger UI** | https://teamhub-backend-production.up.railway.app/docs | ✅ Disponible |
+| **Backend API** | https://teamhub-bxi0.onrender.com | ✅ Desplegado |
+| **Swagger UI** | https://teamhub-bxi0.onrender.com/docs | ✅ Disponible |
 | **Base de Datos** | Aiven PostgreSQL (managed) | ✅ Activo |
 
 ---

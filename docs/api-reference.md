@@ -7,7 +7,7 @@ Documentación de la API REST de TeamHub.
 ## Base URL
 
 - **Desarrollo**: `http://localhost:3001/api`
-- **Producción**: `https://teamhub-backend-production.up.railway.app/api`
+- **Producción**: `https://teamhub-bxi0.onrender.com/api`
 
 ---
 
@@ -17,7 +17,7 @@ La documentación oficial de la API se mantiene en `openapi.yaml` y se visualiza
 
 - **UI**: `http://localhost:3001/docs`
 - **Spec**: `http://localhost:3001/openapi.yaml`
-- **Producción**: `https://teamhub-backend-production.up.railway.app/docs`
+- **Producción**: `https://teamhub-bxi0.onrender.com/docs`
 
 ---
 

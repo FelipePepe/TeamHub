@@ -67,6 +67,7 @@ describe('Role dashboards', () => {
         horasMes: 120,
         onboardingsEnCurso: 1,
         tareasVencidas: 0,
+        proyectosConDesviacion: 0,
       },
       charts: {
         usuariosPorRol: [],
@@ -95,7 +96,7 @@ describe('Role dashboards', () => {
 
   it('dashboards de manager, empleado y rrhh renderizan secciones principales', async () => {
     dashboardMocks.getManagerDashboard.mockResolvedValue({
-      kpis: { miembrosEquipo: 4, cargaPromedio: 80, horasPendientesAprobar: 2, proyectosActivos: 3 },
+      kpis: { miembrosEquipo: 4, cargaPromedio: 80, horasPendientesAprobar: 2, proyectosActivos: 3, proyectosConDesviacion: 0 },
       charts: { equipoPorProyecto: [], horasEquipoSemana: [] },
       sections: { equipoOcupacion: [], pendientesAprobacion: [] },
     });

@@ -1,19 +1,41 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
+import nextPlugin from '@next/eslint-plugin-next';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname
-});
-
+/**
+ * ESLint flat config using @next/eslint-plugin-next native flatConfig.
+ * Avoids @eslint/eslintrc (and its legacy minimatch CJS dependency),
+ * mirroring the backend's approach of using ESLint flat config directly.
+ */
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  nextPlugin.flatConfig.recommended,
+  nextPlugin.flatConfig.coreWebVitals,
   {
-    ignores: ['.next/**']
-  }
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs['recommended'].rules,
+      // Prohíbe claves duplicadas en object literals (ej: { enabled, enabled })
+      'no-dupe-keys': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      }],
+    },
+  },
+  {
+    ignores: ['.next/**'],
+  },
 ];
 
 export default eslintConfig;

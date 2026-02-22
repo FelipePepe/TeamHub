@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TimetrackingPage from '../page';
 
@@ -53,6 +53,13 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermissions: () => permissionsMocks,
 }));
 
+vi.mock('@/hooks/use-auth', () => ({
+  useAuth: () => ({
+    user: { id: 'user-1', nombre: 'Test User', email: 'test@example.com', rol: 'EMPLEADO' },
+    isLoading: false,
+  }),
+}));
+
 const timetrackingMocks = vi.hoisted(() => ({
   misRegistrosData: {
     data: [
@@ -84,6 +91,11 @@ vi.mock('@/hooks/use-timetracking', () => ({
     isLoading: timetrackingMocks.misRegistrosLoading,
     error: timetrackingMocks.misRegistrosError,
   }),
+  useTimeEntries: () => ({
+    data: timetrackingMocks.misRegistrosData,
+    isLoading: timetrackingMocks.misRegistrosLoading,
+    error: timetrackingMocks.misRegistrosError,
+  }),
   useResumenTimetracking: () => ({
     data: timetrackingMocks.resumenData,
   }),
@@ -98,10 +110,19 @@ vi.mock('@/hooks/use-timetracking', () => ({
   useUpdateTimeEntry: () => ({
     mutateAsync: timetrackingMocks.updateMutateAsync,
   }),
+  useDeleteTimeEntry: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
   useCopiarRegistros: () => ({
     mutateAsync: timetrackingMocks.copyMutateAsync,
     isPending: timetrackingMocks.copyPending,
   }),
+}));
+
+vi.mock('@/hooks/use-empleados', () => ({
+  useEmpleados: () => ({ data: { data: [] }, isLoading: false }),
+  useEmpleadosByManager: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
 vi.mock('@/hooks/use-proyectos', () => ({
@@ -110,6 +131,10 @@ vi.mock('@/hooks/use-proyectos', () => ({
   }),
   useMisProyectos: () => ({
     data: { data: [{ id: 'p-1', nombre: 'Atlas', codigo: 'ATL', fechaInicio: '2026-01-01', fechaFinEstimada: '2026-03-01' }] },
+    isLoading: false,
+  }),
+  useAsignaciones: () => ({
+    data: { data: [] },
     isLoading: false,
   }),
 }));

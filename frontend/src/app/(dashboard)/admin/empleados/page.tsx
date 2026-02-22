@@ -29,8 +29,7 @@ import { useEmpleados, useDeleteEmpleado } from '@/hooks/use-empleados';
 import { usePermissions } from '@/hooks/use-permissions';
 import { EmpleadoForm } from '@/components/forms/empleado-form';
 import { toast } from 'sonner';
-import type { EmpleadoFilters } from '@/types';
-import type { User } from '@/types';
+import type { EmpleadoFilters, User } from '@/types';
 
 const FILTRO_TODOS_VALUE = '__todos__';
 const LOADING_EMPLEADO_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
@@ -130,6 +129,184 @@ export default function EmpleadosPage() {
   const total = data?.meta?.total ?? 0;
   const totalPages = Math.ceil(total / limit);
   const empleados = data?.data ?? [];
+  const empleadoSuffix = total === 1 ? '' : 's';
+  const empleadosLabel =
+    total === 0
+      ? 'No hay empleados'
+      : `${total} empleado${empleadoSuffix} encontrado${empleadoSuffix}`;
+
+  let empleadosContent: React.ReactNode;
+  if (isLoading) {
+    empleadosContent = (
+      <div className="space-y-4">
+        {LOADING_EMPLEADO_KEYS.map((key) => (
+          <div key={key} className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </div>
+    );
+  } else if (error) {
+    empleadosContent = (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-sm text-red-600">Error al cargar empleados</p>
+        <Button
+          variant="outline"
+          onClick={() => globalThis.location.reload()}
+          className="mt-4"
+        >
+          Reintentar
+        </Button>
+      </div>
+    );
+  } else if (empleados.length === 0) {
+    empleadosContent = (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Users className="mb-4 h-12 w-12 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          No se encontraron empleados con los filtros seleccionados
+        </p>
+      </div>
+    );
+  } else {
+    empleadosContent = (
+      <>
+        {/* Tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-800">
+                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Empleado
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Email
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Rol
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Estado
+                </th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              {empleados.map((empleado) => (
+                <tr
+                  key={empleado.id}
+                  className="hover:bg-slate-50 transition-colors dark:hover:bg-slate-900/60"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                        {empleado.nombre.charAt(0)}
+                        {empleado.apellidos?.charAt(0) ?? ''}
+                      </div>
+                      <div>
+                        <p className="font-medium uppercase text-slate-900 dark:text-slate-100">
+                          {empleado.nombre} {empleado.apellidos}
+                        </p>
+                        {empleado.departamentoNombre && (
+                          <p className="text-xs text-muted-foreground">
+                            {empleado.departamentoNombre}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+                    {empleado.email}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant="outline">{empleado.rol}</Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant={empleado.activo ? 'default' : 'secondary'}
+                    >
+                      {empleado.activo ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          router.push(`/admin/empleados/${empleado.id}`)
+                        }
+                        title="Ver detalle"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(empleado)}
+                        title="Editar"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          handleDelete(empleado.id, empleado.nombre)
+                        }
+                        title="Eliminar"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Mostrando {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} de {total}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+              <span className="text-sm text-slate-600 dark:text-slate-300">
+                Página {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -221,174 +398,10 @@ export default function EmpleadosPage() {
         <CardHeader>
           <CardTitle>Listado de empleados</CardTitle>
           <CardDescription>
-            {total > 0 ? `${total} empleado${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}` : 'No hay empleados'}
+            {empleadosLabel}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {LOADING_EMPLEADO_KEYS.map((key) => (
-                <div key={key} className="flex items-center gap-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <Skeleton className="h-4 flex-1" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-red-600">Error al cargar empleados</p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="mt-4"
-              >
-                Reintentar
-              </Button>
-            </div>
-          ) : empleados.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="mb-4 h-12 w-12 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                No se encontraron empleados con los filtros seleccionados
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Tabla */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800">
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Empleado
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Email
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Rol
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Estado
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                    {empleados.map((empleado) => (
-                      <tr
-                        key={empleado.id}
-                        className="hover:bg-slate-50 transition-colors dark:hover:bg-slate-900/60"
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
-                              {empleado.nombre.charAt(0)}
-                              {empleado.apellidos?.charAt(0) ?? ''}
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900 dark:text-slate-100">
-                                {empleado.nombre} {empleado.apellidos}
-                              </p>
-                              {empleado.departamentoNombre && (
-                                <p className="text-xs text-muted-foreground">
-                                  {empleado.departamentoNombre}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
-                          {empleado.email}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline">{empleado.rol}</Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={empleado.activo ? 'default' : 'secondary'}
-                          >
-                            {empleado.activo ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                router.push(`/admin/empleados/${empleado.id}`)
-                              }
-                              title="Ver detalle"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(empleado)}
-                              title="Editar"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                handleDelete(empleado.id, empleado.nombre)
-                              }
-                              title="Eliminar"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} de {total}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Anterior
-                    </Button>
-                    <span className="text-sm text-slate-600 dark:text-slate-300">
-                      Página {currentPage} de {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= totalPages}
-                    >
-                      Siguiente
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
+        <CardContent>{empleadosContent}</CardContent>
       </Card>
 
       {/* Modal de Crear/Editar */}

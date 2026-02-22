@@ -1,11 +1,14 @@
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { timetracking, type NewTimetracking } from '../db/schema/timetracking.js';
+import { users } from '../db/schema/users.js';
 
 type TimeEntryStatus = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
 
 type TimetrackingFilters = {
   usuarioId?: string;
+  /** Filtra por varios usuarioIds a la vez (tiene precedencia sobre usuarioId). */
+  usuarioIds?: string[];
   proyectoId?: string;
   estado?: TimeEntryStatus;
   fechaInicio?: string;
@@ -18,7 +21,10 @@ export const listTimetracking = async (
   pagination?: { page?: number; limit?: number }
 ) => {
   const clauses = [];
-  if (filters.usuarioId) {
+
+  if (filters.usuarioIds && filters.usuarioIds.length > 0) {
+    clauses.push(inArray(timetracking.usuarioId, filters.usuarioIds));
+  } else if (filters.usuarioId) {
     clauses.push(eq(timetracking.usuarioId, filters.usuarioId));
   }
   if (filters.proyectoId) {
@@ -38,14 +44,36 @@ export const listTimetracking = async (
   }
 
   const whereClause = clauses.length ? and(...clauses) : undefined;
-  const baseQuery = whereClause
-    ? db.select().from(timetracking).where(whereClause)
-    : db.select().from(timetracking);
+  const baseQuery = db
+    .select({
+      id: timetracking.id,
+      usuarioId: timetracking.usuarioId,
+      proyectoId: timetracking.proyectoId,
+      fecha: timetracking.fecha,
+      horas: timetracking.horas,
+      descripcion: timetracking.descripcion,
+      facturable: timetracking.facturable,
+      estado: timetracking.estado,
+      aprobadoPor: timetracking.aprobadoPor,
+      aprobadoAt: timetracking.aprobadoAt,
+      rechazadoPor: timetracking.rechazadoPor,
+      rechazadoAt: timetracking.rechazadoAt,
+      comentarioRechazo: timetracking.comentarioRechazo,
+      createdAt: timetracking.createdAt,
+      updatedAt: timetracking.updatedAt,
+      /** Nombre completo del empleado obtenido via LEFT JOIN con users. */
+      usuarioNombre: sql<string | null>`NULLIF(TRIM(COALESCE(${users.nombre}, '') || ' ' || COALESCE(${users.apellidos}, '')), '')`,
+    })
+    .from(timetracking)
+    .leftJoin(users, eq(timetracking.usuarioId, users.id));
+
+  const filteredQuery = whereClause ? baseQuery.where(whereClause) : baseQuery;
+  const orderedQuery = filteredQuery.orderBy(asc(timetracking.fecha));
 
   if (pagination?.page && pagination.limit) {
-    return baseQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
+    return orderedQuery.limit(pagination.limit).offset((pagination.page - 1) * pagination.limit);
   }
-  return baseQuery;
+  return orderedQuery;
 };
 
 export const findTimetrackingById = async (id: string) => {

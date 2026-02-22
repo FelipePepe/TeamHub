@@ -39,6 +39,9 @@ ProyectoResponse:
       type: string
     activo:
       type: boolean
+    asignacionesActivas:
+      type: integer
+      description: Número de asignaciones activas (sin fecha de fin ni soft delete) del proyecto
     createdAt:
       type: string
       format: date-time

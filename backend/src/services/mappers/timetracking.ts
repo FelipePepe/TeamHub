@@ -17,6 +17,8 @@ type TimetrackingResponseInput = {
   comentarioRechazo?: string | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  /** Nombre completo del usuario, disponible cuando se hace JOIN con users. */
+  usuarioNombre?: string | null;
 };
 
 export const toTimetrackingResponse = (
@@ -37,4 +39,5 @@ export const toTimetrackingResponse = (
   comentarioRechazo: registro.comentarioRechazo,
   createdAt: registro.createdAt,
   updatedAt: registro.updatedAt,
+  usuarioNombre: 'usuarioNombre' in registro ? (registro.usuarioNombre ?? undefined) : undefined,
 });

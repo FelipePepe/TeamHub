@@ -35,7 +35,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4" aria-label="Navegación principal">
-        <ul className="space-y-1" role="list">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = isNavItemActive(item.href, pathname);
             const Icon = item.icon;
@@ -63,7 +63,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-        <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v1.0.0</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">TeamHub v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
       </div>
     </aside>
   );

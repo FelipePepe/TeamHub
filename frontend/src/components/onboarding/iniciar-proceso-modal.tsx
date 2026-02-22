@@ -155,7 +155,7 @@ export function IniciarProcesoModal({
               <SelectContent>
                 {empleados.map((emp: User) => (
                   <SelectItem key={emp.id} value={emp.id}>
-                    {emp.nombre} {emp.apellidos} - {emp.departamentoNombre || 'Sin departamento'}
+                    <span className="uppercase">{emp.nombre} {emp.apellidos}</span>{' '}- {emp.departamentoNombre || 'Sin departamento'}
                   </SelectItem>
                 ))}
               </SelectContent>

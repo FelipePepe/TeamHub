@@ -7,15 +7,18 @@ import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
 import { toAsignacionResponse, toProyectoResponse } from '../../services/mappers.js';
 import { db } from '../../db/index.js';
 import { asignaciones, proyectos } from '../../db/schema/proyectos.js';
-import type { User } from '../../db/schema/users.js';
+
 import {
   createAsignacion,
   createProyecto,
   findAsignacionById,
   findProyectoByCodigo,
   findProyectoById,
+  findProyectoWithDepartamentos,
+  getDepartamentosForProyecto,
   listAsignacionesByProyectoId,
   listProyectos,
+  setDepartamentosForProyecto,
   updateAsignacionById,
   updateProyectoById,
 } from '../../services/proyectos-repository.js';
@@ -42,6 +45,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       cliente: query.cliente,
       fechaInicio: query.fechaInicio,
       fechaFin: query.fechaFin,
+      usuarioId: query.usuarioId,
     });
 
     return c.json({ data: list.map(toProyectoResponse) });
@@ -53,7 +57,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
     if (existing) {
       throw new HTTPException(400, { message: 'El proyecto ya existe' });
     }
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const now = new Date();
     const proyecto = await createProyecto({
       nombre: payload.nombre,
@@ -75,11 +79,14 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       throw new HTTPException(500, { message: 'Error al crear proyecto' });
     }
 
-    return c.json(toProyectoResponse(proyecto), 201);
+    const departamentoIds = payload.departamentoIds ?? [];
+    await setDepartamentosForProyecto(proyecto.id, departamentoIds);
+
+    return c.json(toProyectoResponse({ ...proyecto, departamentoIds }), 201);
   });
 
   router.get('/mis-proyectos', async (c) => {
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const rows = await db
       .select({ proyecto: proyectos })
       .from(asignaciones)
@@ -91,7 +98,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
 
   router.get('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const proyecto = await findProyectoById(id);
+    const proyecto = await findProyectoWithDepartamentos(id);
     if (!proyecto) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
@@ -106,7 +113,7 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
 
-    const { activo, presupuestoHoras, ...rest } = payload;
+    const { activo, presupuestoHoras, departamentoIds, ...rest } = payload;
     const updates: Parameters<typeof updateProyectoById>[1] = {
       ...rest,
       presupuestoHoras: presupuestoHoras?.toString(),
@@ -120,7 +127,12 @@ export const registerProyectosRoutes = (router: Hono<HonoEnv>) => {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
 
-    return c.json(toProyectoResponse(updated));
+    if (departamentoIds !== undefined) {
+      await setDepartamentosForProyecto(id, departamentoIds);
+    }
+    const resolvedDepartamentoIds = departamentoIds ?? await getDepartamentosForProyecto(id);
+
+    return c.json(toProyectoResponse({ ...updated, departamentoIds: resolvedDepartamentoIds }));
   });
 
   router.delete('/:id', async (c) => {

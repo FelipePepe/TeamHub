@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import LoginPage from '../page';
 
 vi.mock('next/image', () => ({
-  default: ({ alt }: { alt: string }) => <img alt={alt} />,
+  default: ({ alt }: { alt: string }) => <span>{alt}</span>,
 }));
 
 vi.mock('@/components/forms/login-form', () => ({
@@ -21,7 +21,7 @@ vi.mock('@/components/ui/card', () => ({
 describe('auth/login/page', () => {
   it('renderiza logo, descripción y formulario', () => {
     render(<LoginPage />);
-    expect(screen.getByAltText('TeamHub Logo')).toBeInTheDocument();
+    expect(screen.getByText('TeamHub Logo')).toBeInTheDocument();
     expect(screen.getByText(/ingresa tus credenciales/i)).toBeInTheDocument();
     expect(screen.getByText('LoginFormMock')).toBeInTheDocument();
   });

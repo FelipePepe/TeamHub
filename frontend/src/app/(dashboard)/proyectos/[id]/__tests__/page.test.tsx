@@ -39,6 +39,11 @@ vi.mock('@/hooks/use-proyectos', () => ({
   useDeleteProyecto: () => ({ mutateAsync: mutMocks.deleteProyecto, isPending: false }),
   useCreateAsignacion: () => ({ mutateAsync: mutMocks.createAsig, isPending: false }),
   useDeleteAsignacion: () => ({ mutateAsync: mutMocks.deleteAsig, isPending: false }),
+  useCreateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateProyecto: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}));
+vi.mock('@/hooks/use-departamentos', () => ({
+  useDepartamentos: () => ({ data: { data: [] }, isLoading: false }),
 }));
 vi.mock('@/hooks/use-empleados', () => ({ useEmpleados: () => dataMocks.empleados }));
 vi.mock('@/hooks/use-tareas', () => ({ useTareasByProyecto: () => dataMocks.tareas }));
@@ -63,7 +68,10 @@ vi.mock('@/components/ui/select', async () => {
     }: {
       children: React.ReactNode;
       onValueChange?: (value: string) => void;
-    }) => <Ctx.Provider value={{ onValueChange }}>{children}</Ctx.Provider>,
+    }) => {
+      const value = ReactLib.useMemo(() => ({ onValueChange }), [onValueChange]);
+      return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+    },
     SelectTrigger: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,
     SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder ?? ''}</span>,
     SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -144,7 +152,8 @@ describe('Proyectos/[id] page', () => {
 
     await waitFor(() => {
       expect(mutMocks.deleteProyecto).toHaveBeenCalledWith('p1');
-      expect(routerMocks.push).toHaveBeenCalledWith('/proyectos?editar=p1');
+      // After delete, navigates to projects list (edit opens modal, not a navigation)
+      expect(routerMocks.push).toHaveBeenCalledWith('/proyectos');
     });
   });
 
@@ -172,8 +181,8 @@ describe('Proyectos/[id] page', () => {
       expect(mutMocks.createAsig).toHaveBeenCalled();
     });
 
-    const deleteButtons = screen.getAllByRole('button').filter((b) => b.className.includes('text-red-600'));
-    if (deleteButtons[0]) await user.click(deleteButtons[0]);
+    const deleteButton = screen.getAllByRole('button').find((b) => b.className.includes('text-red-600'));
+    if (deleteButton) await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mutMocks.deleteAsig).toHaveBeenCalled();

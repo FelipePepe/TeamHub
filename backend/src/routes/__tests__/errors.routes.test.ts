@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
+import type { User } from '../../db/schema/users.js';
 
 // ── Hoisted mocks ───────────────────────────────────────────────────
 const mockLogError = vi.hoisted(() => vi.fn());
@@ -19,7 +20,7 @@ const createApp = (user?: Record<string, unknown>) => {
   // Optional middleware to inject user context
   if (user) {
     app.use('*', async (c, next) => {
-      c.set('user', user as any);
+      c.set('user', user as unknown as User);
       await next();
     });
   }

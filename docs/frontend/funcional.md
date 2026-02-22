@@ -122,10 +122,10 @@ Los dashboards utilizan gráficos simples implementados con HTML/CSS:
 ### Proyectos y Asignaciones
 - Listado con vista cards y tabla intercambiable.
 - Filtros por estado (planificado, en_curso, completado, cancelado).
-- Formulario crear/editar con fechas y cliente.
+- Formulario crear/editar con fechas, cliente y **selector multi-departamento** (relación N:M).
 - Vista detalle con:
   - Estadísticas del proyecto (empleados, horas, completitud).
-  - Gestión de asignaciones de equipo.
+  - Gestión de asignaciones de equipo con **filtro de candidatos por departamentos del proyecto**.
   - Validación de dedicación total ≤ 100%.
 - Permisos: ADMIN, RRHH, MANAGER.
 
@@ -192,12 +192,12 @@ El módulo de timetracking incluye 3 vistas principales accesibles mediante tabs
 ### Perfil
 
 #### Edicion de perfil
-- Formulario UI para nombre y apellidos (sin integracion de guardado).
+- Formulario para nombre y apellidos con guardado integrado (PUT /api/perfil).
 - Email solo lectura.
-- UI para cambio de contraseña (sin integracion de guardado).
+- Cambio de contraseña con validación de contraseña actual (PATCH /api/perfil/password).
 
 #### Casos de error (Perfil)
-- Validaciones pendientes al integrar backend.
+- Error de validación: campos requeridos y política de contraseña aplicada.
 
 ## Flujos Clave (implementados)
 - Autenticacion y sesion (login + cambio de contraseña temporal + MFA)

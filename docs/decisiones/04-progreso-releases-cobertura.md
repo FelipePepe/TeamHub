@@ -1091,12 +1091,531 @@ cors({
 - **Linting:** 49 warnings (solo `any` en tests, no bloquea)
 
 #### Versión Actual
-- **Production (main):** v1.6.0
-- **Development (develop):** Sincronizado con v1.6.0
-- **Última release:** 2026-02-14 (Code Quality & Security)
+- **Production (main):** v1.6.1
+- **Development (develop):** v1.7.0 (en feature branch)
+- **Última release:** 2026-02-14 (CORS + Docs Modularization)
 
 #### Próxima Milestone
-- TFM Presentation preparación
+- ✅ N:M proyectos-departamentos (feature/proyectos-departamentos → v1.7.0)
+- Preparación presentación TFM
 - Monitoreo producción
 - Mejoras continuas de calidad
+
+---
+
+## ADRs Recientes (2026-02-21)
+
+### ADR-111: Fix Uppercase Nombres de Usuario
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/uppercase-nombres-usuarios`
+**PR:** #137 → develop
+
+#### Contexto
+Los nombres de usuario aparecían sin formato capitalizado en múltiples pantallas (timetracking, proyectos, dashboard), generando inconsistencia visual. El nombre venía directamente de la base de datos en minúsculas.
+
+#### Decisión
+Aplicar transformación CSS `text-transform: uppercase` (o equivalente con `capitalize`) de forma consistente en **todos los componentes** que muestran nombres de usuario, en lugar de hacerlo solo en algunos sitios.
+
+#### Implementación
+- `frontend/src/app/(dashboard)/timetracking/page.tsx`: Capitalización en tabla de registros
+- `frontend/src/app/(dashboard)/timetracking/aprobacion/page.tsx`: Capitalización en columna empleado
+- Revisión global de pantallas que renderizan `nombre + apellidos`
+
+#### Consecuencias
+- ✅ Presentación visual consistente en todas las pantallas
+- ✅ Sin cambios en base de datos ni API (solo UI)
+- ✅ Sin impacto en tests existentes
+- 📊 Cambio puro de presentación: ~10 líneas modificadas
+
+---
+
+### ADR-112: Fix totalTareas en Listado de Plantillas (LEFT JOIN)
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/plantillas-totalTareas-count`
+**PR:** #138 → develop
+
+#### Contexto
+El endpoint `GET /plantillas` devolvía `totalTareas: 0` para todas las plantillas aunque tuvieran tareas. La causa era una subconsulta correlacionada que no se ejecutaba correctamente con el JOIN existente.
+
+#### Decisión
+Reemplazar la subconsulta correlacionada por un `LEFT JOIN` con `count()` usando la función `countDistinct` de Drizzle ORM. Esto garantiza que cada plantilla incluya el conteo real de tareas asociadas.
+
+#### Implementación
+```typescript
+// backend/src/services/plantillas-repository.ts
+// ANTES: subconsulta correlacionada (buggy)
+// DESPUÉS: LEFT JOIN con count
+const result = await db
+  .select({
+    ...plantillasFields,
+    totalTareas: countDistinct(tareaPlantillas.id),
+  })
+  .from(plantillas)
+  .leftJoin(tareaPlantillas, eq(tareaPlantillas.plantillaId, plantillas.id))
+  .groupBy(plantillas.id);
+```
+
+#### Consecuencias
+- ✅ `totalTareas` refleja el conteo real en el listado
+- ✅ Rendimiento igual o mejor que la subconsulta correlacionada
+- ✅ Tests actualizados para validar el conteo correcto
+- ✅ Compatible con paginación y filtros existentes
+- 📊 Cambio mínimo: 1 función modificada, tests actualizados
+
+---
+
+### ADR-113: N:M Proyectos-Departamentos + Filtro de Empleados
+
+**Fecha:** 2026-02-21
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**Commit:** `0fdc618`
+
+#### Contexto
+Los proyectos solo podían pertenecer a un único departamento (FK simple). Surgió la necesidad de proyectos interdepartamentales. Además, el modal "Añadir asignación" mostraba todos los empleados de la empresa, dificultando la selección cuando el proyecto tiene departamentos bien definidos.
+
+#### Decisión
+Implementar relación **N:M entre proyectos y departamentos** mediante tabla pivote `proyectos_departamentos`. Al añadir empleados a un proyecto, filtrar la lista de candidatos a los empleados de los departamentos del proyecto.
+
+**Alternativas consideradas:**
+1. FK simple `departamento_id` en proyectos — descartado: no cubre proyectos mixtos
+2. Array de IDs en columna JSON — descartado: pierde integridad referencial
+3. **Tabla pivote `proyectos_departamentos`** — elegida: normalización correcta, FK con CASCADE
+
+#### Implementación
+
+**DB Migration:**
+```sql
+CREATE TABLE proyectos_departamentos (
+  proyecto_id  uuid NOT NULL REFERENCES proyectos(id) ON DELETE CASCADE,
+  departamento_id uuid NOT NULL REFERENCES departamentos(id) ON DELETE CASCADE,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (proyecto_id, departamento_id)
+);
+CREATE INDEX proyectos_departamentos_proyecto_idx    ON proyectos_departamentos (proyecto_id);
+CREATE INDEX proyectos_departamentos_departamento_idx ON proyectos_departamentos (departamento_id);
+```
+
+> **Nota técnica:** `drizzle-kit generate` y `db:push` fallan en Node.js 25 con `ERR_PACKAGE_PATH_NOT_EXPORTED` para `./_relations`. Solución: script de migración manual `backend/scripts/migrate-proyectos-departamentos.ts` aplicado directamente a Aiven y a `teamhub_test`.
+
+**Backend (`backend/src/db/schema/proyectos.ts`):**
+- Tabla `proyectosDepartamentos` con `primaryKey`, índices y CASCADE
+
+**Repository (`backend/src/services/proyectos-repository.ts`):**
+- `getDepartamentosForProyecto(proyectoId)`: retorna `string[]` de IDs
+- `setDepartamentosForProyecto(proyectoId, deptIds[])`: delete + insert
+- `findProyectoWithDepartamentos(id)`: `findProyectoById` + `getDepartamentosForProyecto`
+
+**Mappers y Handlers:**
+- `departamentoIds?: string[]` añadido al response del mapper
+- `departamentoIds` opcional en schemas Zod de `POST /proyectos` y `PUT /proyectos/:id`
+- `GET /proyectos/:id` usa `findProyectoWithDepartamentos`
+
+**Frontend:**
+- `frontend/src/hooks/proyectos/types.ts`: `departamentoIds?: string[]` en `Proyecto`, `CreateProyectoData`, `UpdateProyectoData`
+- `frontend/src/components/forms/proyecto-form.tsx`: checkbox list para selección múltiple de departamentos usando `useDepartamentos`
+- `frontend/src/app/(dashboard)/proyectos/[id]/page.tsx`: `empleadosParaAsignacion` filtra empleados por `departamentoId` ∈ `proyecto.departamentoIds`; fallback a todos si el proyecto no tiene departamentos configurados
+
+#### Tests añadidos
+- Backend: 6 nuevos tests en `proyectos-repository.test.ts` (getDepartamentos, setDepartamentos, findProyectoWithDepartamentos)
+- Backend: 2 nuevos tests en `mappers.test.ts` (departamentoIds presente/ausente)
+- Frontend: mock `useDepartamentos` en `proyecto-form.test.tsx`
+
+#### Consecuencias
+- ✅ Proyectos pueden pertenecer a múltiples departamentos
+- ✅ Modal "Añadir asignación" muestra solo empleados relevantes
+- ✅ Backward compatible: proyectos existentes tienen `departamentoIds: []`
+- ✅ 663 backend tests + 383 frontend tests pasando
+- ✅ Linting: 0 errores
+- 📊 15 ficheros modificados (+nueva tabla + nuevas funciones de repositorio)
+- ⚠️ drizzle-kit CLI roto en Node.js 25: workaround documentado en `backend/scripts/migrate-proyectos-departamentos.ts`
+
+---
+
+### ADR-114: Dashboard KPI — Proyectos con Desviación Presupuestaria
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+Los dashboards de Admin y Manager mostraban KPIs de volumen (nº proyectos, empleados, etc.) pero ninguno alertaba sobre proyectos que habían superado su presupuesto de horas. Era necesario un indicador de desviación visible directamente en el panel de control.
+
+#### Decisión
+Añadir un KPI `proyectosConDesviacion` que muestra el **número de proyectos activos cuyas `horasConsumidas` superan `presupuestoHoras`**. El KPI se renderiza en rojo (`variant: 'danger'`) cuando el valor es > 0.
+
+#### Implementación
+
+**Backend:**
+```sql
+-- admin.ts y manager.ts (scope filtrado por managerId)
+SELECT COUNT(*)
+FROM proyectos
+WHERE deleted_at IS NULL
+  AND presupuesto_horas IS NOT NULL
+  AND horas_consumidas IS NOT NULL
+  AND CAST(horas_consumidas AS DECIMAL) > CAST(presupuesto_horas AS DECIMAL)
+```
+- `backend/src/routes/dashboard/admin.ts`: nueva query en `Promise.all`, campo `proyectosConDesviacion` en la respuesta
+- `backend/src/routes/dashboard/manager.ts`: idem, con `WHERE managerId = user.id` adicional; early return incluye `proyectosConDesviacion: 0`
+
+**Frontend:**
+- `frontend/src/types/dashboard.ts`: `proyectosConDesviacion: number` en `AdminDashboardData.kpis` y `ManagerDashboardData.kpis`
+- `frontend/src/components/dashboard/admin-dashboard.tsx`: 7ª KpiCard con icono `TrendingDown`, `variant: 'danger'` cuando > 0; grid `xl:grid-cols-7` para fila única en pantallas grandes
+- `frontend/src/components/dashboard/manager-dashboard.tsx`: 5ª KpiCard; grid `xl:grid-cols-5`
+
+**Tests:**
+- `role-dashboards.test.tsx`: mock kpis actualizado con `proyectosConDesviacion: 0`
+
+#### Consecuencias
+- ✅ Admin y Manager ven al instante cuántos proyectos tienen coste excedido
+- ✅ Indicador ausente → `variant: 'default'`; indicador positivo → `variant: 'danger'` (rojo)
+- ✅ Sin cambios en schema DB ni en OpenAPI (calculado on-the-fly)
+- ✅ 664 tests backend + 383 frontend pasando
+- 📊 6 ficheros modificados
+
+---
+
+### ADR-115: Filtro de Empleados por Proyecto y Visualización de Rol en Tareas
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+El selector "Asignado a" en el modal de creación/edición de tareas mostraba todos los empleados activos de la empresa (hasta 500), ignorando la pertenencia al proyecto. Esto dificultaba la selección y mostraba empleados que no podían trabajar en el proyecto.
+
+#### Decisión
+Filtrar el selector de empleados a los **miembros activos del proyecto** (obtenidos de `asignaciones`) y mostrar el **rol de cada empleado en el proyecto** junto a su nombre en el dropdown.
+
+#### Implementación
+- `TaskFormModalProps` y `TaskListProps`: nueva prop optional `empleadosAsignados?: EmpleadoAsignado[]`
+- `EmpleadoAsignado interface`: añadido `rol?: string`
+- `page.tsx`: construye `empleadosAsignados` cruzando `asignaciones.data` con mapa de empleados; pasa la prop a `TaskList`
+- `TaskList`: propaga `empleadosAsignados` a `TaskFormModal` y a `ReasignarModal`
+- Selector: muestra nombre en mayúsculas + rol en muted (`(Tech Lead)`) en el dropdown; trigger solo muestra el nombre vía `textValue` prop para evitar truncado
+- Layout: "Asignado a" ocupa fila completa (eliminado grid-cols-2 compartido con Prioridad)
+- Fallback: si `empleadosAsignados` es `undefined`, se carga la lista completa con `useEmpleados`
+
+#### Consecuencias
+- ✅ Selector muestra solo candidatos válidos para el proyecto
+- ✅ Contexto de rol visible durante la selección, sin truncado en el trigger
+- ✅ Backward-compatible: componentes sin prop `empleadosAsignados` usan el fallback
+- ✅ Sin cambios en backend ni OpenAPI
+- 📊 3 ficheros de componente modificados
+
+---
+
+### ADR-116: Fix Unicidad de Código de Proyecto tras Soft-Delete
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `feature/proyectos-departamentos`
+**PR:** #140
+
+#### Contexto
+Al intentar crear un proyecto con un código que había sido usado por un proyecto eliminado (soft-delete), la aplicación devolvía un error 400 "El proyecto ya existe" (o 500 por violación de constraint DB). La causa: `findProyectoByCodigo` no filtraba `deletedAt IS NULL`, y la constraint UNIQUE en la columna `codigo` era incondicional (no parcial).
+
+#### Decisión
+Resolver el problema en dos capas:
+1. **Lógica de aplicación**: añadir `AND deletedAt IS NULL` al WHERE de `findProyectoByCodigo`
+2. **Constraint de base de datos**: reemplazar `UNIQUE (codigo)` por un **índice único parcial** `WHERE deleted_at IS NULL`
+
+**Alternativas consideradas:**
+- Solo fix de aplicación sin cambiar DB — descartado: la constraint DB seguiría bloqueando a nivel de motor
+- Eliminación física de proyectos — descartado: rompe trazabilidad e historial de timetracking
+
+#### Implementación
+
+**Fix de aplicación (`proyectos-repository.ts`):**
+```typescript
+// ANTES:
+where(eq(proyectos.codigo, codigo))
+// DESPUÉS:
+where(and(eq(proyectos.codigo, codigo), isNull(proyectos.deletedAt)))
+```
+
+**Migración DB (`0005_partial_unique_codigo_proyectos.sql`):**
+```sql
+ALTER TABLE proyectos DROP CONSTRAINT proyectos_codigo_unique;
+DROP INDEX IF EXISTS proyectos_codigo_idx;
+CREATE UNIQUE INDEX proyectos_codigo_active_idx
+  ON proyectos (codigo)
+  WHERE deleted_at IS NULL;
+```
+- Schema Drizzle actualizado: `uniqueIndex('proyectos_codigo_active_idx').on(t.codigo).where(sql\`deleted_at IS NULL\`)`
+- Script de migración manual: `backend/scripts/migrate-partial-unique-codigo.ts`
+
+#### Consecuencias
+- ✅ Se puede reutilizar el código de un proyecto tras eliminarlo
+- ✅ La unicidad entre proyectos activos sigue garantizada a nivel de BD
+- ✅ Error cambia de 500 (violación DB) a 400 (validación de aplicación) en casos de duplicado real
+- ✅ Tests actualizados para reflejar el nuevo comportamiento
+- 📊 2 ficheros de código + 2 ficheros de migración
+- ⚠️ Requiere ejecutar migración manual en Aiven (drizzle-kit CLI roto en Node.js 25)
+
+---
+
+---
+
+## ADR-120: Refactor TimetrackingPage — Extracción de Estado a Custom Hook
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/docs-adr-117-118-119`
+**PR:** #145
+
+#### Contexto
+`TimetrackingPage` acumulaba 800+ líneas con lógica de estado, derivaciones useMemo, handlers de mutaciones y JSX mezclados. La complejidad cognitiva del componente era 23 (límite SonarQube: 15), lo que lo marcaba como issue en el panel de VS Code. El componente violaba SRP (Single Responsibility Principle) al mezclar lógica de datos y presentación.
+
+#### Decisión
+Extraer toda la lógica de estado y datos a un custom hook `useTimetrackingPageState` en `frontend/src/hooks/timetracking/use-timetracking-page-state.ts`. El componente `TimetrackingPage` queda como capa puramente visual que consume el hook.
+
+**Contenido del hook (362 líneas, 28 hooks internos):**
+- `useAuth`, `usePermissions` — contexto de usuario y permisos
+- `useTimeEntries`, `useResumenTimetracking`, `useTimeEntriesSemana` — datos de registros
+- `useProyectos`, `useMisProyectos`, `useAsignaciones` — datos de proyectos
+- `useEmpleados`, `useEmpleadosByManager` — datos de empleados con filtros RBAC
+- `useMemo` para mapas proyectoId→nombre, filtros de empleados por proyecto, Gantt
+- `useCallback` para handlers: `handleCellChange`, `handleCopyWeek`, `handleConfirmDelete`, `handleRegistrosProyectoChange`, `handleTimesheetProyectoChange`
+- Mutaciones: `createEntry`, `deleteEntry`, `copiarRegistros`
+
+**Alternativas consideradas:**
+- Context API — descartado: overhead innecesario para estado local a una página
+- Zustand/Redux — descartado: overkill para estado de una sola ruta
+- Mantener en el componente — descartado: viola SRP y mantiene la complejidad cognitiva alta
+
+#### Implementación
+- Creado: `frontend/src/hooks/timetracking/use-timetracking-page-state.ts`
+- Modificado: `frontend/src/app/(dashboard)/timetracking/page.tsx` — usa `const state = useTimetrackingPageState()`
+- Añadidos imports de tipo explícitos en `page.tsx`: `Proyecto`, `TimeEntry`, `User` (fix TS7006)
+
+#### Consecuencias
+- ✅ Complejidad cognitiva de `TimetrackingPage` reducida significativamente
+- ✅ SonarQube issue de cognitive complexity resuelto
+- ✅ Hook testeable de forma independiente del componente visual
+- ✅ `page.tsx` queda como capa de presentación pura (SRP)
+- ✅ Errores TypeScript `implicit any` en callbacks `.map()` resueltos
+
+---
+
+## ADR-119: Skill rule-boy-scout — Protocolo de Diagnósticos VS Code
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `chore/add-rule-boy-scout-skill`
+**PR:** #144
+
+#### Contexto
+Al generar o modificar código, los diagnósticos del panel de problemas de VS Code (errors TypeScript, warnings ESLint, issues SonarQube) se acumulaban silenciosamente. No existía un protocolo automático que obligara al agente a consultar y limpiar esos diagnósticos en cada edición.
+
+#### Decisión
+Crear una nueva skill `.agents/skills/rule-boy-scout/SKILL.md` que codifique la Regla del Boy Scout: "Deja el archivo con menos diagnósticos de los que tenía". La skill se marca como **SIEMPRE cargar** y define:
+- Protocolo `get_errors()` antes y después de cada edición
+- Patrones de fix para errores TypeScript (tipos correctos, no casts `as any`)
+- Patrones de fix para warnings ESLint (causa raíz, no supresiones)
+- Patrones de fix para SonarQube (complejidad cognitiva, `.map(fn)` → `.map(x => fn(x))`)
+- Mocks de Hono Context correctamente tipados en test files
+
+**Alternativas consideradas:**
+- Integrar en `rule-clean-code` — descartado: el protocolo VS Code es ortogonal al clean code estructural
+- Integrar en `rule-no-lint-suppress` — descartado: esa skill trata errores de lint, no el protocolo de consulta de diagnósticos
+
+#### Implementación
+- Creado: `.agents/skills/rule-boy-scout/SKILL.md` (162 líneas)
+- Registrada en 7 ficheros: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`, `frontend/AGENTS.md`, `frontend/CLAUDE.md`
+- Trigger: **SIEMPRE** al generar o modificar código
+
+#### Consecuencias
+- ✅ El agente consulta el estado de diagnósticos antes y después de cada edición
+- ✅ Los problemas VS Code se limpian de forma incremental en cada sesión
+- ✅ Los mocks de Hono Context en tests tienen tipos correctos
+- ⚠️ Añade latencia al flujo (una llamada adicional `get_errors` por edición)
+
+---
+
+## ADR-118: Fix Completo de Lint Warnings — 0 errores / 0 warnings
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/fix-lint-warnings`
+**PR:** #143
+
+#### Contexto
+Tras la release v1.7.0, el proyecto tenía 51 warnings de lint distribuidos en 21 ficheros. Los warnings incluían `no-explicit-any` en tests del backend y `no-img-element` en el frontend (usar `<Image>` de Next.js en lugar de `<img>`). Aunque no bloqueaban CI, ensombrecían la calidad reportada en SonarQube y en el panel de problemas.
+
+#### Decisión
+Resolver todos los warnings desde la raíz, sin supresiones:
+- `no-explicit-any` → tipar correctamente con tipos concretos o `unknown`
+- `no-img-element` → reemplazar `<img>` por `<Image>` del componente Next.js
+
+**Alternativas consideradas:**
+- `eslint-disable-next-line` — descartado: viola `rule-no-lint-suppress`
+- Ignorar — descartado: SonarQube y Boy Scout Rule requieren 0 warnings
+
+#### Implementación
+- 21 ficheros modificados (backend tests + frontend components)
+- Backend: tipos explícitos en mocks de `AuthUser`, `Context`, handlers de rutas
+- Frontend: `<Image>` de `next/image` con `fill` o dimensiones explícitas en todos los componentes que usaban `<img>`
+
+#### Consecuencias
+- ✅ 0 errores · 0 warnings en lint (ESLint + TypeScript)
+- ✅ SonarQube sin issues de code smell por lint
+- ✅ Pipeline CI completamente verde sin warnings
+
+---
+
+## ADR-117: Modularización de Agent Instructions en Skills
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `refactor/agents-instructions`
+**PR:** #141
+
+#### Contexto
+Las instrucciones operativas para agentes de IA (GitFlow, clean code, seguridad, testing, etc.) estaban duplicadas o incompletas en `AGENTS.md`, `CLAUDE.md` y `.github/copilot-instructions.md`. Además, GitHub Copilot no tiene soporte nativo para ficheros de instrucciones en subdirectorios, lo que hacía que el contexto de stack (Hono vs Next.js) se mezclase.
+
+#### Decisión
+Modularizar las reglas en skills independientes bajo `.agents/skills/<nombre>/SKILL.md` con frontmatter YAML (name, description/triggers). Añadir ficheros de contexto específicos por subdirectorio: `frontend/AGENTS.md`, `frontend/CLAUDE.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`. Actualizar `.github/copilot-instructions.md` con sección de stack (workaround para la limitación de Copilot).
+
+**Skills creadas/registradas:**
+- `vercel-react-best-practices` — Next.js/React performance (frontend)
+- `frontend-design` — UI components y estilos
+- `rule-clean-code` — estándares de código limpio
+- `rule-no-lint-suppress` — prohibición de suppressions
+- `rule-security` — SSDLC, auth, MFA, env vars
+- `rule-gitflow` — convenciones git
+- `rule-testing` — estrategia de tests y coverage
+- `rule-docs` — documentación y `decisiones.md`
+- `rule-stakeholders` — comunicación no técnica
+
+#### Implementación
+- Creados: `frontend/AGENTS.md`, `frontend/CLAUDE.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`
+- Actualizado: `.github/copilot-instructions.md` con tabla de stack y skills por subproyecto
+- Actualizado: `AGENTS.md`, `CLAUDE.md` con tabla de skills
+
+#### Consecuencias
+- ✅ El agente carga solo las skills relevantes según el subproyecto (frontend vs backend)
+- ✅ GitHub Copilot tiene contexto de stack en el fichero root de instrucciones
+- ✅ Las reglas son incrementales — se pueden añadir skills sin tocar los ficheros raíz
+- ⚠️ Requiere mantener 7 ficheros de referencias sincronizados al añadir nuevas skills
+
+---
+
+## Release v1.7.0 (2026-02-22)
+
+**Branch de Release:** `feature/proyectos-departamentos` → develop → main  
+**Descripción:** Proyectos Multi-departamento + Bugfixes
+
+### Features y Fixes
+
+#### ✅ ADR-113: N:M Proyectos-Departamentos (feature)
+- Nueva tabla `proyectos_departamentos` con relación N:M
+- Formulario de proyecto con selector múltiple de departamentos
+- Filtro de empleados en "Añadir asignación" según departamentos del proyecto
+- 6 nuevos tests de repositorio + 2 en mappers
+
+#### ✅ ADR-114: Dashboard KPI proyectosConDesviación (feature)
+- Nueva KPI card en Admin (7ª) y Manager (5ª): proyectos con horas consumidas > presupuesto
+- Rojo automático cuando > 0; Admin dashboard en fila única `xl:grid-cols-7`
+
+#### ✅ ADR-115: Filtro y rol de empleados en selectors de tareas (feature)
+- Modal de tarea muestra solo miembros del proyecto con su rol
+- Trigger muestra solo el nombre; dropdown muestra nombre + rol
+
+#### ✅ ADR-116: Fix unicidad código proyecto tras soft-delete (bugfix)
+- `findProyectoByCodigo` excluye proyectos eliminados
+- Constraint DB reemplazada por índice único parcial `WHERE deleted_at IS NULL`
+
+#### ✅ ADR-112: Fix totalTareas en Plantillas (bugfix)
+- `listPlantillas` devolvía siempre `totalTareas: 0`
+- Corregido con LEFT JOIN + countDistinct
+- PR #138 mergeado a develop
+
+#### ✅ ADR-111: Fix Uppercase Nombres (bugfix)
+- Capitalización inconsistente en timetracking y otras pantallas
+- Aplicado en todos los componentes afectados
+- PR #137 mergeado a develop
+
+#### ✅ Correcciones adicionales (bundled en PR #140)
+- **Fix onboarding cache**: `useCompletarTarea` y `useUpdateTareaProceso` ahora invalidan `procesosKeys.lists()` al completar una tarea
+- **Versión desde package.json**: `next.config.mjs` inyecta `NEXT_PUBLIC_APP_VERSION` en build; `version-display.tsx` lee el env var
+- **Test mock fixes**: mocks actualizados para `useUpdateProyecto`, `useDeleteTimeEntry`, `useAsignaciones`, `@radix-ui/react-select.Item`; aserción `router.push` corregida en proyectos/[id]
+
+### Métricas v1.7.0
+
+| Componente | Tests | Cobertura |
+|------------|-------|-----------|
+| Backend | **664** (+9 vs v1.6.1) | 81.01% |
+| Frontend | **383** (estable) | 90.07% |
+| **Total** | **1,047** (+9) | **85.54%** |
+
+### Calidad
+- SonarQube: 0 bugs · 0 vulnerabilities · 0 hotspots
+- Linting: 0 errores · 2 warnings (`<img>` en tests, no bloquea)
+- Security audit: 0 high-severity CVEs
+
+### Releases Historial Actualizado
+
+| Versión | Fecha | Descripción | PRs |
+|---------|-------|-------------|-----|
+| **1.7.0** | 2026-02-22 | N:M Proyectos-Deps + Dashboard KPI desviación + Task employee filter + Soft-delete code fix | feature/proyectos-departamentos, #137, #138, #140 |
+| **1.6.1** | 2026-02-14 | CORS Dynamic Validation + Docs Modularization | #125, #126, #127 |
+| **1.6.0** | 2026-02-14 | Code Quality & Security: Optimization, Coverage 81%/90%, SonarQube clean | #115–#123 |
+| **1.5.1** | 2026-02-14 | Bump version tras merge de features | #119, #121 |
+| **1.5.0** | 2026-02-10 | Security hardening: Secrets, CVE audit, CSRF, httpOnly cookies | #106, #107 |
+| **1.4.0** | 2026-02-07 | E2E testing + managerId filter + D3 charts D3.js completo | #92, #93 |
+| **1.3.0** | 2026-01-31 | Sistema de tareas + modularización backend + dark mode | — |
+| **1.2.x** | 2026-01-31 | Gantt responsive, hotfixes SelectItem, limpieza Husky | — |
+| **1.1.0** | 2026-01-30 | Seed data scripts + fix formateo decimal | — |
+| **1.0.0** | 2026-01-30 | Primera release con fases 1-5 completas | — |
+
+---
+
+### Estado Actual del Proyecto (2026-02-22)
+
+#### Versión Actual: **v1.7.0** (en develop; PRs #140–#144 mergeados ✅)
+
+#### Fases Funcionales
+- **Todas las fases completadas:** 100%
+  - Autenticación & Seguridad ✅
+  - Gestión de Empleados y Departamentos ✅
+  - Onboarding (plantillas + procesos) ✅
+  - Proyectos y Asignaciones ✅ (ahora con N:M departamentos)
+  - Timetracking + Aprobación ✅
+  - Sistema de Tareas Jerárquico ✅
+  - Dashboards por Rol ✅
+
+#### Métricas de Calidad
+- **Tests:** **1,047 tests passing** ✅
+  - Backend: 664 tests
+  - Frontend: 383 tests
+  - Cobertura: Backend 81.01%, Frontend 90.07%
+- **Seguridad:**
+  - OWASP 96.5%
+  - SonarQube: 0 bugs, 0 vulnerabilities, 0 hotspots
+  - Security audit: 0 high-severity CVEs
+  - Secrets detection: gitleaks activo
+- **API:** OpenAPI v1.0.0 con 157 endpoints
+- **E2E:** Playwright con suite completa de tests MFA
+- **Linting:** 0 errores · **0 warnings** ✅ (fix completo en PR #143)
+
+#### Agents / Skills
+- 9 skills operativas bajo `.agents/skills/`
+- Subdirectory context files para frontend y backend (PR #141)
+- Skill `rule-boy-scout` activa: protocolo de diagnósticos VS Code en cada edición (PR #144)
+
+#### Refactors de Calidad
+- `useTimetrackingPageState` hook extraído de `TimetrackingPage` — SRP + complejidad cognitiva reducida (ADR-120, PR #145)
+
+#### Próximos Pasos
+- Mergear develop → release/1.7.0 → main
+- Preparación presentación TFM
+- Monitoreo de producción post-deploy v1.7.0
 

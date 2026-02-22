@@ -23,6 +23,8 @@ export interface Proyecto {
   prioridad?: ProyectoPrioridad;
   color?: string;
   activo: boolean;
+  asignacionesActivas?: number;
+  departamentoIds?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -48,6 +50,8 @@ export interface ProyectoFilters {
   cliente?: string;
   fechaInicio?: string;
   fechaFin?: string;
+  /** Filtrar proyectos en los que el usuario tiene al menos una asignación activa. */
+  usuarioId?: string;
 }
 
 export interface ProyectoListResponse {
@@ -75,6 +79,7 @@ export interface CreateProyectoData {
   presupuestoHoras?: number;
   prioridad?: ProyectoPrioridad;
   color?: string;
+  departamentoIds?: string[];
 }
 
 export interface UpdateProyectoData {
@@ -89,6 +94,7 @@ export interface UpdateProyectoData {
   color?: string;
   estado?: ProyectoEstado;
   activo?: boolean;
+  departamentoIds?: string[];
 }
 
 export interface CreateAsignacionData {

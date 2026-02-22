@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   procesosOnboarding,
@@ -22,9 +22,9 @@ export const listProcesos = async (filters?: {
   }
   const whereClause = clauses.length ? and(...clauses) : undefined;
   if (whereClause) {
-    return db.select().from(procesosOnboarding).where(whereClause);
+    return db.select().from(procesosOnboarding).where(whereClause).orderBy(asc(procesosOnboarding.createdAt));
   }
-  return db.select().from(procesosOnboarding);
+  return db.select().from(procesosOnboarding).orderBy(asc(procesosOnboarding.createdAt));
 };
 
 export const findProcesoById = async (id: string) => {

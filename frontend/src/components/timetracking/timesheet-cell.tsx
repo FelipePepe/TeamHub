@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
+/** Matches valid decimal hour inputs: up to 2 decimal places, no catastrophic backtracking */
+const DECIMAL_INPUT_PATTERN = /^\d*\.?\d{0,2}$/;
+
 interface TimesheetCellProps {
   readonly value: number;
   readonly onChange: (value: number) => void;
@@ -34,7 +37,7 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
 
   const handleBlur = () => {
     setIsEditing(false);
-    const numValue = parseFloat(editValue) || 0;
+    const numValue = Number.parseFloat(editValue) || 0;
     if (numValue !== value && numValue >= 0 && numValue <= 24) {
       onChange(numValue);
     } else {
@@ -53,13 +56,14 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
+    if (val === '' || DECIMAL_INPUT_PATTERN.test(val)) {
       setEditValue(val);
     }
   };
 
   return (
-    <div
+    <button
+      type="button"
       className={cn(
         'flex h-10 w-16 items-center justify-center border-r border-slate-200 text-sm dark:border-slate-800 dark:text-slate-200',
         isWeekend && 'bg-slate-50 dark:bg-slate-900/60',
@@ -67,14 +71,7 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
         disabled && 'cursor-not-allowed opacity-50'
       )}
       onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick();
-        }
-      }}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
+      disabled={disabled}
     >
       {isEditing ? (
         <input
@@ -98,6 +95,6 @@ export function TimesheetCell({ value, onChange, disabled = false, isWeekend = f
           {value > 0 ? `${value}h` : '-'}
         </span>
       )}
-    </div>
+    </button>
   );
 }

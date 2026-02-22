@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, asc } from 'drizzle-orm';
 import type { HonoEnv } from '../../../types/hono.js';
 import { parseJson, parseParams } from '../../../validators/parse.js';
 import { toTimetrackingResponse } from '../../../services/mappers.js';
@@ -8,8 +8,8 @@ import { db } from '../../../db/index.js';
 import { timetracking } from '../../../db/schema/timetracking.js';
 import { proyectos } from '../../../db/schema/proyectos.js';
 import { users } from '../../../db/schema/users.js';
-import type { User } from '../../../db/schema/users.js';
 import { findTimetrackingById, updateTimetrackingById } from '../../../services/timetracking-repository.js';
+import { syncHorasConsumidas } from '../../../services/proyectos-repository.js';
 import { approveSchema, bulkApproveSchema, idParamsSchema, rejectSchema } from '../schemas.js';
 import { toNumber } from '../utils.js';
 import { z } from 'zod';
@@ -17,9 +17,13 @@ import { z } from 'zod';
 export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
   router.post('/aprobar-masivo', async (c) => {
     const payload = await parseJson(c, bulkApproveSchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const now = new Date();
     if (payload.ids.length) {
+      const affected = await db
+        .select({ proyectoId: timetracking.proyectoId })
+        .from(timetracking)
+        .where(inArray(timetracking.id, payload.ids));
       await db
         .update(timetracking)
         .set({
@@ -32,6 +36,8 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
           updatedAt: now,
         })
         .where(inArray(timetracking.id, payload.ids));
+      const uniqueProyectoIds = [...new Set(affected.map((r) => r.proyectoId))];
+      await Promise.all(uniqueProyectoIds.map(syncHorasConsumidas));
     }
 
     return c.json({ message: 'Aprobación masiva completada' });
@@ -47,7 +53,8 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
       .from(timetracking)
       .innerJoin(users, eq(timetracking.usuarioId, users.id))
       .innerJoin(proyectos, eq(timetracking.proyectoId, proyectos.id))
-      .where(eq(timetracking.estado, 'PENDIENTE'));
+      .where(eq(timetracking.estado, 'PENDIENTE'))
+      .orderBy(asc(timetracking.fecha));
 
     const grouped = new Map<
       string,
@@ -90,7 +97,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     if (!registro) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const updated = await updateTimetrackingById(id, {
       estado: 'APROBADO',
       aprobadoPor: user.id,
@@ -103,6 +110,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     if (!updated) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
+    await syncHorasConsumidas(updated.proyectoId);
     return c.json(toTimetrackingResponse(updated));
   });
 
@@ -113,7 +121,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     if (!registro) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const updated = await updateTimetrackingById(id, {
       estado: 'RECHAZADO',
       rechazadoPor: user.id,
@@ -126,6 +134,7 @@ export const registerTimetrackingApprovalRoutes = (router: Hono<HonoEnv>) => {
     if (!updated) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
+    await syncHorasConsumidas(updated.proyectoId);
     return c.json(toTimetrackingResponse(updated));
   });
 };

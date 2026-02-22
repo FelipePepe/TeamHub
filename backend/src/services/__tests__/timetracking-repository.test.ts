@@ -7,15 +7,18 @@ const {
   mockDelete,
   mockFrom,
   mockWhere,
+  mockOrderBy,
   mockLimit,
   mockOffset,
   mockValues,
   mockReturning,
   mockSet,
+  mockLeftJoin,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
   const mockOffset = vi.fn();
+  const mockOrderBy = vi.fn();
   const mockWhere = vi.fn();
   const mockFrom = vi.fn();
   const mockSet = vi.fn();
@@ -24,6 +27,7 @@ const {
   const mockInsert = vi.fn();
   const mockUpdate = vi.fn();
   const mockDelete = vi.fn();
+  const mockLeftJoin = vi.fn();
 
   return {
     mockSelect,
@@ -32,11 +36,13 @@ const {
     mockDelete,
     mockFrom,
     mockWhere,
+    mockOrderBy,
     mockLimit,
     mockOffset,
     mockValues,
     mockReturning,
     mockSet,
+    mockLeftJoin,
   };
 });
 
@@ -57,6 +63,14 @@ vi.mock('../../db/schema/timetracking.js', () => ({
     estado: 'estado',
     facturable: 'facturable',
     fecha: 'fecha',
+  },
+}));
+
+vi.mock('../../db/schema/users.js', () => ({
+  users: {
+    id: 'id',
+    nombre: 'nombre',
+    apellidos: 'apellidos',
   },
 }));
 
@@ -96,8 +110,10 @@ describe('timetracking-repository', () => {
   describe('listTimetracking', () => {
     it('should list timetracking entries with no filters and no pagination', async () => {
       const mockEntries = [{ id: 'tt1' }, { id: 'tt2' }];
-      // No clauses => no where, returns from() directly
-      mockFrom.mockResolvedValue(mockEntries);
+      // No clauses => no where; chain: select → from → leftJoin → orderBy → resolves
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockLeftJoin.mockReturnValue({ orderBy: mockOrderBy });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking();
@@ -105,12 +121,16 @@ describe('timetracking-repository', () => {
       expect(result).toEqual(mockEntries);
       expect(mockSelect).toHaveBeenCalled();
       expect(mockFrom).toHaveBeenCalled();
+      expect(mockLeftJoin).toHaveBeenCalled();
+      expect(mockOrderBy).toHaveBeenCalled();
     });
 
     it('should filter by usuarioId', async () => {
       const mockEntries = [{ id: 'tt1', usuarioId: 'u1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ usuarioId: 'u1' });
@@ -121,8 +141,10 @@ describe('timetracking-repository', () => {
 
     it('should filter by proyectoId', async () => {
       const mockEntries = [{ id: 'tt1', proyectoId: 'p1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ proyectoId: 'p1' });
@@ -132,8 +154,10 @@ describe('timetracking-repository', () => {
 
     it('should filter by estado', async () => {
       const mockEntries = [{ id: 'tt1', estado: 'APROBADO' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ estado: 'APROBADO' });
@@ -143,8 +167,10 @@ describe('timetracking-repository', () => {
 
     it('should filter by facturable', async () => {
       const mockEntries = [{ id: 'tt1', facturable: true }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ facturable: true });
@@ -154,8 +180,10 @@ describe('timetracking-repository', () => {
 
     it('should filter by fechaInicio', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ fechaInicio: '2024-01-01' });
@@ -165,8 +193,10 @@ describe('timetracking-repository', () => {
 
     it('should filter by fechaFin', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ fechaFin: '2024-12-31' });
@@ -176,11 +206,13 @@ describe('timetracking-repository', () => {
 
     it('should apply pagination when page and limit are provided', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      // With pagination: baseQuery.limit(limit).offset(offset)
+      // chain: select → from → leftJoin → where → orderBy → limit → offset
       mockOffset.mockResolvedValue(mockEntries);
       mockLimit.mockReturnValue({ offset: mockOffset });
-      mockFrom.mockReturnValue({ where: mockWhere, limit: mockLimit });
-      mockWhere.mockReturnValue({ limit: mockLimit });
+      mockOrderBy.mockReturnValue({ limit: mockLimit });
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ usuarioId: 'u1' }, { page: 2, limit: 10 });
@@ -192,8 +224,10 @@ describe('timetracking-repository', () => {
 
     it('should not apply pagination when pagination object is absent', async () => {
       const mockEntries = [{ id: 'tt1' }];
-      mockWhere.mockResolvedValue(mockEntries);
-      mockFrom.mockReturnValue({ where: mockWhere });
+      mockOrderBy.mockResolvedValue(mockEntries);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
+      mockLeftJoin.mockReturnValue({ where: mockWhere });
+      mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
       mockSelect.mockReturnValue({ from: mockFrom });
 
       const result = await listTimetracking({ usuarioId: 'u1' });
@@ -229,7 +263,7 @@ describe('timetracking-repository', () => {
       const created = { id: 'tt2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createTimetracking(payload as any);
+      const result = await createTimetracking(payload as Parameters<typeof createTimetracking>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -243,7 +277,7 @@ describe('timetracking-repository', () => {
       const updated = { id: 'tt1', horas: 6 };
       setupUpdateChain([updated]);
 
-      const result = await updateTimetrackingById('tt1', payload as any);
+      const result = await updateTimetrackingById('tt1', payload as Parameters<typeof updateTimetrackingById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

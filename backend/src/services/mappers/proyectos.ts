@@ -20,6 +20,8 @@ type ProyectoResponseInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  asignacionesActivas?: number | null;
+  departamentoIds?: string[];
 };
 
 type AsignacionResponseInput = {
@@ -54,6 +56,8 @@ export const toProyectoResponse = (proyecto: ProyectoResponseInput | Proyecto) =
   prioridad: proyecto.prioridad,
   color: proyecto.color,
   activo: resolveActiveState(proyecto),
+  asignacionesActivas: (proyecto as ProyectoResponseInput).asignacionesActivas ?? undefined,
+  departamentoIds: (proyecto as ProyectoResponseInput).departamentoIds ?? [],
   createdAt: proyecto.createdAt,
   updatedAt: proyecto.updatedAt,
 });

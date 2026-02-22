@@ -196,7 +196,7 @@ describe('users-repository', () => {
       const createdUser = { id: 'u2', ...payload };
       setupInsertChain([createdUser]);
 
-      const result = await createUser(payload as any);
+      const result = await createUser(payload as Parameters<typeof createUser>[0]);
 
       expect(result).toEqual(createdUser);
       expect(mockInsert).toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('users-repository', () => {
       const payload = { email: 'new@example.com', nombre: 'New', passwordHash: 'hash', rol: 'EMPLEADO' as const };
       setupInsertChain([]);
 
-      const result = await createUser(payload as any);
+      const result = await createUser(payload as Parameters<typeof createUser>[0]);
 
       expect(result).toBeNull();
     });

@@ -13,10 +13,10 @@ const mockTareasService = vi.hoisted(() => ({
   delete: vi.fn(),
 }));
 
-const mockToTareaResponse = vi.hoisted(() => vi.fn((t: any) => t));
+const mockToTareaResponse = vi.hoisted(() => vi.fn((t: unknown) => t));
 
 vi.mock('../../middleware/auth.js', () => ({
-  authMiddleware: vi.fn(async (c: any, next: any) => {
+  authMiddleware: vi.fn(async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
     c.set('user', {
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'admin@example.com',
@@ -74,8 +74,8 @@ describe('tareas.routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockToTareaResponse.mockImplementation((t: any) => t);
     app = createApp();
+    mockToTareaResponse.mockImplementation((t: unknown) => t);
   });
 
   // ── GET /proyectos/:proyectoId/tareas ─────────────────────────────
@@ -318,8 +318,7 @@ describe('tareas.routes', () => {
 
       for (const estado of validEstados) {
         vi.clearAllMocks();
-        mockToTareaResponse.mockImplementation((t: any) => t);
-        mockTareasService.updateEstado.mockResolvedValue({ ...mockTarea, estado });
+        mockToTareaResponse.mockImplementation((t: unknown) => t);
 
         const res = await app.request(`/tareas/${tareaId}/estado`, {
           method: 'PATCH',

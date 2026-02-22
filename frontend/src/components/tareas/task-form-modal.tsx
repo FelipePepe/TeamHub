@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Calendar } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Loader2, Calendar, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,12 +59,27 @@ const tareaFormSchema = z
 
 type TareaFormData = z.infer<typeof tareaFormSchema>;
 
+/** Empleado simplificado para el selector de asignación de tareas. */
+interface EmpleadoAsignado {
+  id: string;
+  nombre: string;
+  apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
+}
+
 interface TaskFormModalProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly proyectoId: string;
   readonly tarea?: Tarea;
   readonly onSuccess?: () => void;
+  /**
+   * Lista de empleados asignados al proyecto.
+   * Cuando se proporciona, el selector muestra solo estos empleados;
+   * si se omite, se carga la lista completa de empleados activos como fallback.
+   */
+  readonly empleadosAsignados?: EmpleadoAsignado[];
 }
 
 const PRIORIDADES: { value: PrioridadTarea; label: string; color: string }[] = [
@@ -79,12 +95,14 @@ export function TaskFormModal({
   proyectoId,
   tarea,
   onSuccess,
+  empleadosAsignados,
 }: TaskFormModalProps) {
   const isEdit = !!tarea;
   const createTarea = useCreateTarea();
   const updateTarea = useUpdateTarea();
+  // Fallback: carga todos los empleados activos solo si no se recibe la lista filtrada del proyecto.
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
-  const empleados = empleadosData?.data ?? [];
+  const empleados: EmpleadoAsignado[] = empleadosAsignados ?? (empleadosData?.data ?? []);
 
   const {
     register,
@@ -120,7 +138,7 @@ export function TaskFormModal({
           ? new Date(tarea.fechaInicio).toISOString().split('T')[0]
           : '',
         fechaFin: tarea.fechaFin ? new Date(tarea.fechaFin).toISOString().split('T')[0] : '',
-        horasEstimadas: tarea.horasEstimadas ? parseFloat(tarea.horasEstimadas) : undefined,
+        horasEstimadas: tarea.horasEstimadas ? Number.parseFloat(tarea.horasEstimadas) : undefined,
       });
     } else {
       reset({
@@ -215,7 +233,7 @@ export function TaskFormModal({
             )}
           </div>
 
-          {/* Prioridad y Usuario */}
+          {/* Prioridad + Asignado a */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="prioridad">Prioridad</Label>
@@ -240,6 +258,7 @@ export function TaskFormModal({
               )}
             </div>
 
+            {/* Asignado a */}
             <div className="space-y-2">
               <Label htmlFor="usuarioAsignadoId">Asignado a</Label>
               <Select
@@ -258,9 +277,23 @@ export function TaskFormModal({
                 <SelectContent>
                   <SelectItem value={USUARIO_SIN_ASIGNAR_VALUE}>Sin asignar</SelectItem>
                   {empleados.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.nombre} {emp.apellidos || ''}
-                    </SelectItem>
+                    <SelectPrimitive.Item
+                      key={emp.id}
+                      value={emp.id}
+                      className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-slate-800 dark:focus:text-slate-50"
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        <SelectPrimitive.ItemIndicator>
+                          <Check className="h-4 w-4" />
+                        </SelectPrimitive.ItemIndicator>
+                      </span>
+                      <SelectPrimitive.ItemText>
+                        <span className="uppercase">{emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}</span>
+                      </SelectPrimitive.ItemText>
+                      {emp.rol && (
+                        <span className="ml-2 text-xs text-muted-foreground">({emp.rol})</span>
+                      )}
+                    </SelectPrimitive.Item>
                   ))}
                 </SelectContent>
               </Select>

@@ -25,13 +25,13 @@ export type {
   CreateDepartamentoData,
   UpdateDepartamentoData,
   DepartamentoListResponse,
-};
+} from '@/types';
 
 // ============================================================================
 // Query Keys
 // ============================================================================
 
-const departamentosKeys = {
+export const departamentosKeys = {
   all: ['departamentos'] as const,
   lists: () => [...departamentosKeys.all, 'list'] as const,
   list: (filters?: DepartamentoFilters) =>

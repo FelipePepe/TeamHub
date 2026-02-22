@@ -62,7 +62,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('next/image', () => ({
-  default: ({ alt }: { alt: string }) => <img alt={alt} />,
+  default: ({ alt }: { alt: string }) => <span>{alt}</span>,
 }));
 
 vi.mock('@/hooks/use-auth', () => ({
@@ -152,12 +152,12 @@ describe('UserNav', () => {
 });
 
 describe('VersionDisplay', () => {
-  it('renderiza versión por defecto cuando no hay env', () => {
+  it('renderiza version vacia cuando no hay env', () => {
     const previous = process.env.NEXT_PUBLIC_APP_VERSION;
     delete process.env.NEXT_PUBLIC_APP_VERSION;
 
     render(<VersionDisplay />);
-    expect(screen.getByText('v1.0.0')).toBeInTheDocument();
+    expect(screen.getByText('v')).toBeInTheDocument();
 
     process.env.NEXT_PUBLIC_APP_VERSION = previous;
   });

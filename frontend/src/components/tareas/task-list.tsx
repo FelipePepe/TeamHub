@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, MoreVertical, Trash2, UserCheck, Filter } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Plus, MoreVertical, Trash2, UserCheck, Filter, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -49,10 +50,25 @@ import { useEmpleados } from '@/hooks/use-empleados';
 import { toast } from 'sonner';
 import type { Tarea, EstadoTarea, PrioridadTarea } from '@/types';
 
+/** Empleado simplificado para los selectores de asignación y reasignación. */
+interface EmpleadoAsignado {
+  id: string;
+  nombre: string;
+  apellidos?: string;
+  /** Rol del empleado en el proyecto (p.ej. 'Tech Lead', 'Desarrollador'). */
+  rol?: string;
+}
+
 interface TaskListProps {
   readonly proyectoId: string;
   readonly tareas: Tarea[];
   readonly isLoading?: boolean;
+  /**
+   * Lista de empleados asignados al proyecto.
+   * Se usa en los modales de crear/editar tarea y reasignar.
+   * Si se omite, se carga la lista completa de empleados activos como fallback.
+   */
+  readonly empleadosAsignados?: EmpleadoAsignado[];
 }
 
 const ESTADO_COLORS: Record<EstadoTarea, string> = {
@@ -98,7 +114,7 @@ const PRIORIDAD_LABELS: Record<PrioridadTarea, string> = {
 };
 const LOADING_TASK_ROW_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
-export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
+export function TaskList({ proyectoId, tareas, isLoading, empleadosAsignados }: TaskListProps) {
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedTarea, setSelectedTarea] = useState<Tarea | undefined>();
   const [filterEstado, setFilterEstado] = useState<EstadoTarea | 'all'>('all');
@@ -109,8 +125,9 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
   const updateEstadoTarea = useUpdateEstadoTarea();
   const reasignarTarea = useReasignarTarea();
   const deleteTarea = useDeleteTarea();
+  // Fallback: carga todos los empleados activos solo si no se recibe la lista filtrada del proyecto.
   const { data: empleadosData } = useEmpleados({ activo: true, limit: 500 });
-  const empleados = empleadosData?.data ?? [];
+  const empleados: EmpleadoAsignado[] = empleadosAsignados ?? (empleadosData?.data ?? []);
 
   // Filtros
   const tareasFiltradas = useMemo(() => {
@@ -178,6 +195,142 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
     }
   };
 
+  // Extracted from nested ternary — empty-state message
+  const emptyMessage =
+    tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros';
+
+  // Extracted from nested ternary — card content
+  let taskListContent: React.ReactNode;
+  if (isLoading) {
+    taskListContent = (
+      <div className="space-y-2">
+        {LOADING_TASK_ROW_KEYS.map((key) => (
+          <div key={key} className="h-12 w-full animate-pulse rounded bg-muted" />
+        ))}
+      </div>
+    );
+  } else if (tareasFiltradas.length === 0) {
+    taskListContent = (
+      <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+        {emptyMessage}
+      </div>
+    );
+  } else {
+    taskListContent = (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Prioridad</TableHead>
+              <TableHead>Asignado a</TableHead>
+              <TableHead>Fechas</TableHead>
+              <TableHead>Horas</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tareasFiltradas.map((tarea) => (
+              <TableRow
+                key={tarea.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleEditTask(tarea)}
+              >
+                <TableCell className="font-medium">{tarea.titulo}</TableCell>
+                <TableCell>
+                  <Badge variant={ESTADO_COLORS[tarea.estado] as 'default' | 'secondary' | 'destructive' | 'outline' | 'success'}>
+                    {ESTADO_LABELS[tarea.estado]}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={PRIORIDAD_COLORS[tarea.prioridad] as 'default' | 'secondary' | 'destructive' | 'outline'}>
+                    {PRIORIDAD_LABELS[tarea.prioridad]}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {tarea.usuarioAsignado
+                    ? <span className="uppercase">{tarea.usuarioAsignado.nombre} {tarea.usuarioAsignado.apellidos ?? ''}</span>
+                    : 'Sin asignar'}
+                </TableCell>
+                <TableCell>
+                  {tarea.fechaInicio && tarea.fechaFin ? (
+                    <span className="text-xs">
+                      {format(new Date(tarea.fechaInicio), 'd MMM', { locale: es })} -{' '}
+                      {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin fechas</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs">
+                    {tarea.horasEstimadas ? `${tarea.horasEstimadas}h` : '—'} est.
+                    {tarea.horasReales ? ` / ${tarea.horasReales}h reales` : ''}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTask(tarea);
+                        }}
+                      >
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
+                      {VALID_TRANSITIONS[tarea.estado].map((estado) => (
+                        <DropdownMenuItem
+                          key={estado}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleChangeEstado(tarea.id, estado);
+                          }}
+                        >
+                          {ESTADO_LABELS[estado]}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowReasignarModal(tarea.id);
+                        }}
+                      >
+                        <UserCheck className="mr-2 h-4 w-4" />
+                        Reasignar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteConfirm(tarea.id);
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <>
       <Card>
@@ -222,7 +375,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
                   <SelectItem value="sin-asignar">Sin asignar</SelectItem>
                   {usuariosUnicos.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.nombre}
+                      <span className="uppercase">{u.nombre}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -244,131 +397,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
           </div>
         </CardHeader>
 
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {LOADING_TASK_ROW_KEYS.map((key) => (
-                <div key={key} className="h-12 w-full animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : tareasFiltradas.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-              {tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros'}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Prioridad</TableHead>
-                    <TableHead>Asignado a</TableHead>
-                    <TableHead>Fechas</TableHead>
-                    <TableHead>Horas</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tareasFiltradas.map((tarea) => (
-                    <TableRow
-                      key={tarea.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleEditTask(tarea)}
-                    >
-                      <TableCell className="font-medium">{tarea.titulo}</TableCell>
-                      <TableCell>
-                        <Badge variant={ESTADO_COLORS[tarea.estado] as 'default' | 'secondary' | 'destructive' | 'outline' | 'success'}>
-                          {ESTADO_LABELS[tarea.estado]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={PRIORIDAD_COLORS[tarea.prioridad] as 'default' | 'secondary' | 'destructive' | 'outline'}>
-                          {PRIORIDAD_LABELS[tarea.prioridad]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {tarea.usuarioAsignado
-                          ? `${tarea.usuarioAsignado.nombre} ${tarea.usuarioAsignado.apellidos ?? ''}`
-                          : 'Sin asignar'}
-                      </TableCell>
-                      <TableCell>
-                        {tarea.fechaInicio && tarea.fechaFin ? (
-                          <span className="text-xs">
-                            {format(new Date(tarea.fechaInicio), 'd MMM', { locale: es })} -{' '}
-                            {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sin fechas</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs">
-                          {tarea.horasEstimadas ? `${tarea.horasEstimadas}h` : '—'} est.
-                          {tarea.horasReales ? ` / ${tarea.horasReales}h reales` : ''}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditTask(tarea);
-                              }}
-                            >
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
-                            {VALID_TRANSITIONS[tarea.estado].map((estado) => (
-                                <DropdownMenuItem
-                                  key={estado}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleChangeEstado(tarea.id, estado);
-                                  }}
-                                >
-                                  {ESTADO_LABELS[estado]}
-                                </DropdownMenuItem>
-                              ))}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowReasignarModal(tarea.id);
-                              }}
-                            >
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Reasignar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDeleteConfirm(tarea.id);
-                              }}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
+        <CardContent>{taskListContent}</CardContent>
       </Card>
 
       {/* Modal de formulario */}
@@ -378,6 +407,7 @@ export function TaskList({ proyectoId, tareas, isLoading }: TaskListProps) {
         proyectoId={proyectoId}
         tarea={selectedTarea}
         onSuccess={() => setShowFormModal(false)}
+        empleadosAsignados={empleados}
       />
 
       {/* Modal de reasignar */}
@@ -429,7 +459,7 @@ function ReasignarModal({
 }: {
   readonly tareaId: string;
   readonly tarea?: Tarea;
-  readonly empleados: { id: string; nombre: string; apellidos?: string }[];
+  readonly empleados: { id: string; nombre: string; apellidos?: string; rol?: string }[];
   readonly onReasignar: (tareaId: string, usuarioId: string) => void;
   readonly onClose: () => void;
 }) {
@@ -453,9 +483,23 @@ function ReasignarModal({
               </SelectTrigger>
               <SelectContent>
                 {empleados.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.nombre} {emp.apellidos ?? ''}
-                  </SelectItem>
+                  <SelectPrimitive.Item
+                    key={emp.id}
+                    value={emp.id}
+                    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-slate-800 dark:focus:text-slate-50"
+                  >
+                    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                      <SelectPrimitive.ItemIndicator>
+                        <Check className="h-4 w-4" />
+                      </SelectPrimitive.ItemIndicator>
+                    </span>
+                    <SelectPrimitive.ItemText>
+                      <span className="uppercase">{emp.nombre}{emp.apellidos ? ` ${emp.apellidos}` : ''}</span>
+                    </SelectPrimitive.ItemText>
+                    {emp.rol && (
+                      <span className="ml-2 text-xs text-muted-foreground">({emp.rol})</span>
+                    )}
+                  </SelectPrimitive.Item>
                 ))}
               </SelectContent>
             </Select>

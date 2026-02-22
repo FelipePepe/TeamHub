@@ -20,6 +20,7 @@ export const buildAdminDashboardResponse = async () => {
     horasMesRow,
     onboardingsEnCursoRow,
     tareasVencidasRow,
+    proyectosConDesviacionRow,
     usuariosPorRolRows,
     usuariosPorDepartamentoRows,
     proyectosPorEstadoRows,
@@ -55,6 +56,17 @@ export const buildAdminDashboardResponse = async () => {
           lt(tareasOnboarding.fechaLimite, today),
           ne(tareasOnboarding.estado, 'COMPLETADA'),
           ne(tareasOnboarding.estado, 'CANCELADA')
+        )
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(proyectos)
+      .where(
+        and(
+          isNull(proyectos.deletedAt),
+          isNotNull(proyectos.presupuestoHoras),
+          isNotNull(proyectos.horasConsumidas),
+          sql`CAST(${proyectos.horasConsumidas} AS DECIMAL) > CAST(${proyectos.presupuestoHoras} AS DECIMAL)`
         )
       ),
     db
@@ -113,6 +125,7 @@ export const buildAdminDashboardResponse = async () => {
   const horasMes = toNumber(horasMesRow[0]?.total, 0);
   const onboardingsEnCurso = toNumber(onboardingsEnCursoRow[0]?.count, 0);
   const tareasVencidas = toNumber(tareasVencidasRow[0]?.count, 0);
+  const proyectosConDesviacion = toNumber(proyectosConDesviacionRow[0]?.count, 0);
 
   return {
     kpis: {
@@ -122,6 +135,7 @@ export const buildAdminDashboardResponse = async () => {
       horasMes,
       onboardingsEnCurso,
       tareasVencidas,
+      proyectosConDesviacion,
     },
     charts: {
       usuariosPorRol: usuariosPorRolRows.map((row) => ({

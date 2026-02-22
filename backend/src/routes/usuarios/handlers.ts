@@ -82,8 +82,9 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     const now = new Date();
     const user = await createUser({
       email: payload.email,
-      nombre: payload.nombre,
-      apellidos: payload.apellidos,
+      nombre: payload.nombre.toUpperCase(),
+      apellidos: payload.apellidos?.toUpperCase(),
+
       rol: payload.rol ?? 'EMPLEADO',
       departamentoId: payload.departamentoId,
       managerId: payload.managerId,
@@ -127,7 +128,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.put('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const currentUser = c.get('user') as User;
+    const currentUser = c.get('user');
     const payload = await parseJson(c, updateUserSchema);
     const user = await findUserById(id);
     if (!user) {
@@ -153,6 +154,8 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
     const { activo, ...rest } = payload;
     const updates: Partial<User> = {
       ...rest,
+      ...(rest.nombre !== undefined && { nombre: rest.nombre.toUpperCase() }),
+      ...(rest.apellidos !== undefined && { apellidos: rest.apellidos.toUpperCase() }),
       updatedAt: new Date(),
     };
     if (activo !== undefined) {
@@ -179,7 +182,7 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
 
   router.patch('/:id/password', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const currentUser = c.get('user') as User;
+    const currentUser = c.get('user');
 
     // Only the user themselves can change their password
     if (currentUser.id !== id) {

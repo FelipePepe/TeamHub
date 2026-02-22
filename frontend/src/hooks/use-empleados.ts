@@ -4,10 +4,10 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiError } from '@/types';
-import type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
+import type { ApiError, EmpleadoFilters, UpdateEmpleadoData } from '@/types';
 import { STALE_TIME } from '@/lib/query-config';
 import { empleadosKeys } from './empleados/keys';
+import { departamentosKeys } from './use-departamentos';
 import {
   createEmpleado,
   deleteEmpleado,
@@ -20,7 +20,7 @@ import {
 // Types (re-exportados desde @/types para conveniencia)
 // ============================================================================
 
-export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
+export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
 
 // ============================================================================
 // Hooks
@@ -30,6 +30,7 @@ export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
  * Hook para listar empleados con filtros opcionales y paginación
  *
  * @param filters - Filtros opcionales (búsqueda, rol, departamento, activo, paginación)
+ * @param enabled - Si debe ejecutarse la query (por defecto true)
  * @returns Query result con lista de empleados y metadata de paginación
  *
  * @example
@@ -42,10 +43,11 @@ export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
  * });
  * ```
  */
-export function useEmpleados(filters?: EmpleadoFilters) {
+export function useEmpleados(filters?: EmpleadoFilters, enabled = true) {
   return useQuery({
     queryKey: empleadosKeys.list(filters),
     queryFn: () => fetchEmpleados(filters),
+    enabled,
     staleTime: STALE_TIME.LONG,
   });
 }
@@ -82,8 +84,9 @@ export function useCreateEmpleado() {
   return useMutation({
     mutationFn: createEmpleado,
     onSuccess: () => {
-      // Invalidar todas las listas para refrescar datos
+      // Invalidar listas de empleados y conteos de departamentos
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al crear empleado:', error);
@@ -109,6 +112,8 @@ export function useUpdateEmpleado() {
       // Invalidar también queries por departamento y manager
       queryClient.invalidateQueries({ queryKey: [empleadosKeys.all[0], 'departamento'] });
       queryClient.invalidateQueries({ queryKey: [empleadosKeys.all[0], 'manager'] });
+      // Invalidar conteos de departamentos (el empleado puede haber cambiado de depto)
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar empleado:', error);
@@ -125,8 +130,9 @@ export function useDeleteEmpleado() {
   return useMutation({
     mutationFn: deleteEmpleado,
     onSuccess: () => {
-      // Invalidar todas las listas para refrescar datos
+      // Invalidar listas de empleados y conteos de departamentos
       queryClient.invalidateQueries({ queryKey: empleadosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: departamentosKeys.lists() });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar empleado:', error);

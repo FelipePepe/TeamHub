@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, count, eq, isNotNull, isNull } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   plantillasOnboarding,
@@ -7,6 +7,14 @@ import {
   type NewTareaPlantilla,
 } from '../db/schema/plantillas.js';
 
+/**
+ * Lista plantillas de onboarding con el número de tareas asociadas.
+ * Realiza un LEFT JOIN con tareas_plantilla y agrupa por plantilla para
+ * calcular totalTareas correctamente.
+ *
+ * @param filters - Filtros opcionales por departamento y estado activo.
+ * @returns Array de plantillas con campo totalTareas.
+ */
 export const listPlantillas = async (filters?: {
   departamentoId?: string;
   activo?: boolean;
@@ -22,7 +30,25 @@ export const listPlantillas = async (filters?: {
       filters.activo ? isNull(plantillasOnboarding.deletedAt) : isNotNull(plantillasOnboarding.deletedAt)
     );
   }
-  const query = db.select().from(plantillasOnboarding);
+
+  const query = db
+    .select({
+      id: plantillasOnboarding.id,
+      nombre: plantillasOnboarding.nombre,
+      descripcion: plantillasOnboarding.descripcion,
+      departamentoId: plantillasOnboarding.departamentoId,
+      rolDestino: plantillasOnboarding.rolDestino,
+      duracionEstimadaDias: plantillasOnboarding.duracionEstimadaDias,
+      createdBy: plantillasOnboarding.createdBy,
+      createdAt: plantillasOnboarding.createdAt,
+      updatedAt: plantillasOnboarding.updatedAt,
+      deletedAt: plantillasOnboarding.deletedAt,
+      totalTareas: count(tareasPlantilla.id),
+    })
+    .from(plantillasOnboarding)
+    .leftJoin(tareasPlantilla, eq(tareasPlantilla.plantillaId, plantillasOnboarding.id))
+    .groupBy(plantillasOnboarding.id);
+
   if (clauses.length) {
     return query.where(and(...clauses));
   }

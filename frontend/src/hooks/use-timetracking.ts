@@ -65,10 +65,10 @@ export function useMisRegistros() {
   });
 }
 
-export function useTimeEntriesSemana(fecha: string, enabled = true) {
+export function useTimeEntriesSemana(fecha: string, usuarioId?: string, enabled = true) {
   return useQuery({
-    queryKey: timetrackingKeys.semana(fecha),
-    queryFn: () => fetchSemana(fecha),
+    queryKey: timetrackingKeys.semana(fecha, usuarioId),
+    queryFn: () => fetchSemana(fecha, usuarioId),
     enabled: enabled && !!fecha,
     staleTime: STALE_TIME.MEDIUM,
   });
@@ -91,6 +91,8 @@ export function useCreateTimeEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.lists() });
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
+      // Invalidate weekly timesheet queries so the grid refreshes
+      queryClient.invalidateQueries({ queryKey: [...timetrackingKeys.all, 'semana'] });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al crear registro:', error);
@@ -108,6 +110,8 @@ export function useUpdateTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.lists() });
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
+      // Invalidate weekly timesheet queries so the grid refreshes
+      queryClient.invalidateQueries({ queryKey: [...timetrackingKeys.all, 'semana'] });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al actualizar registro:', error);
@@ -123,6 +127,8 @@ export function useDeleteTimeEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.lists() });
       queryClient.invalidateQueries({ queryKey: timetrackingKeys.misRegistros() });
+      // Invalidate weekly timesheet queries so the grid refreshes
+      queryClient.invalidateQueries({ queryKey: [...timetrackingKeys.all, 'semana'] });
     },
     onError: (error: ApiError) => {
       if (process.env.NODE_ENV !== 'production') console.error('Error al eliminar registro:', error);

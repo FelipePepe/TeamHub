@@ -27,8 +27,10 @@ export function fetchMisRegistros(): Promise<TimetrackingListResponse> {
   return get<TimetrackingListResponse>('/timetracking/mis-registros');
 }
 
-export function fetchSemana(fecha: string): Promise<TimetrackingListResponse> {
-  return get<TimetrackingListResponse>(`/timetracking/semana/${fecha}`);
+export function fetchSemana(fecha: string, usuarioId?: string): Promise<TimetrackingListResponse> {
+  const params: Record<string, string> = {};
+  if (usuarioId) params.usuarioId = usuarioId;
+  return get<TimetrackingListResponse>(`/timetracking/semana/${fecha}`, params);
 }
 
 export function fetchTimeEntry(id: string): Promise<TimeEntry> {
@@ -48,7 +50,7 @@ export function deleteTimeEntry(id: string): Promise<{ message: string }> {
 }
 
 export function aprobarTimeEntry(id: string, comentario?: string): Promise<TimeEntry> {
-  return patch<TimeEntry>(`/timetracking/${id}/aprobar`, comentario != null ? { comentario } : {});
+  return patch<TimeEntry>(`/timetracking/${id}/aprobar`, comentario == null ? {} : { comentario });
 }
 
 export function rechazarTimeEntry(id: string, comentario: string): Promise<TimeEntry> {

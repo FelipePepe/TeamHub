@@ -4,33 +4,48 @@ const {
   mockSelect,
   mockInsert,
   mockUpdate,
+  mockDelete,
   mockFrom,
   mockWhere,
+  mockOrderBy,
   mockLimit,
   mockValues,
   mockReturning,
   mockSet,
+  mockLeftJoin,
+  mockGroupBy,
+  mockDeleteWhere,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
+  const mockGroupBy = vi.fn();
+  const mockOrderBy = vi.fn();
   const mockWhere = vi.fn();
+  const mockLeftJoin = vi.fn();
   const mockFrom = vi.fn();
   const mockSet = vi.fn();
   const mockValues = vi.fn();
   const mockSelect = vi.fn();
   const mockInsert = vi.fn();
   const mockUpdate = vi.fn();
+  const mockDelete = vi.fn();
+  const mockDeleteWhere = vi.fn();
 
   return {
     mockSelect,
     mockInsert,
     mockUpdate,
+    mockDelete,
     mockFrom,
     mockWhere,
+    mockOrderBy,
     mockLimit,
     mockValues,
     mockReturning,
     mockSet,
+    mockLeftJoin,
+    mockGroupBy,
+    mockDeleteWhere,
   };
 });
 
@@ -39,6 +54,7 @@ vi.mock('../../db/index.js', () => ({
     select: mockSelect,
     insert: mockInsert,
     update: mockUpdate,
+    delete: mockDelete,
   },
 }));
 
@@ -58,6 +74,10 @@ vi.mock('../../db/schema/proyectos.js', () => ({
     usuarioId: 'usuarioId',
     deletedAt: 'deletedAt',
   },
+  proyectosDepartamentos: {
+    proyectoId: 'proyectoId',
+    departamentoId: 'departamentoId',
+  },
 }));
 
 import {
@@ -71,6 +91,9 @@ import {
   findAsignacionById,
   createAsignacion,
   updateAsignacionById,
+  getDepartamentosForProyecto,
+  setDepartamentosForProyecto,
+  findProyectoWithDepartamentos,
 } from '../proyectos-repository.js';
 
 describe('proyectos-repository', () => {
@@ -98,27 +121,38 @@ describe('proyectos-repository', () => {
     mockUpdate.mockReturnValue({ set: mockSet });
   };
 
+  /**
+   * Helper para configurar la cadena de mocks de listProyectos:
+   * db.select({...}).from(proyectos).leftJoin(asignaciones, ...).where(clause).groupBy(proyectos.id).orderBy(asc(proyectos.nombre))
+   */
+  const setupListProyectosChain = (result: unknown[]) => {
+    mockOrderBy.mockResolvedValue(result);
+    mockGroupBy.mockReturnValue({ orderBy: mockOrderBy });
+    mockWhere.mockReturnValue({ groupBy: mockGroupBy });
+    mockLeftJoin.mockReturnValue({ where: mockWhere });
+    mockFrom.mockReturnValue({ leftJoin: mockLeftJoin });
+    mockSelect.mockReturnValue({ from: mockFrom });
+  };
+
   describe('listProyectos', () => {
     it('should list proyectos with no filters (always has deletedAt clause)', async () => {
-      const mockProyectos = [{ id: 'p1', nombre: 'Proyecto 1' }];
-      // listProyectos always adds isNull(deletedAt) so it always calls where()
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', nombre: 'Proyecto 1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos();
 
       expect(result).toEqual(mockProyectos);
       expect(mockSelect).toHaveBeenCalled();
       expect(mockFrom).toHaveBeenCalled();
+      expect(mockLeftJoin).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
+      expect(mockGroupBy).toHaveBeenCalled();
+      expect(mockOrderBy).toHaveBeenCalled();
     });
 
     it('should filter by estado', async () => {
-      const mockProyectos = [{ id: 'p1', estado: 'ACTIVO' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', estado: 'ACTIVO', asignacionesActivas: 2 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ estado: 'ACTIVO' });
 
@@ -127,10 +161,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by managerId', async () => {
-      const mockProyectos = [{ id: 'p1', managerId: 'u1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', managerId: 'u1', asignacionesActivas: 1 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ managerId: 'u1' });
 
@@ -138,10 +170,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by cliente', async () => {
-      const mockProyectos = [{ id: 'p1', cliente: 'Acme' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', cliente: 'Acme', asignacionesActivas: 3 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ cliente: 'Acme' });
 
@@ -149,10 +179,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by fechaInicio', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ fechaInicio: '2024-01-01' });
 
@@ -160,10 +188,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should filter by fechaFin', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 0 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({ fechaFin: '2024-12-31' });
 
@@ -171,10 +197,8 @@ describe('proyectos-repository', () => {
     });
 
     it('should apply all filters combined', async () => {
-      const mockProyectos = [{ id: 'p1' }];
-      mockWhere.mockResolvedValue(mockProyectos);
-      mockFrom.mockReturnValue({ where: mockWhere });
-      mockSelect.mockReturnValue({ from: mockFrom });
+      const mockProyectos = [{ id: 'p1', asignacionesActivas: 5 }];
+      setupListProyectosChain(mockProyectos);
 
       const result = await listProyectos({
         estado: 'ACTIVO',
@@ -185,7 +209,9 @@ describe('proyectos-repository', () => {
       });
 
       expect(result).toEqual(mockProyectos);
+      expect(mockLeftJoin).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
+      expect(mockGroupBy).toHaveBeenCalled();
     });
   });
 
@@ -227,6 +253,17 @@ describe('proyectos-repository', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should return null for a soft-deleted project with same code (allows code reuse)', async () => {
+      // The query filters by deletedAt IS NULL so soft-deleted projects
+      // are not returned, allowing the same code to be reused.
+      setupSelectChain([]);
+
+      const result = await findProyectoByCodigo('PRJ-001');
+
+      expect(result).toBeNull();
+      expect(mockWhere).toHaveBeenCalled();
+    });
   });
 
   describe('createProyecto', () => {
@@ -235,7 +272,7 @@ describe('proyectos-repository', () => {
       const created = { id: 'p2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createProyecto(payload as any);
+      const result = await createProyecto(payload as Parameters<typeof createProyecto>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -312,7 +349,7 @@ describe('proyectos-repository', () => {
       const created = { id: 'a2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createAsignacion(payload as any);
+      const result = await createAsignacion(payload as Parameters<typeof createAsignacion>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -326,11 +363,101 @@ describe('proyectos-repository', () => {
       const updated = { id: 'a1', proyectoId: 'p1', usuarioId: 'u1', rol: 'LEAD' };
       setupUpdateChain([updated]);
 
-      const result = await updateAsignacionById('a1', payload as any);
+      const result = await updateAsignacionById('a1', payload as Parameters<typeof updateAsignacionById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockSet).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('getDepartamentosForProyecto', () => {
+    it('should return an array of departamentoIds for a proyecto', async () => {
+      const rows = [{ departamentoId: 'd1' }, { departamentoId: 'd2' }];
+      mockWhere.mockResolvedValue(rows);
+      mockFrom.mockReturnValue({ where: mockWhere });
+      mockSelect.mockReturnValue({ from: mockFrom });
+
+      const result = await getDepartamentosForProyecto('p1');
+
+      expect(result).toEqual(['d1', 'd2']);
+      expect(mockSelect).toHaveBeenCalled();
+      expect(mockFrom).toHaveBeenCalled();
+      expect(mockWhere).toHaveBeenCalled();
+    });
+
+    it('should return an empty array when no departamentos are found', async () => {
+      mockWhere.mockResolvedValue([]);
+      mockFrom.mockReturnValue({ where: mockWhere });
+      mockSelect.mockReturnValue({ from: mockFrom });
+
+      const result = await getDepartamentosForProyecto('p-empty');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('setDepartamentosForProyecto', () => {
+    it('should delete existing and insert new departamentos', async () => {
+      mockDeleteWhere.mockResolvedValue(undefined);
+      mockDelete.mockReturnValue({ where: mockDeleteWhere });
+      mockReturning.mockResolvedValue([]);
+      mockValues.mockReturnValue({ returning: mockReturning });
+      mockInsert.mockReturnValue({ values: mockValues });
+
+      await setDepartamentosForProyecto('p1', ['d1', 'd2']);
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+      expect(mockInsert).toHaveBeenCalled();
+      expect(mockValues).toHaveBeenCalledWith([
+        { proyectoId: 'p1', departamentoId: 'd1' },
+        { proyectoId: 'p1', departamentoId: 'd2' },
+      ]);
+    });
+
+    it('should only delete when departamentoIds is empty', async () => {
+      mockDeleteWhere.mockResolvedValue(undefined);
+      mockDelete.mockReturnValue({ where: mockDeleteWhere });
+
+      await setDepartamentosForProyecto('p1', []);
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findProyectoWithDepartamentos', () => {
+    it('should return proyecto with departamentoIds', async () => {
+      const proyecto = { id: 'p1', nombre: 'Proyecto 1' };
+      const deptRows = [{ departamentoId: 'd1' }, { departamentoId: 'd2' }];
+
+      // First select: findProyectoById (.where.limit)
+      mockLimit.mockResolvedValueOnce([proyecto]);
+      mockWhere.mockReturnValueOnce({ limit: mockLimit });
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      // Second select: getDepartamentosForProyecto (.where)
+      mockWhere.mockResolvedValueOnce(deptRows);
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      const result = await findProyectoWithDepartamentos('p1');
+
+      expect(result).toEqual({ id: 'p1', nombre: 'Proyecto 1', departamentoIds: ['d1', 'd2'] });
+    });
+
+    it('should return null when proyecto not found', async () => {
+      mockLimit.mockResolvedValueOnce([]);
+      mockWhere.mockReturnValueOnce({ limit: mockLimit });
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      const result = await findProyectoWithDepartamentos('nonexistent');
+
+      expect(result).toBeNull();
     });
   });
 });

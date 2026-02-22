@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=2048' next dev",
@@ -72,5 +72,8 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vitest": "^3.0.4"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1"
   }
 }

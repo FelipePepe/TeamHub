@@ -6,6 +6,7 @@ const {
   mockUpdate,
   mockFrom,
   mockWhere,
+  mockOrderBy,
   mockLimit,
   mockValues,
   mockReturning,
@@ -14,6 +15,7 @@ const {
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
+  const mockOrderBy = vi.fn();
   const mockWhere = vi.fn();
   const mockFrom = vi.fn();
   const mockSet = vi.fn();
@@ -29,6 +31,7 @@ const {
     mockUpdate,
     mockFrom,
     mockWhere,
+    mockOrderBy,
     mockLimit,
     mockValues,
     mockReturning,
@@ -101,7 +104,8 @@ describe('procesos-repository', () => {
   describe('listProcesos', () => {
     it('should list procesos with no filters (always has deletedAt clause)', async () => {
       const mockProcesos = [{ id: 'pr1', estado: 'EN_CURSO' }];
-      mockWhere.mockResolvedValue(mockProcesos);
+      mockOrderBy.mockResolvedValue(mockProcesos);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
       mockFrom.mockReturnValue({ where: mockWhere });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -110,11 +114,13 @@ describe('procesos-repository', () => {
       expect(result).toEqual(mockProcesos);
       expect(mockSelect).toHaveBeenCalled();
       expect(mockWhere).toHaveBeenCalled();
+      expect(mockOrderBy).toHaveBeenCalled();
     });
 
     it('should filter by estado', async () => {
       const mockProcesos = [{ id: 'pr1', estado: 'COMPLETADO' }];
-      mockWhere.mockResolvedValue(mockProcesos);
+      mockOrderBy.mockResolvedValue(mockProcesos);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
       mockFrom.mockReturnValue({ where: mockWhere });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -125,7 +131,8 @@ describe('procesos-repository', () => {
 
     it('should filter by empleadoId', async () => {
       const mockProcesos = [{ id: 'pr1', empleadoId: 'u1' }];
-      mockWhere.mockResolvedValue(mockProcesos);
+      mockOrderBy.mockResolvedValue(mockProcesos);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
       mockFrom.mockReturnValue({ where: mockWhere });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -136,7 +143,8 @@ describe('procesos-repository', () => {
 
     it('should filter by both estado and empleadoId', async () => {
       const mockProcesos = [{ id: 'pr1', estado: 'EN_CURSO', empleadoId: 'u1' }];
-      mockWhere.mockResolvedValue(mockProcesos);
+      mockOrderBy.mockResolvedValue(mockProcesos);
+      mockWhere.mockReturnValue({ orderBy: mockOrderBy });
       mockFrom.mockReturnValue({ where: mockWhere });
       mockSelect.mockReturnValue({ from: mockFrom });
 
@@ -172,7 +180,7 @@ describe('procesos-repository', () => {
       const created = { id: 'pr2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createProceso(payload as any);
+      const result = await createProceso(payload as Parameters<typeof createProceso>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -186,7 +194,7 @@ describe('procesos-repository', () => {
       const updated = { id: 'pr1', estado: 'COMPLETADO' };
       setupUpdateChain([updated]);
 
-      const result = await updateProcesoById('pr1', payload as any);
+      const result = await updateProcesoById('pr1', payload as Parameters<typeof updateProcesoById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();
@@ -242,7 +250,7 @@ describe('procesos-repository', () => {
       ];
       setupInsertChain(created);
 
-      const result = await createTareasOnboarding(payload as any);
+      const result = await createTareasOnboarding(payload as Parameters<typeof createTareasOnboarding>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -263,7 +271,7 @@ describe('procesos-repository', () => {
       const updated = { id: 't1', titulo: 'Updated Task' };
       setupUpdateChain([updated]);
 
-      const result = await updateTareaOnboardingById('t1', payload as any);
+      const result = await updateTareaOnboardingById('t1', payload as Parameters<typeof updateTareaOnboardingById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

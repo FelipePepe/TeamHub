@@ -20,6 +20,7 @@ export function fetchProyectos(filters?: ProyectoFilters): Promise<ProyectoListR
   if (filters?.cliente) params.cliente = filters.cliente;
   if (filters?.fechaInicio) params.fechaInicio = filters.fechaInicio;
   if (filters?.fechaFin) params.fechaFin = filters.fechaFin;
+  if (filters?.usuarioId) params.usuarioId = filters.usuarioId;
   return get<ProyectoListResponse>('/proyectos', params);
 }
 

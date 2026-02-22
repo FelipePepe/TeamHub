@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, Plus, CheckCircle, XCircle, Briefcase, DollarSign, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,22 +20,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  useTimeEntries,
-  useResumenTimetracking,
-  useCreateTimeEntry,
-  useTimeEntriesSemana,
-  useUpdateTimeEntry,
-  useDeleteTimeEntry,
-  useCopiarRegistros,
-} from '@/hooks/use-timetracking';
-import { useProyectos, useMisProyectos, useAsignaciones } from '@/hooks/use-proyectos';
-import { usePermissions } from '@/hooks/use-permissions';
-import { useAuth } from '@/hooks/use-auth';
-import { useEmpleados, useEmpleadosByManager } from '@/hooks/use-empleados';
+import { useProyectos } from '@/hooks/use-proyectos';
+import type { Proyecto } from '@/hooks/proyectos/types';
+import type { TimeEntry } from '@/hooks/timetracking/types';
+import type { User } from '@/types';
 import { toast } from 'sonner';
-import { format, startOfWeek, subWeeks } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useState } from 'react';
 
 // Componentes Timesheet
 import { WeekNavigation } from '@/components/timetracking/week-navigation';
@@ -45,11 +36,15 @@ import { CopyWeekDialog } from '@/components/timetracking/copy-week-dialog';
 
 // Componentes Gantt
 import { GanttChart } from '@/components/timetracking/gantt-chart';
-import type { GanttProyecto } from '@/types/timetracking';
-import { calculateProgress } from '@/lib/gantt-utils';
+
+import { useTimetrackingPageState } from '@/hooks/timetracking/use-timetracking-page-state';
 
 const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
 const LOADING_REGISTROS_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
+
+// ---------------------------------------------------------------------------
+// Helpers de presentación (pura lógica visual, sin negocio)
+// ---------------------------------------------------------------------------
 
 /** Color de fondo/texto del pill de horas según el total de horas del registro. */
 function getHorasColor(horas: number): string {
@@ -65,664 +60,602 @@ const ESTADO_STYLES: Record<string, { dot: string; text: string; bg: string }> =
   PENDIENTE: { dot: 'bg-amber-400',   text: 'text-amber-400',   bg: 'bg-amber-400/10'   },
 };
 
+/**
+ * Devuelve los estilos de color asociados a un estado de timetracking.
+ *
+ * @param estado - Estado del registro ('APROBADO' | 'RECHAZADO' | 'PENDIENTE').
+ * @returns Objeto con clases Tailwind para dot, text y bg.
+ */
 function getEstadoStyle(estado: string) {
   return ESTADO_STYLES[estado] ?? { dot: 'bg-slate-400', text: 'text-slate-400', bg: 'bg-slate-400/10' };
 }
 
 /**
  * Extrae un mensaje de error de API sin type assertions.
+ *
+ * @param error - Valor de error desconocido capturado en un catch.
+ * @param fallback - Mensaje a mostrar si no se puede extraer uno de `error`.
+ * @returns Mensaje de error como string.
  */
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === 'object' && 'error' in error) {
     const maybeError = error.error;
-    if (typeof maybeError === 'string' && maybeError.length > 0) {
-      return maybeError;
-    }
+    if (typeof maybeError === 'string' && maybeError.length > 0) return maybeError;
   }
-
   return fallback;
 }
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function TimetrackingPage() {
   const router = useRouter();
-  const { user } = useAuth();
-  const { canApproveHours, canViewOthersHours, canWriteOthersHours, isManager } = usePermissions();
-  const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('registros');
-
-  // Timesheet state
-  const [timesheetDate, setTimesheetDate] = useState(new Date());
-  const [showCopyDialog, setShowCopyDialog] = useState(false);
-
-  // User selector state (for privileged roles)
-  const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined);
-  /** Filtro de proyecto del timesheet semanal. */
-  const [selectedTimesheetProyectoId, setSelectedTimesheetProyectoId] = useState<string | undefined>(undefined);
-  /** Filtro de la pestaña Registros: '__todos__' = sin filtro de usuario. */
-  const [registrosFilterUserId, setRegistrosFilterUserId] = useState<string>('__todos__');
-  /** Filtro de proyecto de la pestaña Registros. */
-  const [registrosFilterProyectoId, setRegistrosFilterProyectoId] = useState<string>('__todos__');
-
-  // Data hooks
-  const registrosFilter: Record<string, string> | undefined =
-    (canViewOthersHours && registrosFilterUserId !== '__todos__') || registrosFilterProyectoId !== '__todos__'
-      ? {
-          ...(canViewOthersHours && registrosFilterUserId !== '__todos__' ? { usuarioId: registrosFilterUserId } : {}),
-          ...(registrosFilterProyectoId === '__todos__' ? {} : { proyectoId: registrosFilterProyectoId }),
-        }
-      : undefined;
-  const { data: registrosData, isLoading, error } = useTimeEntries(registrosFilter);
-  const { data: resumen } = useResumenTimetracking();
-  const createEntry = useCreateTimeEntry();
-  const updateEntry = useUpdateTimeEntry();
-  const deleteEntry = useDeleteTimeEntry();
-  const [deletingEntry, setDeletingEntry] = useState<{ id: string; descripcion: string; fecha: string } | null>(null);
-  const { data: proyectosData } = useProyectos({});
-  const { data: misProyectosData, isLoading: isLoadingMisProyectos } = useMisProyectos();
-  const copiarRegistros = useCopiarRegistros();
-
-  const proyectos = proyectosData?.data ?? [];
-  const misProyectos = useMemo(() => misProyectosData?.data ?? [], [misProyectosData]);
-  const registros = registrosData?.data ?? [];
-
-  /** Mapa proyectoId → nombre para los registros del listado. */
-  const proyectoNombreMap = useMemo(
-    () => new Map(proyectos.map((p) => [p.id, p.nombre])),
-    [proyectos]
-  );
-
-  /** Proyectos del usuario que han superado su presupuesto de horas. */
-  const proyectosSobrePresupuesto = useMemo(() => {
-    const base = canViewOthersHours ? proyectos : misProyectos;
-    return base.filter(
-      (p) => (p.presupuestoHoras ?? 0) > 0 && (p.horasConsumidas ?? 0) > (p.presupuestoHoras ?? 0)
-    );
-  }, [canViewOthersHours, proyectos, misProyectos]);
-
-  /** Proyecto actualmente seleccionado en el filtro de Registros. */
-  const selectedProyectoRegistros = useMemo(
-    () => (canViewOthersHours ? proyectos : misProyectos).find((p) => p.id === registrosFilterProyectoId),
-    [canViewOthersHours, proyectos, misProyectos, registrosFilterProyectoId]
-  );
-
-  /** Proyecto actualmente seleccionado en el Timesheet Semanal. */
-  const selectedProyectoTimesheet = useMemo(
-    () => [...proyectos, ...misProyectos].find((p) => p.id === selectedTimesheetProyectoId),
-    [proyectos, misProyectos, selectedTimesheetProyectoId]
-  );
-
-  // Employee lists for user selector
-  const canFetchAll = canViewOthersHours && !isManager;
-  const { data: todosEmpleadosData } = useEmpleados({ activo: true }, canFetchAll);
-  const { data: equipoData } = useEmpleadosByManager(
-    user?.id ?? '',
-    isManager
-  );
-  const empleadosBase = isManager
-    ? (equipoData ?? [])
-    : (todosEmpleadosData?.data ?? []);
-
-  // Fetch asignaciones for the selected timesheet project to filter employee selector
-  const { data: asignacionesProyectoData } = useAsignaciones(
-    selectedTimesheetProyectoId ?? '',
-    canViewOthersHours && !!selectedTimesheetProyectoId
-  );
-  const empleadosParaSelector = useMemo(() => {
-    if (!canViewOthersHours) return [];
-    if (!selectedTimesheetProyectoId || !asignacionesProyectoData?.data) return empleadosBase;
-    const usuarioIdsEnProyecto = new Set(asignacionesProyectoData.data.map((a) => a.usuarioId));
-    return empleadosBase.filter((emp) => usuarioIdsEnProyecto.has(emp.id));
-  }, [canViewOthersHours, selectedTimesheetProyectoId, asignacionesProyectoData, empleadosBase]);
-
-  /** Mapa usuarioId → rol para mostrar el rol en el selector de empleado cuando hay proyecto seleccionado. */
-  const rolPorUsuarioId = useMemo(() => {
-    if (!asignacionesProyectoData?.data) return new Map<string, string>();
-    return new Map(
-      asignacionesProyectoData.data
-        .filter((a) => a.rol)
-        .map((a) => [a.usuarioId, a.rol as string])
-    );
-  }, [asignacionesProyectoData]);
-
-  // Fetch asignaciones for the Registros tab project filter
-  const registrosProyectoActivo = registrosFilterProyectoId === '__todos__' ? '' : registrosFilterProyectoId;
-  const { data: asignacionesRegistrosData } = useAsignaciones(
-    registrosProyectoActivo,
-    canViewOthersHours && !!registrosProyectoActivo
-  );
-  const empleadosParaRegistros = useMemo(() => {
-    if (!canViewOthersHours) return [];
-    if (!registrosProyectoActivo || !asignacionesRegistrosData?.data) return empleadosBase;
-    const ids = new Set(asignacionesRegistrosData.data.map((a) => a.usuarioId));
-    return empleadosBase.filter((emp) => ids.has(emp.id));
-  }, [canViewOthersHours, registrosProyectoActivo, asignacionesRegistrosData, empleadosBase]);
-
-  const rolPorUsuarioIdRegistros = useMemo(() => {
-    if (!asignacionesRegistrosData?.data) return new Map<string, string>();
-    return new Map(
-      asignacionesRegistrosData.data
-        .filter((a) => a.rol)
-        .map((a) => [a.usuarioId, a.rol as string])
-    );
-  }, [asignacionesRegistrosData]);
-
-  // Timesheet data
-  const weekStartStr = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-  const { data: semanaData, isLoading: isLoadingSemana } = useTimeEntriesSemana(weekStartStr, selectedUserId);
-  const registrosSemana = useMemo(() => semanaData?.data ?? [], [semanaData]);
-
-  /** Proyectos y registros filtrados según el selector de proyecto del timesheet. */
-  const proyectosTimesheetFiltrados = useMemo(
-    () => selectedTimesheetProyectoId
-      ? proyectos.filter((p) => p.id === selectedTimesheetProyectoId)
-      : proyectos,
-    [proyectos, selectedTimesheetProyectoId]
-  );
-  const registrosSemanaFiltrados = useMemo(
-    () => selectedTimesheetProyectoId
-      ? registrosSemana.filter((r) => r.proyectoId === selectedTimesheetProyectoId)
-      : registrosSemana,
-    [registrosSemana, selectedTimesheetProyectoId]
-  );
-
-  const handleCellChange = useCallback(
-    async (proyectoId: string, fecha: string, horas: number) => {
-      const existingEntry = registrosSemana.find(
-        (r) => r.proyectoId === proyectoId && r.fecha.startsWith(fecha)
-      );
-
-      try {
-        if (existingEntry) {
-          if (horas === 0) {
-            // Optionally delete - for now just set to 0
-            await updateEntry.mutateAsync({ id: existingEntry.id, data: { horas: 0 } });
-          } else {
-            await updateEntry.mutateAsync({ id: existingEntry.id, data: { horas } });
-          }
-        } else if (horas > 0) {
-          await createEntry.mutateAsync({
-            proyectoId,
-            fecha,
-            horas,
-            descripcion: 'Registro desde timesheet',
-            // Pass usuarioId if a different user is selected (privileged roles only)
-            ...(canWriteOthersHours && selectedUserId ? { usuarioId: selectedUserId } : {}),
-          });
-        }
-        toast.success('Horas actualizadas');
-      } catch {
-        toast.error('Error al actualizar horas');
-      }
-    },
-    [registrosSemana, updateEntry, createEntry, selectedUserId, canWriteOthersHours]
-  );
-
-  const handleCopyWeek = useCallback(async () => {
-    const currentWeekStart = format(startOfWeek(timesheetDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-    const prevWeekStart = format(startOfWeek(subWeeks(timesheetDate, 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-
-    try {
-      const result = await copiarRegistros.mutateAsync({
-        fechaOrigen: prevWeekStart,
-        fechaDestino: currentWeekStart,
-      });
-      toast.success(result.message || `${result.copied} registros copiados`);
-      setShowCopyDialog(false);
-    } catch {
-      toast.error('Error al copiar registros');
-    }
-  }, [timesheetDate, copiarRegistros]);
-
-  // Gantt data
-  const ganttProyectos = useMemo<GanttProyecto[]>(() => {
-    return misProyectos
-      .filter((p) => p.fechaInicio && (p.fechaFinEstimada || p.fechaFinReal))
-      .map((p) => {
-        const fechaInicio = new Date(p.fechaInicio!);
-        const fechaFin = new Date(p.fechaFinReal || p.fechaFinEstimada!);
-
-        return {
-          id: p.id,
-          nombre: p.nombre,
-          codigo: p.codigo,
-          fechaInicio,
-          fechaFin,
-          estado: p.estado,
-          color: p.color,
-          progreso: calculateProgress(fechaInicio, fechaFin, p.horasConsumidas, p.presupuestoHoras),
-          asignaciones: [], // Se cargarían por separado si fuera necesario
-        };
-      });
-  }, [misProyectos]);
-
-  let registrosContent: React.ReactNode;
-  if (isLoading) {
-    registrosContent = (
-      <div className="space-y-2">
-        {LOADING_REGISTROS_KEYS.map((key) => (
-          <Skeleton key={key} className="h-12" />
-        ))}
-      </div>
-    );
-  } else if (error) {
-    registrosContent = <p className="text-sm text-red-600">Error al cargar registros</p>;
-  } else if (registros.length === 0) {
-    registrosContent = (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Clock className="mb-4 h-12 w-12 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">No hay registros</p>
-        <Button onClick={() => setShowForm(true)} className="mt-4">
-          <Plus className="mr-2 h-4 w-4" />
-          Registrar horas
-        </Button>
-      </div>
-    );
-  } else {
-    registrosContent = (
-      <div className="divide-y divide-border">
-        {registros.slice(0, 50).map((r) => {
-          const estadoStyle = getEstadoStyle(r.estado);
-          const proyectoNombre = proyectoNombreMap.get(r.proyectoId);
-          const horas = Number(r.horas ?? 0);
-          return (
-            <div
-              key={r.id}
-              className="group flex items-center gap-4 px-1 py-3.5 hover:bg-muted/40 transition-colors"
-            >
-              {/* Estado — barra lateral de color */}
-              <div className={`h-8 w-1 rounded-full flex-shrink-0 ${estadoStyle.dot}`} />
-
-              {/* Fecha */}
-              <div className="w-28 flex-shrink-0">
-                <span className="text-sm font-semibold text-foreground">
-                  {format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}
-                </span>
-              </div>
-
-              {/* Horas */}
-              <div className={`flex-shrink-0 rounded-md px-2.5 py-0.5 text-sm font-bold tabular-nums ${getHorasColor(horas)}`}>
-                {horas % 1 === 0 ? horas : horas.toFixed(1)}h
-              </div>
-
-              {/* Proyecto */}
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                {proyectoNombre && (
-                  <div className="flex flex-shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-0.5">
-                    <Briefcase className="h-3 w-3 text-muted-foreground" />
-                    <span className="max-w-[160px] truncate text-xs font-medium text-muted-foreground">
-                      {proyectoNombre}
-                    </span>
-                  </div>
-                )}
-                <span className="truncate text-sm text-muted-foreground">{r.descripcion}</span>
-              </div>
-
-              {/* Empleado (solo roles privilegiados) */}
-              {canViewOthersHours && r.usuarioNombre && (
-                <div className="flex flex-shrink-0 items-center gap-1.5">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                    {r.usuarioNombre.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden text-sm font-medium text-foreground uppercase sm:inline">{r.usuarioNombre}</span>
-                </div>
-              )}
-
-              {/* Facturable */}
-              {r.facturable && (
-                <div className="flex-shrink-0" title="Facturable">
-                  <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
-                </div>
-              )}
-
-              {/* Estado badge */}
-              <div className={`flex-shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${estadoStyle.bg} ${estadoStyle.text}`}>
-                {r.estado === 'APROBADO'  && <CheckCircle className="h-3 w-3" />}
-                {r.estado === 'RECHAZADO' && <XCircle     className="h-3 w-3" />}
-                {r.estado}
-              </div>
-
-              {/* Eliminar */}
-              {(canWriteOthersHours || (r.usuarioId === user?.id && r.estado === 'PENDIENTE')) && (
-                <button
-                  type="button"
-                  title="Eliminar registro"
-                  onClick={() => setDeletingEntry({ id: r.id, descripcion: r.descripcion ?? '', fecha: r.fecha })}
-                  className="flex-shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/15 hover:text-destructive text-muted-foreground"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+  const state = useTimetrackingPageState();
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Timetracking</h1>
-          <p className="text-muted-foreground">Registro y consulta de horas</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Registrar horas
-          </Button>
-          {canApproveHours && (
-            <Button variant="outline" onClick={() => router.push('/timetracking/aprobacion')}>
-              Pendientes de aprobación
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        canApproveHours={state.canApproveHours}
+        onNewEntry={() => state.setShowForm(true)}
+        onGoToApproval={() => router.push('/timetracking/aprobacion')}
+      />
 
-      {resumen && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Resumen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Total horas</p>
-                <p className="text-2xl font-semibold">{Number(resumen.totalHoras ?? 0).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Facturables</p>
-                <p className="text-2xl font-semibold">{Number(resumen.horasFacturables ?? 0).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">No facturables</p>
-                <p className="text-2xl font-semibold">{Number(resumen.horasNoFacturables ?? 0).toFixed(2)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {state.resumen && <ResumenCard resumen={state.resumen} />}
 
-      {/* Banner global: proyectos con horas consumidas > presupuesto */}
-      {proyectosSobrePresupuesto.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-          <div className="flex items-center gap-2 text-amber-400">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            <span className="text-sm font-semibold">
-              {proyectosSobrePresupuesto.length === 1
-                ? '1 proyecto ha superado su presupuesto de horas'
-                : `${proyectosSobrePresupuesto.length} proyectos han superado su presupuesto de horas`}
-            </span>
-          </div>
-          <ul className="ml-6 space-y-0.5">
-            {proyectosSobrePresupuesto.map((p) => (
-              <li key={p.id} className="text-xs text-amber-300">
-                <span className="font-medium">{p.nombre}</span>{' — '}
-                {(p.horasConsumidas ?? 0).toFixed(1)}h consumidas de {(p.presupuestoHoras ?? 0).toFixed(1)}h
-                {' '}(<span className="font-semibold">+{((p.horasConsumidas ?? 0) - (p.presupuestoHoras ?? 0)).toFixed(1)}h</span>)
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <PresupuestoAlert proyectos={state.proyectosSobrePresupuesto} />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={state.activeTab} onValueChange={state.setActiveTab}>
         <TabsList>
-          <TabsTrigger value="registros">{canViewOthersHours ? 'Registros' : 'Mis Registros'}</TabsTrigger>
+          <TabsTrigger value="registros">{state.canViewOthersHours ? 'Registros' : 'Mis Registros'}</TabsTrigger>
           <TabsTrigger value="timesheet">Timesheet Semanal</TabsTrigger>
           <TabsTrigger value="gantt">Diagrama Gantt</TabsTrigger>
         </TabsList>
 
         <TabsContent value="registros">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle>{canViewOthersHours ? 'Registros' : 'Mis registros'}</CardTitle>
-                  <CardDescription>Listado de entradas de tiempo</CardDescription>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Filtro por proyecto */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
-                    <Select
-                      value={registrosFilterProyectoId}
-                      onValueChange={(v) => {
-                        setRegistrosFilterProyectoId(v);
-                        setRegistrosFilterUserId('__todos__'); // reset empleado al cambiar proyecto
-                      }}
-                    >
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Todos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__todos__">Todos</SelectItem>
-                        {(canViewOthersHours ? proyectos : misProyectos).map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Filtro por empleado (solo roles privilegiados) */}
-                  {canViewOthersHours && empleadosParaRegistros.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
-                      <Select
-                        value={registrosFilterUserId}
-                        onValueChange={setRegistrosFilterUserId}
-                      >
-                        <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Todos" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__todos__">Todos</SelectItem>
-                          {empleadosParaRegistros.map((emp) => (
-                            <SelectItem
-                              key={emp.id}
-                              value={emp.id}
-                              textValue={`${emp.nombre} ${emp.apellidos}`}
-                            >
-                              <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
-                              {registrosProyectoActivo && rolPorUsuarioIdRegistros.get(emp.id) && (
-                                <span className="ml-1.5 text-xs text-muted-foreground">({rolPorUsuarioIdRegistros.get(emp.id)})</span>
-                              )}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Alerta inline cuando el proyecto seleccionado excede presupuesto */}
-              {selectedProyectoRegistros &&
-                (selectedProyectoRegistros.presupuestoHoras ?? 0) > 0 &&
-                (selectedProyectoRegistros.horasConsumidas ?? 0) > (selectedProyectoRegistros.presupuestoHoras ?? 0) && (
-                <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-400">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                  <p className="text-sm">
-                    <span className="font-semibold">{selectedProyectoRegistros.nombre}</span> ha superado su presupuesto:{' '}
-                    <span className="font-semibold">{(selectedProyectoRegistros.horasConsumidas ?? 0).toFixed(1)}h</span>
-                    {' '}de{' '}
-                    <span className="font-semibold">{(selectedProyectoRegistros.presupuestoHoras ?? 0).toFixed(1)}h</span>
-                    {' '}presupuestadas{' '}(<span className="font-semibold">+{((selectedProyectoRegistros.horasConsumidas ?? 0) - (selectedProyectoRegistros.presupuestoHoras ?? 0)).toFixed(1)}h</span>).
-                  </p>
-                </div>
-              )}
-              {registrosContent}
-            </CardContent>
-          </Card>
+          <RegistrosTab state={state} />
         </TabsContent>
 
         <TabsContent value="timesheet">
-          <Card>
-            <CardHeader>
-              <CardTitle>Timesheet Semanal</CardTitle>
-              <CardDescription>Vista de horas por proyecto y día de la semana</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap items-center gap-4">
-                {canViewOthersHours && empleadosParaSelector.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
-                    <Select
-                      value={selectedUserId ?? '__propio__'}
-                      onValueChange={(v) => setSelectedUserId(v === '__propio__' ? undefined : v)}
-                    >
-                      <SelectTrigger className="w-56">
-                        <SelectValue placeholder="Mis horas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__propio__">Mis horas</SelectItem>
-                        {empleadosParaSelector.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
-                            {selectedTimesheetProyectoId && rolPorUsuarioId.get(emp.id) && (
-                              <span className="ml-1.5 text-xs text-muted-foreground">({rolPorUsuarioId.get(emp.id)})</span>
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
-                  <Select
-                    value={selectedTimesheetProyectoId ?? '__todos__'}
-                    onValueChange={(v) => {
-                      setSelectedTimesheetProyectoId(v === '__todos__' ? undefined : v);
-                      setSelectedUserId(undefined); // reset empleado al cambiar proyecto
-                    }}
-                  >
-                    <SelectTrigger className="w-56">
-                      <SelectValue placeholder="Todos los proyectos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__todos__">Todos los proyectos</SelectItem>
-                      {proyectos.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.nombre} ({p.codigo})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {/* Alerta inline cuando el proyecto del timesheet excede presupuesto */}
-              {selectedProyectoTimesheet &&
-                (selectedProyectoTimesheet.presupuestoHoras ?? 0) > 0 &&
-                (selectedProyectoTimesheet.horasConsumidas ?? 0) > (selectedProyectoTimesheet.presupuestoHoras ?? 0) && (
-                <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-400">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                  <p className="text-sm">
-                    <span className="font-semibold">{selectedProyectoTimesheet.nombre}</span> ha superado su presupuesto:{' '}
-                    <span className="font-semibold">{(selectedProyectoTimesheet.horasConsumidas ?? 0).toFixed(1)}h</span>
-                    {' '}de{' '}
-                    <span className="font-semibold">{(selectedProyectoTimesheet.presupuestoHoras ?? 0).toFixed(1)}h</span>
-                    {' '}presupuestadas{' '}(<span className="font-semibold">+{((selectedProyectoTimesheet.horasConsumidas ?? 0) - (selectedProyectoTimesheet.presupuestoHoras ?? 0)).toFixed(1)}h</span>).
-                  </p>
-                </div>
-              )}
-              <WeekNavigation
-                currentDate={timesheetDate}
-                onDateChange={setTimesheetDate}
-                onCopyWeek={() => setShowCopyDialog(true)}
-              />
-              <TimesheetGrid
-                currentDate={timesheetDate}
-                registros={registrosSemanaFiltrados}
-                proyectos={proyectosTimesheetFiltrados}
-                isLoading={isLoadingSemana}
-                onCellChange={handleCellChange}
-              />
-            </CardContent>
-          </Card>
-
-          <CopyWeekDialog
-            open={showCopyDialog}
-            onOpenChange={setShowCopyDialog}
-            currentDate={timesheetDate}
-            onConfirm={handleCopyWeek}
-            isPending={copiarRegistros.isPending}
-          />
+          <TimesheetTab state={state} />
         </TabsContent>
 
         <TabsContent value="gantt">
-          <GanttChart proyectos={ganttProyectos} isLoading={isLoadingMisProyectos} />
+          <GanttChart proyectos={state.ganttProyectos} isLoading={state.isLoadingMisProyectos} />
         </TabsContent>
       </Tabs>
 
-      {showForm && (
+      {state.showForm && (
         <RegistroHorasModal
-          proyectos={proyectos}
-          onClose={() => setShowForm(false)}
+          proyectos={state.proyectos}
+          onClose={() => state.setShowForm(false)}
           onCreate={async (data) => {
             try {
-              await createEntry.mutateAsync(data);
+              await state.createEntry.mutateAsync(data);
               toast.success('Registro creado');
-              setShowForm(false);
+              state.setShowForm(false);
             } catch (err: unknown) {
-              const msg = getApiErrorMessage(err, 'Error al crear');
-              toast.error(msg);
+              toast.error(getApiErrorMessage(err, 'Error al crear'));
             }
           }}
-          isPending={createEntry.isPending}
-          canWriteOthersHours={canWriteOthersHours}
-          empleados={empleadosParaSelector}
+          isPending={state.createEntry.isPending}
+          canWriteOthersHours={state.canWriteOthersHours}
+          empleados={state.empleadosParaSelector}
         />
       )}
 
-      {/* Diálogo de confirmación para eliminar un registro */}
-      <Dialog open={!!deletingEntry} onOpenChange={(open) => { if (!open) setDeletingEntry(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>¿Eliminar registro?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Se eliminará el registro del{' '}
-            <span className="font-medium text-foreground">
-              {deletingEntry ? format(new Date(deletingEntry.fecha), "d 'de' MMMM yyyy", { locale: es }) : ''}
-            </span>
-            {deletingEntry?.descripcion ? (
-              <>: <span className="font-medium text-foreground">&ldquo;{deletingEntry.descripcion}&rdquo;</span></>
-            ) : null}.
-            Esta acción no se puede deshacer.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeletingEntry(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={deleteEntry.isPending}
-              onClick={async () => {
-                if (!deletingEntry) return;
-                try {
-                  await deleteEntry.mutateAsync(deletingEntry.id);
-                  toast.success('Registro eliminado');
-                  setDeletingEntry(null);
-                } catch {
-                  toast.error('Error al eliminar el registro');
-                }
-              }}
-            >
-              {deleteEntry.isPending ? 'Eliminando…' : 'Eliminar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteEntryDialog
+        deletingEntry={state.deletingEntry}
+        onCancel={() => state.setDeletingEntry(null)}
+        onConfirm={state.handleConfirmDelete}
+        isPending={state.deleteEntry.isPending}
+      />
     </div>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+/**
+ * Cabecera de la página con título y botones de acción.
+ *
+ * @param canApproveHours - Si el usuario tiene permiso de aprobar horas.
+ * @param onNewEntry - Callback para abrir el modal de nuevo registro.
+ * @param onGoToApproval - Callback para navegar a la página de aprobaciones.
+ */
+function PageHeader({
+  canApproveHours,
+  onNewEntry,
+  onGoToApproval,
+}: {
+  readonly canApproveHours: boolean;
+  readonly onNewEntry: () => void;
+  readonly onGoToApproval: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">Timetracking</h1>
+        <p className="text-muted-foreground">Registro y consulta de horas</p>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={onNewEntry}>
+          <Plus className="mr-2 h-4 w-4" />
+          Registrar horas
+        </Button>
+        {canApproveHours && (
+          <Button variant="outline" onClick={onGoToApproval}>
+            Pendientes de aprobación
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Card de resumen de horas totales, facturables y no facturables.
+ *
+ * @param resumen - Datos de resumen devueltos por la API.
+ */
+function ResumenCard({ resumen }: { readonly resumen: { totalHoras?: number | string; horasFacturables?: number | string; horasNoFacturables?: number | string } }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Resumen
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <p className="text-sm text-muted-foreground">Total horas</p>
+            <p className="text-2xl font-semibold">{Number(resumen.totalHoras ?? 0).toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Facturables</p>
+            <p className="text-2xl font-semibold">{Number(resumen.horasFacturables ?? 0).toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">No facturables</p>
+            <p className="text-2xl font-semibold">{Number(resumen.horasNoFacturables ?? 0).toFixed(2)}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Banner de advertencia que lista los proyectos con horas consumidas
+ * por encima del presupuesto. No se renderiza si la lista está vacía.
+ *
+ * @param proyectos - Lista de proyectos sobre presupuesto.
+ */
+function PresupuestoAlert({
+  proyectos,
+}: {
+  readonly proyectos: { id: string; nombre: string; horasConsumidas?: number | null; presupuestoHoras?: number | null }[];
+}) {
+  if (proyectos.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <div className="flex items-center gap-2 text-amber-400">
+        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+        <span className="text-sm font-semibold">
+          {proyectos.length === 1
+            ? '1 proyecto ha superado su presupuesto de horas'
+            : `${proyectos.length} proyectos han superado su presupuesto de horas`}
+        </span>
+      </div>
+      <ul className="ml-6 space-y-0.5">
+        {proyectos.map((p) => (
+          <li key={p.id} className="text-xs text-amber-300">
+            <span className="font-medium">{p.nombre}</span>{' — '}
+            {(p.horasConsumidas ?? 0).toFixed(1)}h consumidas de {(p.presupuestoHoras ?? 0).toFixed(1)}h
+            {' '}(<span className="font-semibold">+{((p.horasConsumidas ?? 0) - (p.presupuestoHoras ?? 0)).toFixed(1)}h</span>)
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Alert inline que aparece cuando el proyecto seleccionado supera su presupuesto.
+ * No se renderiza si no hay proyecto o si no supera el límite.
+ *
+ * @param proyecto - Proyecto actualmente seleccionado, o undefined.
+ */
+function ProyectoPresupuestoAlert({
+  proyecto,
+}: {
+  readonly proyecto: { nombre: string; horasConsumidas?: number | null; presupuestoHoras?: number | null } | undefined;
+}) {
+  if (
+    !proyecto ||
+    (proyecto.presupuestoHoras ?? 0) <= 0 ||
+    (proyecto.horasConsumidas ?? 0) <= (proyecto.presupuestoHoras ?? 0)
+  ) return null;
+
+  return (
+    <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-400">
+      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+      <p className="text-sm">
+        <span className="font-semibold">{proyecto.nombre}</span> ha superado su presupuesto:{' '}
+        <span className="font-semibold">{(proyecto.horasConsumidas ?? 0).toFixed(1)}h</span>
+        {' '}de{' '}
+        <span className="font-semibold">{(proyecto.presupuestoHoras ?? 0).toFixed(1)}h</span>
+        {' '}presupuestadas{' '}
+        (<span className="font-semibold">+{((proyecto.horasConsumidas ?? 0) - (proyecto.presupuestoHoras ?? 0)).toFixed(1)}h</span>).
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Registros tab
+// ---------------------------------------------------------------------------
+
+/** Props comunes derivadas del estado de la página para los sub-tabs. */
+type PageState = ReturnType<typeof useTimetrackingPageState>;
+
+/**
+ * Contenido de la pestaña "Registros": filtros, lista de entradas y alertas.
+ *
+ * @param state - Estado completo devuelto por `useTimetrackingPageState`.
+ */
+function RegistrosTab({ state }: { readonly state: PageState }) {
+  const listaProyectos = state.canViewOthersHours ? state.proyectos : state.misProyectos;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>{state.canViewOthersHours ? 'Registros' : 'Mis registros'}</CardTitle>
+            <CardDescription>Listado de entradas de tiempo</CardDescription>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
+              <Select value={state.registrosFilterProyectoId} onValueChange={state.handleRegistrosProyectoChange}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__todos__">Todos</SelectItem>
+                  {listaProyectos.map((p: Proyecto) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {state.canViewOthersHours && state.empleadosParaRegistros.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
+                <Select value={state.registrosFilterUserId} onValueChange={state.setRegistrosFilterUserId}>
+                  <SelectTrigger className="w-48"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__todos__">Todos</SelectItem>
+                    {state.empleadosParaRegistros.map((emp: User) => (
+                      <SelectItem key={emp.id} value={emp.id} textValue={`${emp.nombre} ${emp.apellidos}`}>
+                        <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
+                        {state.registrosProyectoActivo && state.rolPorUsuarioIdRegistros.get(emp.id) && (
+                          <span className="ml-1.5 text-xs text-muted-foreground">({state.rolPorUsuarioIdRegistros.get(emp.id)})</span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ProyectoPresupuestoAlert proyecto={state.selectedProyectoRegistros} />
+        <RegistrosList state={state} />
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Lista de registros de timetracking con estados de carga y vacío.
+ *
+ * @param state - Estado completo devuelto por `useTimetrackingPageState`.
+ */
+function RegistrosList({ state }: { readonly state: PageState }) {
+  if (state.isLoading) {
+    return (
+      <div className="space-y-2">
+        {LOADING_REGISTROS_KEYS.map((key) => <Skeleton key={key} className="h-12" />)}
+      </div>
+    );
+  }
+  if (state.error) {
+    return <p className="text-sm text-red-600">Error al cargar registros</p>;
+  }
+  if (state.registros.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Clock className="mb-4 h-12 w-12 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">No hay registros</p>
+        <Button onClick={() => state.setShowForm(true)} className="mt-4">
+          <Plus className="mr-2 h-4 w-4" />
+          Registrar horas
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="divide-y divide-border">
+      {state.registros.slice(0, 50).map((r: TimeEntry) => (
+        <RegistroRow
+          key={r.id}
+          registro={r}
+          proyectoNombre={state.proyectoNombreMap.get(r.proyectoId)}
+          canViewOthersHours={state.canViewOthersHours}
+          canWriteOthersHours={state.canWriteOthersHours}
+          userId={state.user?.id}
+          onDelete={(entry) => state.setDeletingEntry(entry)}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Fila individual de un registro de timetracking.
+ *
+ * @param registro - Datos del registro.
+ * @param proyectoNombre - Nombre del proyecto asociado, si existe.
+ * @param canViewOthersHours - Si el usuario puede ver horas de otros.
+ * @param canWriteOthersHours - Si el usuario puede editar horas de otros.
+ * @param userId - ID del usuario autenticado.
+ * @param onDelete - Callback al pulsar el botón de eliminar.
+ */
+function RegistroRow({
+  registro: r,
+  proyectoNombre,
+  canViewOthersHours,
+  canWriteOthersHours,
+  userId,
+  onDelete,
+}: {
+  readonly registro: {
+    id: string;
+    fecha: string;
+    horas?: number | string | null;
+    descripcion?: string | null;
+    proyectoId: string;
+    usuarioId: string;
+    usuarioNombre?: string | null;
+    estado: string;
+    facturable?: boolean | null;
+  };
+  readonly proyectoNombre: string | undefined;
+  readonly canViewOthersHours: boolean;
+  readonly canWriteOthersHours: boolean;
+  readonly userId: string | undefined;
+  readonly onDelete: (entry: { id: string; descripcion: string; fecha: string }) => void;
+}) {
+  const estadoStyle = getEstadoStyle(r.estado);
+  const horas = Number(r.horas ?? 0);
+  const canDelete = canWriteOthersHours || (r.usuarioId === userId && r.estado === 'PENDIENTE');
+
+  return (
+    <div className="group flex items-center gap-4 px-1 py-3.5 hover:bg-muted/40 transition-colors">
+      <div className={`h-8 w-1 rounded-full flex-shrink-0 ${estadoStyle.dot}`} />
+      <div className="w-28 flex-shrink-0">
+        <span className="text-sm font-semibold text-foreground">
+          {format(new Date(r.fecha), 'd MMM yyyy', { locale: es })}
+        </span>
+      </div>
+      <div className={`flex-shrink-0 rounded-md px-2.5 py-0.5 text-sm font-bold tabular-nums ${getHorasColor(horas)}`}>
+        {horas % 1 === 0 ? horas : horas.toFixed(1)}h
+      </div>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {proyectoNombre && (
+          <div className="flex flex-shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-0.5">
+            <Briefcase className="h-3 w-3 text-muted-foreground" />
+            <span className="max-w-[160px] truncate text-xs font-medium text-muted-foreground">{proyectoNombre}</span>
+          </div>
+        )}
+        <span className="truncate text-sm text-muted-foreground">{r.descripcion}</span>
+      </div>
+      {canViewOthersHours && r.usuarioNombre && (
+        <div className="flex flex-shrink-0 items-center gap-1.5">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+            {r.usuarioNombre.charAt(0).toUpperCase()}
+          </div>
+          <span className="hidden text-sm font-medium text-foreground uppercase sm:inline">{r.usuarioNombre}</span>
+        </div>
+      )}
+      {r.facturable && (
+        <div className="flex-shrink-0" title="Facturable">
+          <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
+        </div>
+      )}
+      <div className={`flex-shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${estadoStyle.bg} ${estadoStyle.text}`}>
+        {r.estado === 'APROBADO'  && <CheckCircle className="h-3 w-3" />}
+        {r.estado === 'RECHAZADO' && <XCircle className="h-3 w-3" />}
+        {r.estado}
+      </div>
+      {canDelete && (
+        <button
+          type="button"
+          title="Eliminar registro"
+          onClick={() => onDelete({ id: r.id, descripcion: r.descripcion ?? '', fecha: r.fecha })}
+          className="flex-shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/15 hover:text-destructive text-muted-foreground"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Timesheet tab
+// ---------------------------------------------------------------------------
+
+/**
+ * Contenido de la pestaña "Timesheet Semanal": selectores, alertas y grid.
+ *
+ * @param state - Estado completo devuelto por `useTimetrackingPageState`.
+ */
+function TimesheetTab({ state }: { readonly state: PageState }) {
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Timesheet Semanal</CardTitle>
+          <CardDescription>Vista de horas por proyecto y día de la semana</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <TimesheetFilters state={state} />
+          <ProyectoPresupuestoAlert proyecto={state.selectedProyectoTimesheet} />
+          <WeekNavigation
+            currentDate={state.timesheetDate}
+            onDateChange={state.setTimesheetDate}
+            onCopyWeek={() => state.setShowCopyDialog(true)}
+          />
+          <TimesheetGrid
+            currentDate={state.timesheetDate}
+            registros={state.registrosSemanaFiltrados}
+            proyectos={state.proyectosTimesheetFiltrados}
+            isLoading={state.isLoadingSemana}
+            onCellChange={state.handleCellChange}
+          />
+        </CardContent>
+      </Card>
+      <CopyWeekDialog
+        open={state.showCopyDialog}
+        onOpenChange={state.setShowCopyDialog}
+        currentDate={state.timesheetDate}
+        onConfirm={state.handleCopyWeek}
+        isPending={state.copiarRegistros.isPending}
+      />
+    </>
+  );
+}
+
+/**
+ * Selectores de empleado y proyecto del timesheet semanal.
+ *
+ * @param state - Estado completo devuelto por `useTimetrackingPageState`.
+ */
+function TimesheetFilters({ state }: { readonly state: PageState }) {
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      {state.canViewOthersHours && state.empleadosParaSelector.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">Empleado:</span>
+          <Select
+            value={state.selectedUserId ?? '__propio__'}
+            onValueChange={(v) => state.setSelectedUserId(v === '__propio__' ? undefined : v)}
+          >
+            <SelectTrigger className="w-56"><SelectValue placeholder="Mis horas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__propio__">Mis horas</SelectItem>
+              {state.empleadosParaSelector.map((emp: User) => (
+                <SelectItem key={emp.id} value={emp.id}>
+                  <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
+                  {state.selectedTimesheetProyectoId && state.rolPorUsuarioId.get(emp.id) && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">({state.rolPorUsuarioId.get(emp.id)})</span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-muted-foreground">Proyecto:</span>
+        <Select
+          value={state.selectedTimesheetProyectoId ?? '__todos__'}
+          onValueChange={state.handleTimesheetProyectoChange}
+        >
+          <SelectTrigger className="w-56"><SelectValue placeholder="Todos los proyectos" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__todos__">Todos los proyectos</SelectItem>
+            {state.proyectos.map((p: Proyecto) => (
+              <SelectItem key={p.id} value={p.id}>{p.nombre} ({p.codigo})</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Delete confirmation dialog
+// ---------------------------------------------------------------------------
+
+/**
+ * Diálogo modal de confirmación para eliminar un registro de timetracking.
+ *
+ * @param deletingEntry - Registro pendiente de eliminar, o null si no hay ninguno.
+ * @param onCancel - Callback para cerrar el diálogo sin eliminar.
+ * @param onConfirm - Callback async para ejecutar la eliminación.
+ * @param isPending - Si la mutación de eliminación está en curso.
+ */
+function DeleteEntryDialog({
+  deletingEntry,
+  onCancel,
+  onConfirm,
+  isPending,
+}: {
+  readonly deletingEntry: { id: string; descripcion: string; fecha: string } | null;
+  readonly onCancel: () => void;
+  readonly onConfirm: () => Promise<void>;
+  readonly isPending: boolean;
+}) {
+  return (
+    <Dialog open={!!deletingEntry} onOpenChange={(open) => { if (!open) onCancel(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>¿Eliminar registro?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Se eliminará el registro del{' '}
+          <span className="font-medium text-foreground">
+            {deletingEntry ? format(new Date(deletingEntry.fecha), "d 'de' MMMM yyyy", { locale: es }) : ''}
+          </span>
+          {deletingEntry?.descripcion ? (
+            <>: <span className="font-medium text-foreground">&ldquo;{deletingEntry.descripcion}&rdquo;</span></>
+          ) : null}.
+          Esta acción no se puede deshacer.
+        </p>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
+            {isPending ? 'Eliminando…' : 'Eliminar'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RegistroHorasModal
+// ---------------------------------------------------------------------------
+
+/**
+ * Modal para crear un nuevo registro de horas.
+ *
+ * @param proyectos - Lista de proyectos disponibles para el selector.
+ * @param onClose - Callback para cerrar el modal.
+ * @param onCreate - Callback async para enviar el formulario.
+ * @param isPending - Si la mutación de creación está en curso.
+ * @param canWriteOthersHours - Si el usuario puede registrar horas en nombre de otro.
+ * @param empleados - Lista de empleados disponibles en el selector de usuario.
+ */
 function RegistroHorasModal({
   proyectos,
   onClose,
@@ -752,13 +685,10 @@ function RegistroHorasModal({
   const [facturable, setFacturable] = useState(true);
   const [formUsuarioId, setFormUsuarioId] = useState<string>('');
 
-  // When a specific employee is selected, fetch only their projects
   const { data: proyectosUsuarioData } = useProyectos(
     formUsuarioId ? { usuarioId: formUsuarioId } : undefined
   );
-  const proyectosVisibles = formUsuarioId
-    ? (proyectosUsuarioData?.data ?? [])
-    : proyectos;
+  const proyectosVisibles = formUsuarioId ? (proyectosUsuarioData?.data ?? []) : proyectos;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -785,9 +715,7 @@ function RegistroHorasModal({
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Registrar horas</CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">
-            ×
-          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">×</Button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -798,7 +726,7 @@ function RegistroHorasModal({
                   value={formUsuarioId || '__yo__'}
                   onValueChange={(value) => {
                     setFormUsuarioId(value === '__yo__' ? '' : value);
-                    setProyectoId(''); // reset proyecto al cambiar empleado
+                    setProyectoId('');
                   }}
                 >
                   <SelectTrigger id="form-empleado" className="h-10">
@@ -819,9 +747,7 @@ function RegistroHorasModal({
               <label htmlFor="form-proyecto" className="text-sm font-medium">Proyecto *</label>
               <Select
                 value={proyectoId || PROYECTO_PLACEHOLDER_VALUE}
-                onValueChange={(value) =>
-                  setProyectoId(value === PROYECTO_PLACEHOLDER_VALUE ? '' : value)
-                }
+                onValueChange={(value) => setProyectoId(value === PROYECTO_PLACEHOLDER_VALUE ? '' : value)}
               >
                 <SelectTrigger id="form-proyecto" className="h-10">
                   <SelectValue placeholder="Seleccionar" />
@@ -829,9 +755,7 @@ function RegistroHorasModal({
                 <SelectContent>
                   <SelectItem value={PROYECTO_PLACEHOLDER_VALUE}>Seleccionar</SelectItem>
                   {proyectosVisibles.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.nombre} ({p.codigo})
-                    </SelectItem>
+                    <SelectItem key={p.id} value={p.id}>{p.nombre} ({p.codigo})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

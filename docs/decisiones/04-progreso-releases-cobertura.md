@@ -1362,6 +1362,111 @@ CREATE UNIQUE INDEX proyectos_codigo_active_idx
 
 ---
 
+---
+
+## ADR-119: Skill rule-boy-scout — Protocolo de Diagnósticos VS Code
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `chore/add-rule-boy-scout-skill`
+**PR:** #144
+
+#### Contexto
+Al generar o modificar código, los diagnósticos del panel de problemas de VS Code (errors TypeScript, warnings ESLint, issues SonarQube) se acumulaban silenciosamente. No existía un protocolo automático que obligara al agente a consultar y limpiar esos diagnósticos en cada edición.
+
+#### Decisión
+Crear una nueva skill `.agents/skills/rule-boy-scout/SKILL.md` que codifique la Regla del Boy Scout: "Deja el archivo con menos diagnósticos de los que tenía". La skill se marca como **SIEMPRE cargar** y define:
+- Protocolo `get_errors()` antes y después de cada edición
+- Patrones de fix para errores TypeScript (tipos correctos, no casts `as any`)
+- Patrones de fix para warnings ESLint (causa raíz, no supresiones)
+- Patrones de fix para SonarQube (complejidad cognitiva, `.map(fn)` → `.map(x => fn(x))`)
+- Mocks de Hono Context correctamente tipados en test files
+
+**Alternativas consideradas:**
+- Integrar en `rule-clean-code` — descartado: el protocolo VS Code es ortogonal al clean code estructural
+- Integrar en `rule-no-lint-suppress` — descartado: esa skill trata errores de lint, no el protocolo de consulta de diagnósticos
+
+#### Implementación
+- Creado: `.agents/skills/rule-boy-scout/SKILL.md` (162 líneas)
+- Registrada en 7 ficheros: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`, `frontend/AGENTS.md`, `frontend/CLAUDE.md`
+- Trigger: **SIEMPRE** al generar o modificar código
+
+#### Consecuencias
+- ✅ El agente consulta el estado de diagnósticos antes y después de cada edición
+- ✅ Los problemas VS Code se limpian de forma incremental en cada sesión
+- ✅ Los mocks de Hono Context en tests tienen tipos correctos
+- ⚠️ Añade latencia al flujo (una llamada adicional `get_errors` por edición)
+
+---
+
+## ADR-118: Fix Completo de Lint Warnings — 0 errores / 0 warnings
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/fix-lint-warnings`
+**PR:** #143
+
+#### Contexto
+Tras la release v1.7.0, el proyecto tenía 51 warnings de lint distribuidos en 21 ficheros. Los warnings incluían `no-explicit-any` en tests del backend y `no-img-element` en el frontend (usar `<Image>` de Next.js en lugar de `<img>`). Aunque no bloqueaban CI, ensombrecían la calidad reportada en SonarQube y en el panel de problemas.
+
+#### Decisión
+Resolver todos los warnings desde la raíz, sin supresiones:
+- `no-explicit-any` → tipar correctamente con tipos concretos o `unknown`
+- `no-img-element` → reemplazar `<img>` por `<Image>` del componente Next.js
+
+**Alternativas consideradas:**
+- `eslint-disable-next-line` — descartado: viola `rule-no-lint-suppress`
+- Ignorar — descartado: SonarQube y Boy Scout Rule requieren 0 warnings
+
+#### Implementación
+- 21 ficheros modificados (backend tests + frontend components)
+- Backend: tipos explícitos en mocks de `AuthUser`, `Context`, handlers de rutas
+- Frontend: `<Image>` de `next/image` con `fill` o dimensiones explícitas en todos los componentes que usaban `<img>`
+
+#### Consecuencias
+- ✅ 0 errores · 0 warnings en lint (ESLint + TypeScript)
+- ✅ SonarQube sin issues de code smell por lint
+- ✅ Pipeline CI completamente verde sin warnings
+
+---
+
+## ADR-117: Modularización de Agent Instructions en Skills
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `refactor/agents-instructions`
+**PR:** #141
+
+#### Contexto
+Las instrucciones operativas para agentes de IA (GitFlow, clean code, seguridad, testing, etc.) estaban duplicadas o incompletas en `AGENTS.md`, `CLAUDE.md` y `.github/copilot-instructions.md`. Además, GitHub Copilot no tiene soporte nativo para ficheros de instrucciones en subdirectorios, lo que hacía que el contexto de stack (Hono vs Next.js) se mezclase.
+
+#### Decisión
+Modularizar las reglas en skills independientes bajo `.agents/skills/<nombre>/SKILL.md` con frontmatter YAML (name, description/triggers). Añadir ficheros de contexto específicos por subdirectorio: `frontend/AGENTS.md`, `frontend/CLAUDE.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`. Actualizar `.github/copilot-instructions.md` con sección de stack (workaround para la limitación de Copilot).
+
+**Skills creadas/registradas:**
+- `vercel-react-best-practices` — Next.js/React performance (frontend)
+- `frontend-design` — UI components y estilos
+- `rule-clean-code` — estándares de código limpio
+- `rule-no-lint-suppress` — prohibición de suppressions
+- `rule-security` — SSDLC, auth, MFA, env vars
+- `rule-gitflow` — convenciones git
+- `rule-testing` — estrategia de tests y coverage
+- `rule-docs` — documentación y `decisiones.md`
+- `rule-stakeholders` — comunicación no técnica
+
+#### Implementación
+- Creados: `frontend/AGENTS.md`, `frontend/CLAUDE.md`, `backend/AGENTS.md`, `backend/CLAUDE.md`
+- Actualizado: `.github/copilot-instructions.md` con tabla de stack y skills por subproyecto
+- Actualizado: `AGENTS.md`, `CLAUDE.md` con tabla de skills
+
+#### Consecuencias
+- ✅ El agente carga solo las skills relevantes según el subproyecto (frontend vs backend)
+- ✅ GitHub Copilot tiene contexto de stack en el fichero root de instrucciones
+- ✅ Las reglas son incrementales — se pueden añadir skills sin tocar los ficheros raíz
+- ⚠️ Requiere mantener 7 ficheros de referencias sincronizados al añadir nuevas skills
+
+---
+
 ## Release v1.7.0 (2026-02-22)
 
 **Branch de Release:** `feature/proyectos-departamentos` → develop → main  
@@ -1434,7 +1539,7 @@ CREATE UNIQUE INDEX proyectos_codigo_active_idx
 
 ### Estado Actual del Proyecto (2026-02-22)
 
-#### Versión Actual: **v1.7.0** (feature branch `feature/proyectos-departamentos`, PR #140 → develop)
+#### Versión Actual: **v1.7.0** (en develop; PRs #140–#144 mergeados ✅)
 
 #### Fases Funcionales
 - **Todas las fases completadas:** 100%
@@ -1458,10 +1563,15 @@ CREATE UNIQUE INDEX proyectos_codigo_active_idx
   - Secrets detection: gitleaks activo
 - **API:** OpenAPI v1.0.0 con 157 endpoints
 - **E2E:** Playwright con suite completa de tests MFA
-- **Linting:** 0 errores · 2 warnings (`<img>` en tests, no bloquea)
+- **Linting:** 0 errores · **0 warnings** ✅ (fix completo en PR #143)
+
+#### Agents / Skills
+- 9 skills operativas bajo `.agents/skills/`
+- Subdirectory context files para frontend y backend (PR #141)
+- Skill `rule-boy-scout` activa: protocolo de diagnósticos VS Code en cada edición (PR #144)
 
 #### Próximos Pasos
-- Mergear `feature/proyectos-departamentos` (PR #140) → develop → release/1.7.0 → main
+- Mergear develop → release/1.7.0 → main
 - Preparación presentación TFM
 - Monitoreo de producción post-deploy v1.7.0
 

@@ -276,7 +276,7 @@ export default function TimetrackingPage() {
                         <SelectItem value="__todos__">Todos</SelectItem>
                         {empleadosParaSelector.map((emp) => (
                           <SelectItem key={emp.id} value={emp.id}>
-                            {emp.nombre} {emp.apellidos}
+                            <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -348,7 +348,7 @@ export default function TimetrackingPage() {
                             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                               {r.usuarioNombre.charAt(0).toUpperCase()}
                             </div>
-                            <span className="hidden text-sm font-medium text-foreground sm:inline">{r.usuarioNombre}</span>
+                            <span className="hidden text-sm font-medium text-foreground uppercase sm:inline">{r.usuarioNombre}</span>
                           </div>
                         )}
 
@@ -395,7 +395,7 @@ export default function TimetrackingPage() {
                       <SelectItem value="__propio__">Mis horas</SelectItem>
                       {empleadosParaSelector.map((emp) => (
                         <SelectItem key={emp.id} value={emp.id}>
-                          {emp.nombre} {emp.apellidos}
+                          <span className="uppercase">{emp.nombre} {emp.apellidos}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>

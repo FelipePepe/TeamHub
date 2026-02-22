@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/select';
 import { useCreateProyecto } from '@/hooks/use-proyectos';
 import type { CreateProyectoData, ProyectoPrioridad } from '@/hooks/use-proyectos';
+import { useDepartamentos } from '@/hooks/use-departamentos';
+import type { Departamento } from '@/hooks/use-departamentos';
 
 /** Esquema de validación alineado con CreateProyectoRequest (OpenAPI). */
 const proyectoSchema = z.object({
@@ -42,6 +44,7 @@ const proyectoSchema = z.object({
   presupuestoHoras: z.coerce.number().min(0).optional(),
   prioridad: z.enum(['BAJA', 'MEDIA', 'ALTA', 'URGENTE']).optional(),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().or(z.literal('')),
+  departamentoIds: z.array(z.string()).optional(),
 });
 
 type ProyectoFormData = z.infer<typeof proyectoSchema>;
@@ -91,6 +94,9 @@ function buildCreatePayload(data: ProyectoFormData): CreateProyectoData {
     presupuestoHoras: data.presupuestoHoras,
     prioridad: data.prioridad,
     color: data.color || undefined,
+    departamentoIds: data.departamentoIds && data.departamentoIds.length > 0
+      ? data.departamentoIds
+      : undefined,
   };
 }
 
@@ -103,6 +109,8 @@ function buildCreatePayload(data: ProyectoFormData): CreateProyectoData {
  */
 export function ProyectoForm({ open, onOpenChange, onSuccess }: ProyectoFormProps) {
   const createProyecto = useCreateProyecto();
+  const { data: departamentosData } = useDepartamentos();
+  const departamentosDisponibles: Departamento[] = departamentosData?.data ?? [];
 
   const {
     register,
@@ -123,13 +131,27 @@ export function ProyectoForm({ open, onOpenChange, onSuccess }: ProyectoFormProp
       presupuestoHoras: undefined,
       prioridad: undefined,
       color: '',
+      departamentoIds: [],
     },
   });
 
   const prioridad = watch('prioridad');
   const color = watch('color');
+  const selectedDepartamentoIds = watch('departamentoIds') ?? [];
 
   const isLoading = isSubmitting || createProyecto.isPending;
+
+  /**
+   * Alterna la selección de un departamento en el formulario.
+   * @param departamentoId - UUID del departamento a añadir o eliminar.
+   */
+  const toggleDepartamento = (departamentoId: string) => {
+    const current = selectedDepartamentoIds;
+    const updated = current.includes(departamentoId)
+      ? current.filter((id) => id !== departamentoId)
+      : [...current, departamentoId];
+    setValue('departamentoIds', updated, { shouldValidate: true });
+  };
 
   /**
    * Maneja el envío del formulario y crea el proyecto en la API.
@@ -283,6 +305,36 @@ export function ProyectoForm({ open, onOpenChange, onSuccess }: ProyectoFormProp
             </div>
             {errors.color && <p className="text-sm text-red-500">{errors.color.message}</p>}
           </div>
+
+          {departamentosDisponibles.length > 0 && (
+            <div className="space-y-2">
+              <Label>Departamentos</Label>
+              <p className="text-xs text-muted-foreground">
+                Selecciona los departamentos que participan en el proyecto. Solo se podrán asignar
+                empleados de esos departamentos.
+              </p>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-input p-2 space-y-1">
+                {departamentosDisponibles.map((dept) => {
+                  const checked = selectedDepartamentoIds.includes(dept.id);
+                  return (
+                    <label
+                      key={dept.id}
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={isLoading}
+                        onChange={() => toggleDepartamento(dept.id)}
+                        className="h-4 w-4 rounded border-gray-300 accent-primary"
+                      />
+                      <span>{dept.nombre}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

@@ -17,6 +17,13 @@ vi.mock('@/hooks/use-proyectos', () => ({
   useCreateProyecto: () => ({ mutateAsync: proyectoMocks.create, isPending: false }),
 }));
 
+vi.mock('@/hooks/use-departamentos', () => ({
+  useDepartamentos: () => ({
+    data: { data: [{ id: 'dept-1', nombre: 'Ingeniería' }, { id: 'dept-2', nombre: 'Marketing' }] },
+    isLoading: false,
+  }),
+}));
+
 vi.mock('sonner', () => ({ toast: toastMocks }));
 
 vi.mock('@/components/ui/dialog', () => ({

@@ -26,8 +26,9 @@ Documentación completa del modelo de datos de TeamHub.
 | 8 | `tareas_onboarding` | Tareas de procesos | Miles | 3 |
 | 9 | `proyectos` | Proyectos de la empresa | 50-200 | 4 |
 | 10 | `asignaciones` | Asignaciones usuario-proyecto | Cientos | 4 |
-| 11 | `timetracking` | Registros de tiempo | Miles | 5 |
-| 12 | `audit_log` | Auditoría de operaciones | Millones | 1 |
+| 11 | `proyectos_departamentos` | Pivot N:M proyectos ↔ departamentos | Cientos | 4 |
+| 12 | `timetracking` | Registros de tiempo | Miles | 5 |
+| 13 | `audit_log` | Auditoría de operaciones | Millones | 1 |
 
 ## Diagrama Entidad-Relación
 
@@ -310,6 +311,12 @@ classDiagram
     +timestamp deleted_at
   }
 
+  class proyectos_departamentos {
+    +uuid proyecto_id 🔗
+    +uuid departamento_id 🔗
+    +timestamp created_at
+  }
+
   class asignaciones {
     +uuid id 🔑
     +uuid proyecto_id 🔗
@@ -375,6 +382,8 @@ classDiagram
   users "1" --> "0..*" tareas_onboarding : responsable_id
   users "0..1" --> "0..*" tareas_onboarding : completada_por
   users "1" --> "0..*" proyectos : manager_id
+  proyectos "1" --> "0..*" proyectos_departamentos : proyecto_id
+  departamentos "1" --> "0..*" proyectos_departamentos : departamento_id
   proyectos "1" --> "0..*" asignaciones : proyecto_id
   users "1" --> "0..*" asignaciones : usuario_id
   proyectos "1" --> "0..*" timetracking : proyecto_id
@@ -525,6 +534,7 @@ Tipo de operación de auditoría.
 | departamentos | `departamentos_codigo_idx` | UNIQUE | codigo |
 | proyectos | `proyectos_codigo_idx` | UNIQUE | codigo |
 | asignaciones | `asignaciones_proyecto_usuario_fecha_unique` | UNIQUE | (proyecto_id, usuario_id, fecha_inicio) |
+| proyectos_departamentos | `proyectos_departamentos_unique` | UNIQUE | (proyecto_id, departamento_id) |
 | timetracking | `timetracking_usuario_fecha_idx` | B-tree | (usuario_id, fecha) |
 | timetracking | `timetracking_descripcion_trgm_idx` | GIN | descripcion (trigram) |
 | audit_log | `audit_log_table_record_idx` | B-tree | (table_name, record_id) |
@@ -583,7 +593,7 @@ npm run db:studio
 
 ### Soft Delete
 - La mayoría de tablas de dominio usan `deleted_at` en lugar de eliminación física (por ejemplo: `users`, `departamentos`, `plantillas_onboarding`, `procesos_onboarding`, `proyectos`, `asignaciones`).
-- Excepciones actuales: `tareas_plantilla` y `timetracking` no tienen `deleted_at`, y `audit_log` es inmutable.
+- Excepciones actuales: `tareas_plantilla`, `timetracking` y `proyectos_departamentos` (tabla pivot) no tienen `deleted_at`, y `audit_log` es inmutable.
 - Los queries deben filtrar `WHERE deleted_at IS NULL` para registros activos y exponer `activo` en la API como derivado.
 - Los triggers de auditoría registran UPDATE cuando se marca `deleted_at` (no DELETE físico).
 

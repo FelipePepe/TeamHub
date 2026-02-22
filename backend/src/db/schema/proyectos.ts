@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   uuid,
@@ -9,9 +10,11 @@ import {
   index,
   uniqueIndex,
   unique,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { projectStatusEnum, priorityEnum } from './enums.js';
 import { users } from './users.js';
+import { departamentos } from './departamentos.js';
 
 // ============================================================================
 // PROYECTOS - Proyectos de la empresa
@@ -21,7 +24,7 @@ export const proyectos = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     nombre: varchar('nombre', { length: 150 }).notNull(),
-    codigo: varchar('codigo', { length: 20 }).notNull().unique(),
+    codigo: varchar('codigo', { length: 20 }).notNull(),
     descripcion: text('descripcion'),
 
     // Cliente del proyecto
@@ -58,7 +61,8 @@ export const proyectos = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('proyectos_codigo_idx').on(table.codigo),
+    // Partial unique index: enforces uniqueness only for non-deleted projects
+    uniqueIndex('proyectos_codigo_active_idx').on(table.codigo).where(sql`"deleted_at" IS NULL`),
     index('proyectos_manager_idx').on(table.managerId),
     index('proyectos_estado_idx').on(table.estado),
     index('proyectos_cliente_idx').on(table.cliente),
@@ -127,3 +131,29 @@ export type Proyecto = typeof proyectos.$inferSelect;
 export type NewProyecto = typeof proyectos.$inferInsert;
 export type Asignacion = typeof asignaciones.$inferSelect;
 export type NewAsignacion = typeof asignaciones.$inferInsert;
+
+// ============================================================================
+// PROYECTOS_DEPARTAMENTOS - Relación N:M entre proyectos y departamentos
+// ============================================================================
+export const proyectosDepartamentos = pgTable(
+  'proyectos_departamentos',
+  {
+    proyectoId: uuid('proyecto_id')
+      .notNull()
+      .references(() => proyectos.id, { onDelete: 'cascade' }),
+
+    departamentoId: uuid('departamento_id')
+      .notNull()
+      .references(() => departamentos.id, { onDelete: 'cascade' }),
+
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.proyectoId, table.departamentoId] }),
+    index('proyectos_departamentos_proyecto_idx').on(table.proyectoId),
+    index('proyectos_departamentos_departamento_idx').on(table.departamentoId),
+  ]
+);
+
+export type ProyectosDepartamento = typeof proyectosDepartamentos.$inferSelect;
+export type NewProyectosDepartamento = typeof proyectosDepartamentos.$inferInsert;

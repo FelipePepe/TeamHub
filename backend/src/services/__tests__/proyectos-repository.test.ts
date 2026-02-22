@@ -4,6 +4,7 @@ const {
   mockSelect,
   mockInsert,
   mockUpdate,
+  mockDelete,
   mockFrom,
   mockWhere,
   mockLimit,
@@ -12,6 +13,7 @@ const {
   mockSet,
   mockLeftJoin,
   mockGroupBy,
+  mockDeleteWhere,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockLimit = vi.fn();
@@ -24,11 +26,14 @@ const {
   const mockSelect = vi.fn();
   const mockInsert = vi.fn();
   const mockUpdate = vi.fn();
+  const mockDelete = vi.fn();
+  const mockDeleteWhere = vi.fn();
 
   return {
     mockSelect,
     mockInsert,
     mockUpdate,
+    mockDelete,
     mockFrom,
     mockWhere,
     mockLimit,
@@ -37,6 +42,7 @@ const {
     mockSet,
     mockLeftJoin,
     mockGroupBy,
+    mockDeleteWhere,
   };
 });
 
@@ -45,6 +51,7 @@ vi.mock('../../db/index.js', () => ({
     select: mockSelect,
     insert: mockInsert,
     update: mockUpdate,
+    delete: mockDelete,
   },
 }));
 
@@ -64,6 +71,10 @@ vi.mock('../../db/schema/proyectos.js', () => ({
     usuarioId: 'usuarioId',
     deletedAt: 'deletedAt',
   },
+  proyectosDepartamentos: {
+    proyectoId: 'proyectoId',
+    departamentoId: 'departamentoId',
+  },
 }));
 
 import {
@@ -77,6 +88,9 @@ import {
   findAsignacionById,
   createAsignacion,
   updateAsignacionById,
+  getDepartamentosForProyecto,
+  setDepartamentosForProyecto,
+  findProyectoWithDepartamentos,
 } from '../proyectos-repository.js';
 
 describe('proyectos-repository', () => {
@@ -234,6 +248,17 @@ describe('proyectos-repository', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should return null for a soft-deleted project with same code (allows code reuse)', async () => {
+      // The query filters by deletedAt IS NULL so soft-deleted projects
+      // are not returned, allowing the same code to be reused.
+      setupSelectChain([]);
+
+      const result = await findProyectoByCodigo('PRJ-001');
+
+      expect(result).toBeNull();
+      expect(mockWhere).toHaveBeenCalled();
+    });
   });
 
   describe('createProyecto', () => {
@@ -338,6 +363,96 @@ describe('proyectos-repository', () => {
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockSet).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('getDepartamentosForProyecto', () => {
+    it('should return an array of departamentoIds for a proyecto', async () => {
+      const rows = [{ departamentoId: 'd1' }, { departamentoId: 'd2' }];
+      mockWhere.mockResolvedValue(rows);
+      mockFrom.mockReturnValue({ where: mockWhere });
+      mockSelect.mockReturnValue({ from: mockFrom });
+
+      const result = await getDepartamentosForProyecto('p1');
+
+      expect(result).toEqual(['d1', 'd2']);
+      expect(mockSelect).toHaveBeenCalled();
+      expect(mockFrom).toHaveBeenCalled();
+      expect(mockWhere).toHaveBeenCalled();
+    });
+
+    it('should return an empty array when no departamentos are found', async () => {
+      mockWhere.mockResolvedValue([]);
+      mockFrom.mockReturnValue({ where: mockWhere });
+      mockSelect.mockReturnValue({ from: mockFrom });
+
+      const result = await getDepartamentosForProyecto('p-empty');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('setDepartamentosForProyecto', () => {
+    it('should delete existing and insert new departamentos', async () => {
+      mockDeleteWhere.mockResolvedValue(undefined);
+      mockDelete.mockReturnValue({ where: mockDeleteWhere });
+      mockReturning.mockResolvedValue([]);
+      mockValues.mockReturnValue({ returning: mockReturning });
+      mockInsert.mockReturnValue({ values: mockValues });
+
+      await setDepartamentosForProyecto('p1', ['d1', 'd2']);
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+      expect(mockInsert).toHaveBeenCalled();
+      expect(mockValues).toHaveBeenCalledWith([
+        { proyectoId: 'p1', departamentoId: 'd1' },
+        { proyectoId: 'p1', departamentoId: 'd2' },
+      ]);
+    });
+
+    it('should only delete when departamentoIds is empty', async () => {
+      mockDeleteWhere.mockResolvedValue(undefined);
+      mockDelete.mockReturnValue({ where: mockDeleteWhere });
+
+      await setDepartamentosForProyecto('p1', []);
+
+      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDeleteWhere).toHaveBeenCalled();
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findProyectoWithDepartamentos', () => {
+    it('should return proyecto with departamentoIds', async () => {
+      const proyecto = { id: 'p1', nombre: 'Proyecto 1' };
+      const deptRows = [{ departamentoId: 'd1' }, { departamentoId: 'd2' }];
+
+      // First select: findProyectoById (.where.limit)
+      mockLimit.mockResolvedValueOnce([proyecto]);
+      mockWhere.mockReturnValueOnce({ limit: mockLimit });
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      // Second select: getDepartamentosForProyecto (.where)
+      mockWhere.mockResolvedValueOnce(deptRows);
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      const result = await findProyectoWithDepartamentos('p1');
+
+      expect(result).toEqual({ id: 'p1', nombre: 'Proyecto 1', departamentoIds: ['d1', 'd2'] });
+    });
+
+    it('should return null when proyecto not found', async () => {
+      mockLimit.mockResolvedValueOnce([]);
+      mockWhere.mockReturnValueOnce({ limit: mockLimit });
+      mockFrom.mockReturnValueOnce({ where: mockWhere });
+      mockSelect.mockReturnValueOnce({ from: mockFrom });
+
+      const result = await findProyectoWithDepartamentos('nonexistent');
+
+      expect(result).toBeNull();
     });
   });
 });

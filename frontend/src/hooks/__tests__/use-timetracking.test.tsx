@@ -49,7 +49,7 @@ function createWrapper() {
     },
   });
 
-  function QueryClientWrapper({ children }: { children: ReactNode }) {
+  function QueryClientWrapper({ children }: { readonly children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
         {children}

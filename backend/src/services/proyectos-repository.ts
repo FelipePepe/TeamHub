@@ -1,4 +1,4 @@
-import { and, count, eq, getTableColumns, gte, isNull, lte } from 'drizzle-orm';
+import { and, asc, count, eq, getTableColumns, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import {
   asignaciones,
@@ -8,6 +8,7 @@ import {
   type NewProyecto,
   type NewProyectosDepartamento,
 } from '../db/schema/proyectos.js';
+import { timetracking } from '../db/schema/timetracking.js';
 
 type ProjectStatus = 'PLANIFICACION' | 'ACTIVO' | 'PAUSADO' | 'COMPLETADO' | 'CANCELADO';
 
@@ -17,6 +18,8 @@ type ProyectoFilters = {
   cliente?: string;
   fechaInicio?: string;
   fechaFin?: string;
+  /** Filtrar proyectos en los que el usuario tiene al menos una asignación activa. */
+  usuarioId?: string;
 };
 
 export const listProyectos = async (filters: ProyectoFilters = {}) => {
@@ -36,6 +39,13 @@ export const listProyectos = async (filters: ProyectoFilters = {}) => {
   if (filters.fechaFin) {
     clauses.push(lte(proyectos.fechaInicio, filters.fechaFin));
   }
+  if (filters.usuarioId) {
+    const userProyectoIds = db
+      .select({ proyectoId: asignaciones.proyectoId })
+      .from(asignaciones)
+      .where(and(eq(asignaciones.usuarioId, filters.usuarioId), isNull(asignaciones.deletedAt)));
+    clauses.push(inArray(proyectos.id, userProyectoIds));
+  }
   const whereClause = clauses.length ? and(...clauses) : undefined;
   return db
     .select({
@@ -48,7 +58,8 @@ export const listProyectos = async (filters: ProyectoFilters = {}) => {
       and(eq(asignaciones.proyectoId, proyectos.id), isNull(asignaciones.deletedAt))
     )
     .where(whereClause)
-    .groupBy(proyectos.id);
+    .groupBy(proyectos.id)
+    .orderBy(asc(proyectos.nombre));
 };
 
 export const findProyectoById = async (id: string) => {
@@ -83,6 +94,35 @@ export const updateProyectoById = async (id: string, payload: Partial<NewProyect
     .where(eq(proyectos.id, id))
     .returning();
   return result[0] ?? null;
+};
+
+/**
+ * Recalcula y persiste `horas_consumidas` de un proyecto a partir de la suma real
+ * de horas registradas en timetracking con estado APROBADO o PENDIENTE.
+ *
+ * Se debe invocar tras cualquier operación de escritura sobre timetracking
+ * (crear, editar, eliminar, aprobar, rechazar) para mantener el campo sincronizado
+ * y que el progreso en el Gantt refleje datos reales.
+ *
+ * @param proyectoId - UUID del proyecto a sincronizar.
+ */
+export const syncHorasConsumidas = async (proyectoId: string): Promise<void> => {
+  const result = await db
+    .select({
+      total: sql<string>`COALESCE(SUM(CAST(${timetracking.horas} AS DECIMAL(10,2))), 0)`,
+    })
+    .from(timetracking)
+    .where(
+      and(
+        eq(timetracking.proyectoId, proyectoId),
+        inArray(timetracking.estado, ['APROBADO', 'PENDIENTE'])
+      )
+    );
+  const total = result[0]?.total ?? '0';
+  await db
+    .update(proyectos)
+    .set({ horasConsumidas: String(total) })
+    .where(eq(proyectos.id, proyectoId));
 };
 
 export const listAsignacionesByProyectoId = async (proyectoId: string) => {

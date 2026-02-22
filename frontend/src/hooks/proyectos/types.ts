@@ -50,6 +50,8 @@ export interface ProyectoFilters {
   cliente?: string;
   fechaInicio?: string;
   fechaFin?: string;
+  /** Filtrar proyectos en los que el usuario tiene al menos una asignación activa. */
+  usuarioId?: string;
 }
 
 export interface ProyectoListResponse {

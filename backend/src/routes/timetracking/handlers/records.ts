@@ -3,12 +3,13 @@ import { HTTPException } from 'hono/http-exception';
 import type { HonoEnv } from '../../../types/hono.js';
 import { parseJson, parseParams } from '../../../validators/parse.js';
 import { toTimetrackingResponse } from '../../../services/mappers.js';
-import type { User } from '../../../db/schema/users.js';
+
 import {
   deleteTimetrackingById,
   findTimetrackingById,
   updateTimetrackingById,
 } from '../../../services/timetracking-repository.js';
+import { syncHorasConsumidas } from '../../../services/proyectos-repository.js';
 import { idParamsSchema, updateRegistroSchema } from '../schemas.js';
 import { assertCanWrite, getTeamMemberIds, resolveAllowedUserIds } from './auth-utils.js';
 
@@ -21,7 +22,7 @@ export const registerTimetrackingRecordRoutes = (router: Hono<HonoEnv>) => {
    */
   router.get('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const registro = await findTimetrackingById(id);
     if (!registro) {
       throw new HTTPException(404, { message: 'No encontrado' });
@@ -42,7 +43,7 @@ export const registerTimetrackingRecordRoutes = (router: Hono<HonoEnv>) => {
   router.put('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
     const payload = await parseJson(c, updateRegistroSchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const registro = await findTimetrackingById(id);
     if (!registro) {
       throw new HTTPException(404, { message: 'No encontrado' });
@@ -64,7 +65,7 @@ export const registerTimetrackingRecordRoutes = (router: Hono<HonoEnv>) => {
     if (!updated) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
-
+    await syncHorasConsumidas(updated.proyectoId);
     return c.json(toTimetrackingResponse(updated));
   });
 
@@ -77,7 +78,7 @@ export const registerTimetrackingRecordRoutes = (router: Hono<HonoEnv>) => {
    */
   router.delete('/:id', async (c) => {
     const { id } = parseParams(c, idParamsSchema);
-    const user = c.get('user') as User;
+    const user = c.get('user');
     const registro = await findTimetrackingById(id);
     if (!registro) {
       throw new HTTPException(404, { message: 'No encontrado' });
@@ -90,7 +91,9 @@ export const registerTimetrackingRecordRoutes = (router: Hono<HonoEnv>) => {
       throw new HTTPException(403, { message: 'Solo puedes eliminar registros pendientes de aprobación' });
     }
 
+    const { proyectoId } = registro;
     await deleteTimetrackingById(id);
+    await syncHorasConsumidas(proyectoId);
     return c.json({ message: 'Registro eliminado' });
   });
 };

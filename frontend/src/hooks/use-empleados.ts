@@ -4,8 +4,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiError } from '@/types';
-import type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
+import type { ApiError, EmpleadoFilters, UpdateEmpleadoData } from '@/types';
 import { STALE_TIME } from '@/lib/query-config';
 import { empleadosKeys } from './empleados/keys';
 import { departamentosKeys } from './use-departamentos';
@@ -21,7 +20,7 @@ import {
 // Types (re-exportados desde @/types para conveniencia)
 // ============================================================================
 
-export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData };
+export type { EmpleadoFilters, CreateEmpleadoData, UpdateEmpleadoData } from '@/types';
 
 // ============================================================================
 // Hooks

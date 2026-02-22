@@ -68,7 +68,10 @@ vi.mock('@/components/ui/select', async () => {
     }: {
       children: React.ReactNode;
       onValueChange?: (value: string) => void;
-    }) => <Ctx.Provider value={{ onValueChange }}>{children}</Ctx.Provider>,
+    }) => {
+      const value = ReactLib.useMemo(() => ({ onValueChange }), [onValueChange]);
+      return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+    },
     SelectTrigger: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,
     SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder ?? ''}</span>,
     SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -178,8 +181,8 @@ describe('Proyectos/[id] page', () => {
       expect(mutMocks.createAsig).toHaveBeenCalled();
     });
 
-    const deleteButtons = screen.getAllByRole('button').filter((b) => b.className.includes('text-red-600'));
-    if (deleteButtons[0]) await user.click(deleteButtons[0]);
+    const deleteButton = screen.getAllByRole('button').find((b) => b.className.includes('text-red-600'));
+    if (deleteButton) await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mutMocks.deleteAsig).toHaveBeenCalled();

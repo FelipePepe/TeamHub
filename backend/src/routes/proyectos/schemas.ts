@@ -10,6 +10,7 @@ export const listQuerySchema = z.object({
   cliente: z.string().optional(),
   fechaInicio: dateSchema.optional(),
   fechaFin: dateSchema.optional(),
+  usuarioId: uuidSchema.optional(),
 });
 
 export const createProyectoSchema = z.object({

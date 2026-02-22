@@ -195,6 +195,142 @@ export function TaskList({ proyectoId, tareas, isLoading, empleadosAsignados }: 
     }
   };
 
+  // Extracted from nested ternary — empty-state message
+  const emptyMessage =
+    tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros';
+
+  // Extracted from nested ternary — card content
+  let taskListContent: React.ReactNode;
+  if (isLoading) {
+    taskListContent = (
+      <div className="space-y-2">
+        {LOADING_TASK_ROW_KEYS.map((key) => (
+          <div key={key} className="h-12 w-full animate-pulse rounded bg-muted" />
+        ))}
+      </div>
+    );
+  } else if (tareasFiltradas.length === 0) {
+    taskListContent = (
+      <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+        {emptyMessage}
+      </div>
+    );
+  } else {
+    taskListContent = (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Título</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Prioridad</TableHead>
+              <TableHead>Asignado a</TableHead>
+              <TableHead>Fechas</TableHead>
+              <TableHead>Horas</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tareasFiltradas.map((tarea) => (
+              <TableRow
+                key={tarea.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleEditTask(tarea)}
+              >
+                <TableCell className="font-medium">{tarea.titulo}</TableCell>
+                <TableCell>
+                  <Badge variant={ESTADO_COLORS[tarea.estado] as 'default' | 'secondary' | 'destructive' | 'outline' | 'success'}>
+                    {ESTADO_LABELS[tarea.estado]}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={PRIORIDAD_COLORS[tarea.prioridad] as 'default' | 'secondary' | 'destructive' | 'outline'}>
+                    {PRIORIDAD_LABELS[tarea.prioridad]}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {tarea.usuarioAsignado
+                    ? <span className="uppercase">{tarea.usuarioAsignado.nombre} {tarea.usuarioAsignado.apellidos ?? ''}</span>
+                    : 'Sin asignar'}
+                </TableCell>
+                <TableCell>
+                  {tarea.fechaInicio && tarea.fechaFin ? (
+                    <span className="text-xs">
+                      {format(new Date(tarea.fechaInicio), 'd MMM', { locale: es })} -{' '}
+                      {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin fechas</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs">
+                    {tarea.horasEstimadas ? `${tarea.horasEstimadas}h` : '—'} est.
+                    {tarea.horasReales ? ` / ${tarea.horasReales}h reales` : ''}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTask(tarea);
+                        }}
+                      >
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
+                      {VALID_TRANSITIONS[tarea.estado].map((estado) => (
+                        <DropdownMenuItem
+                          key={estado}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleChangeEstado(tarea.id, estado);
+                          }}
+                        >
+                          {ESTADO_LABELS[estado]}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowReasignarModal(tarea.id);
+                        }}
+                      >
+                        <UserCheck className="mr-2 h-4 w-4" />
+                        Reasignar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteConfirm(tarea.id);
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <>
       <Card>
@@ -261,131 +397,7 @@ export function TaskList({ proyectoId, tareas, isLoading, empleadosAsignados }: 
           </div>
         </CardHeader>
 
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {LOADING_TASK_ROW_KEYS.map((key) => (
-                <div key={key} className="h-12 w-full animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : tareasFiltradas.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-              {tareas.length === 0 ? 'No hay tareas' : 'No hay tareas que coincidan con los filtros'}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Prioridad</TableHead>
-                    <TableHead>Asignado a</TableHead>
-                    <TableHead>Fechas</TableHead>
-                    <TableHead>Horas</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tareasFiltradas.map((tarea) => (
-                    <TableRow
-                      key={tarea.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleEditTask(tarea)}
-                    >
-                      <TableCell className="font-medium">{tarea.titulo}</TableCell>
-                      <TableCell>
-                        <Badge variant={ESTADO_COLORS[tarea.estado] as 'default' | 'secondary' | 'destructive' | 'outline' | 'success'}>
-                          {ESTADO_LABELS[tarea.estado]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={PRIORIDAD_COLORS[tarea.prioridad] as 'default' | 'secondary' | 'destructive' | 'outline'}>
-                          {PRIORIDAD_LABELS[tarea.prioridad]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {tarea.usuarioAsignado
-                          ? <span className="uppercase">{tarea.usuarioAsignado.nombre} {tarea.usuarioAsignado.apellidos ?? ''}</span>
-                          : 'Sin asignar'}
-                      </TableCell>
-                      <TableCell>
-                        {tarea.fechaInicio && tarea.fechaFin ? (
-                          <span className="text-xs">
-                            {format(new Date(tarea.fechaInicio), 'd MMM', { locale: es })} -{' '}
-                            {format(new Date(tarea.fechaFin), 'd MMM yy', { locale: es })}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sin fechas</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs">
-                          {tarea.horasEstimadas ? `${tarea.horasEstimadas}h` : '—'} est.
-                          {tarea.horasReales ? ` / ${tarea.horasReales}h reales` : ''}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditTask(tarea);
-                              }}
-                            >
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
-                            {VALID_TRANSITIONS[tarea.estado].map((estado) => (
-                                <DropdownMenuItem
-                                  key={estado}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleChangeEstado(tarea.id, estado);
-                                  }}
-                                >
-                                  {ESTADO_LABELS[estado]}
-                                </DropdownMenuItem>
-                              ))}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowReasignarModal(tarea.id);
-                              }}
-                            >
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Reasignar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDeleteConfirm(tarea.id);
-                              }}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
+        <CardContent>{taskListContent}</CardContent>
       </Card>
 
       {/* Modal de formulario */}

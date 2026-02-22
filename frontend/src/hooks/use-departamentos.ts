@@ -25,7 +25,7 @@ export type {
   CreateDepartamentoData,
   UpdateDepartamentoData,
   DepartamentoListResponse,
-};
+} from '@/types';
 
 // ============================================================================
 // Query Keys

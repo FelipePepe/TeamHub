@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   Users,
@@ -36,6 +36,90 @@ export function ManagerDashboard() {
     };
     fetchData();
   }, []);
+
+  // Extracted from nested ternary — equipo ocupacion content
+  let equipoOcupacionContent: ReactNode;
+  if (isLoading) {
+    equipoOcupacionContent = (
+      <div className="space-y-3">
+        {LOADING_TEAM_KEYS.map((key) => (
+          <div key={key} className="animate-pulse h-12 bg-muted rounded" />
+        ))}
+      </div>
+    );
+  } else if (data?.sections.equipoOcupacion.length === 0) {
+    equipoOcupacionContent = (
+      <p className="text-sm text-muted-foreground text-center py-4">
+        No hay miembros en el equipo
+      </p>
+    );
+  } else {
+    equipoOcupacionContent = (
+      <ul className="space-y-3">
+        {data?.sections.equipoOcupacion.map((item) => (
+          <li key={item.usuarioId} className="flex items-center justify-between p-3 border border-border rounded-lg">
+            <div>
+              <p className="text-sm font-medium uppercase text-foreground">{item.nombre}</p>
+              <p className="text-xs text-muted-foreground">
+                {item.proyectosActivos} proyecto{item.proyectosActivos === 1 ? '' : 's'} activo{item.proyectosActivos === 1 ? '' : 's'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {item.horasPendientes > 0 && (
+                <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
+                  {item.horasPendientes}h pendientes
+                </Badge>
+              )}
+              <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${item.ocupacion > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
+                  style={{ width: `${Math.min(item.ocupacion, 100)}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium w-12 text-right">{item.ocupacion}%</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Extracted from nested ternary — pendientes de aprobacion content
+  let pendientesContent: ReactNode;
+  if (isLoading) {
+    pendientesContent = (
+      <div className="space-y-3">
+        {LOADING_TEAM_KEYS.map((key) => (
+          <div key={key} className="animate-pulse h-12 bg-muted rounded" />
+        ))}
+      </div>
+    );
+  } else if (data?.sections.pendientesAprobacion.length === 0) {
+    pendientesContent = (
+      <p className="text-sm text-muted-foreground text-center py-4">
+        No hay horas pendientes de aprobacion
+      </p>
+    );
+  } else {
+    pendientesContent = (
+      <ul className="space-y-2">
+        {data?.sections.pendientesAprobacion.map((item) => (
+          <li key={item.registroId} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-foreground">{item.usuarioNombre}</p>
+              <p className="text-xs text-muted-foreground">
+                {item.proyectoNombre} &middot; {new Date(item.fecha).toLocaleDateString('es-ES', {
+                  day: '2-digit',
+                  month: 'short',
+                })}
+              </p>
+            </div>
+            <Badge>{item.horas}h</Badge>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -100,46 +184,7 @@ export function ManagerDashboard() {
             <CardTitle className="text-lg">Ocupacion del equipo</CardTitle>
             <CardDescription>Dedicacion y proyectos por miembro</CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {LOADING_TEAM_KEYS.map((key) => (
-                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
-                ))}
-              </div>
-            ) : data?.sections.equipoOcupacion.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No hay miembros en el equipo
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {data?.sections.equipoOcupacion.map((item) => (
-                  <li key={item.usuarioId} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium uppercase text-foreground">{item.nombre}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.proyectosActivos} proyecto{item.proyectosActivos !== 1 ? 's' : ''} activo{item.proyectosActivos !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {item.horasPendientes > 0 && (
-                        <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
-                          {item.horasPendientes}h pendientes
-                        </Badge>
-                      )}
-                      <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${item.ocupacion > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
-                          style={{ width: `${Math.min(item.ocupacion, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-12 text-right">{item.ocupacion}%</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
+          <CardContent>{equipoOcupacionContent}</CardContent>
         </Card>
 
         {/* Pendientes de aprobacion */}
@@ -155,36 +200,7 @@ export function ManagerDashboard() {
               </Button>
             ) : null}
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {LOADING_TEAM_KEYS.map((key) => (
-                  <div key={key} className="animate-pulse h-12 bg-muted rounded" />
-                ))}
-              </div>
-            ) : data?.sections.pendientesAprobacion.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No hay horas pendientes de aprobacion
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {data?.sections.pendientesAprobacion.map((item) => (
-                  <li key={item.registroId} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{item.usuarioNombre}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.proyectoNombre} &middot; {new Date(item.fecha).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                        })}
-                      </p>
-                    </div>
-                    <Badge>{item.horas}h</Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
+          <CardContent>{pendientesContent}</CardContent>
         </Card>
       </div>
     </div>

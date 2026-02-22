@@ -138,7 +138,7 @@ export function TaskFormModal({
           ? new Date(tarea.fechaInicio).toISOString().split('T')[0]
           : '',
         fechaFin: tarea.fechaFin ? new Date(tarea.fechaFin).toISOString().split('T')[0] : '',
-        horasEstimadas: tarea.horasEstimadas ? parseFloat(tarea.horasEstimadas) : undefined,
+        horasEstimadas: tarea.horasEstimadas ? Number.parseFloat(tarea.horasEstimadas) : undefined,
       });
     } else {
       reset({

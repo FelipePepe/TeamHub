@@ -23,6 +23,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 | ADR | Fecha | Título | Estado |
 |-----|-------|--------|--------|
+| [ADR-120](decisiones/04-progreso-releases-cobertura.md#adr-120) | 2026-02-22 | Refactor TimetrackingPage — Extracción de Estado a Custom Hook | ✅ Implementado |
 | [ADR-119](decisiones/04-progreso-releases-cobertura.md#adr-119) | 2026-02-22 | Skill rule-boy-scout — Protocolo de Diagnósticos VS Code | ✅ Implementado |
 | [ADR-118](decisiones/04-progreso-releases-cobertura.md#adr-118) | 2026-02-22 | Fix Completo de Lint Warnings — 0 errores / 0 warnings | ✅ Implementado |
 | [ADR-117](decisiones/04-progreso-releases-cobertura.md#adr-117) | 2026-02-22 | Modularización de Agent Instructions en Skills | ✅ Implementado |
@@ -61,6 +62,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 - ✅ Modularización agent instructions en skills (PR #141)
 - ✅ Fix completo 0 warnings lint (PR #143)
 - ✅ Skill rule-boy-scout — protocolo diagnósticos VS Code (PR #144)
+- ✅ Refactor `TimetrackingPage` → `useTimetrackingPageState` hook (SRP + complejidad cognitiva)
 
 ---
 
@@ -71,7 +73,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 | ADR-001 a ADR-050 | Setup inicial, arquitectura, seguridad, autenticación, API  → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
 | ADR-048 a ADR-069 | GitFlow, Husky, colaboración LLM, D3.js, dark mode → [02-adrs-registro-ejecucion.md](decisiones/02-adrs-registro-ejecucion.md) |
 | ADR-071 a ADR-079 | Sistema de tareas jerárquico (Jira-like), dashboards → [01-adrs-por-categoria.md](decisiones/01-adrs-por-categoria.md) |
-| ADR-092 a ADR-119 | Optimización, SonarQube, cobertura, CORS, bugfixes, KPIs, tareas, agents/skills → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
+| ADR-092 a ADR-120 | Optimización, SonarQube, cobertura, CORS, bugfixes, KPIs, tareas, agents/skills, refactors → [04-progreso-releases-cobertura.md](decisiones/04-progreso-releases-cobertura.md) |
 
 ---
 

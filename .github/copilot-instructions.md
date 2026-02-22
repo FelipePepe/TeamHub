@@ -37,12 +37,46 @@ Antes de proponer cambios, consulta en orden:
 3. **UI/Componentes:** Storybook (`*.stories.tsx`) — revisa variantes y props para evitar duplicidad.
 4. **Reglas de Negocio:** `backend/src/shared/constants/business-rules.ts`.
 
-## 3. Skills de Reglas
+## 3. Stack del Proyecto
+
+Este repositorio es un monorepo con dos subproyectos. Cuando trabajes en uno de ellos, aplica únicamente los skills y patrones relevantes para su stack.
+
+### `frontend/` — Next.js 15 + React 19
+
+| Área | Tecnología |
+|------|------------|
+| Framework | **Next.js 15** (App Router) + **React 19** + TypeScript |
+| Estilos | **Tailwind CSS** + **shadcn/ui** (Radix UI) |
+| Estado / Fetching | **TanStack Query v5** |
+| Formularios | **React Hook Form** + **Zod** |
+| Tests | **Vitest** (unit) + **Playwright** (E2E) |
+| Monitorización | **Sentry** (`@sentry/nextjs`) |
+
+**Reglas clave:** Nunca lógica de negocio en el frontend. Hooks en `src/hooks/` como única capa de acceso a la API. `"use client"` solo cuando sea estrictamente necesario.
+
+### `backend/` — Hono v4 + Drizzle ORM
+
+| Área | Tecnología |
+|------|------------|
+| Framework | **Hono v4** + `@hono/node-server` |
+| ORM / DB | **Drizzle ORM** + **PostgreSQL** |
+| Validación | **Zod** (API + env vars) |
+| Auth | **JWT** + **bcryptjs** + **otpauth** (TOTP/MFA) |
+| Tests | **Vitest** (unit únicamente) |
+| Monitorización | **Sentry** (`@sentry/node`) |
+
+**Reglas clave:** Toda la lógica de negocio aquí. Capas: `routes → handlers → services → repositories`. MFA no se deshabilita nunca.
+
+---
+
+## 4. Skills de Reglas
 
 Carga el skill correspondiente cuando la tarea lo requiera:
 
 | Skill | Cuándo cargarlo |
 |-------|-----------------|
+| `.agents/skills/vercel-react-best-practices/SKILL.md` | Al trabajar en `frontend/`: componentes React, hooks, RSC, rendimiento |
+| `.agents/skills/frontend-design/SKILL.md` | Al crear o modificar UI: componentes, páginas, layouts, estilos |
 | `.agents/skills/rule-clean-code/SKILL.md` | Al implementar features, funciones, componentes o hacer code review |
 | `.agents/skills/rule-no-lint-suppress/SKILL.md` | Ante cualquier error de lint, TypeScript o warning |
 | `.agents/skills/rule-security/SKILL.md` | Al trabajar con auth, env vars, secretos, MFA, headers, SQL/XSS |

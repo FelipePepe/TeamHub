@@ -1364,6 +1364,47 @@ CREATE UNIQUE INDEX proyectos_codigo_active_idx
 
 ---
 
+## ADR-120: Refactor TimetrackingPage — Extracción de Estado a Custom Hook
+
+**Fecha:** 2026-02-22
+**Estado:** ✅ Implementado
+**Branch:** `bugfix/docs-adr-117-118-119`
+**PR:** #145
+
+#### Contexto
+`TimetrackingPage` acumulaba 800+ líneas con lógica de estado, derivaciones useMemo, handlers de mutaciones y JSX mezclados. La complejidad cognitiva del componente era 23 (límite SonarQube: 15), lo que lo marcaba como issue en el panel de VS Code. El componente violaba SRP (Single Responsibility Principle) al mezclar lógica de datos y presentación.
+
+#### Decisión
+Extraer toda la lógica de estado y datos a un custom hook `useTimetrackingPageState` en `frontend/src/hooks/timetracking/use-timetracking-page-state.ts`. El componente `TimetrackingPage` queda como capa puramente visual que consume el hook.
+
+**Contenido del hook (362 líneas, 28 hooks internos):**
+- `useAuth`, `usePermissions` — contexto de usuario y permisos
+- `useTimeEntries`, `useResumenTimetracking`, `useTimeEntriesSemana` — datos de registros
+- `useProyectos`, `useMisProyectos`, `useAsignaciones` — datos de proyectos
+- `useEmpleados`, `useEmpleadosByManager` — datos de empleados con filtros RBAC
+- `useMemo` para mapas proyectoId→nombre, filtros de empleados por proyecto, Gantt
+- `useCallback` para handlers: `handleCellChange`, `handleCopyWeek`, `handleConfirmDelete`, `handleRegistrosProyectoChange`, `handleTimesheetProyectoChange`
+- Mutaciones: `createEntry`, `deleteEntry`, `copiarRegistros`
+
+**Alternativas consideradas:**
+- Context API — descartado: overhead innecesario para estado local a una página
+- Zustand/Redux — descartado: overkill para estado de una sola ruta
+- Mantener en el componente — descartado: viola SRP y mantiene la complejidad cognitiva alta
+
+#### Implementación
+- Creado: `frontend/src/hooks/timetracking/use-timetracking-page-state.ts`
+- Modificado: `frontend/src/app/(dashboard)/timetracking/page.tsx` — usa `const state = useTimetrackingPageState()`
+- Añadidos imports de tipo explícitos en `page.tsx`: `Proyecto`, `TimeEntry`, `User` (fix TS7006)
+
+#### Consecuencias
+- ✅ Complejidad cognitiva de `TimetrackingPage` reducida significativamente
+- ✅ SonarQube issue de cognitive complexity resuelto
+- ✅ Hook testeable de forma independiente del componente visual
+- ✅ `page.tsx` queda como capa de presentación pura (SRP)
+- ✅ Errores TypeScript `implicit any` en callbacks `.map()` resueltos
+
+---
+
 ## ADR-119: Skill rule-boy-scout — Protocolo de Diagnósticos VS Code
 
 **Fecha:** 2026-02-22
@@ -1569,6 +1610,9 @@ Modularizar las reglas en skills independientes bajo `.agents/skills/<nombre>/SK
 - 9 skills operativas bajo `.agents/skills/`
 - Subdirectory context files para frontend y backend (PR #141)
 - Skill `rule-boy-scout` activa: protocolo de diagnósticos VS Code en cada edición (PR #144)
+
+#### Refactors de Calidad
+- `useTimetrackingPageState` hook extraído de `TimetrackingPage` — SRP + complejidad cognitiva reducida (ADR-120, PR #145)
 
 #### Próximos Pasos
 - Mergear develop → release/1.7.0 → main

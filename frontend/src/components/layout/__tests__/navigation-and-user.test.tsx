@@ -62,7 +62,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('next/image', () => ({
-  default: ({ alt }: { alt: string }) => <img alt={alt} />,
+  default: ({ alt }: { alt: string }) => <span>{alt}</span>,
 }));
 
 vi.mock('@/hooks/use-auth', () => ({

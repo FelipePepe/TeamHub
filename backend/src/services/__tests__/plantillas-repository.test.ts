@@ -192,7 +192,7 @@ describe('plantillas-repository', () => {
       const created = { id: 'pl2', ...payload };
       setupInsertChain([created]);
 
-      const result = await createPlantilla(payload as any);
+      const result = await createPlantilla(payload as Parameters<typeof createPlantilla>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -206,7 +206,7 @@ describe('plantillas-repository', () => {
       const updated = { id: 'pl1', nombre: 'Updated Plantilla' };
       setupUpdateChain([updated]);
 
-      const result = await updatePlantillaById('pl1', payload as any);
+      const result = await updatePlantillaById('pl1', payload as Parameters<typeof updatePlantillaById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();
@@ -256,7 +256,7 @@ describe('plantillas-repository', () => {
       const created = { id: 't3', ...payload };
       setupInsertChain([created]);
 
-      const result = await createTareaPlantilla(payload as any);
+      const result = await createTareaPlantilla(payload as Parameters<typeof createTareaPlantilla>[0]);
 
       expect(result).toEqual(created);
       expect(mockInsert).toHaveBeenCalled();
@@ -270,7 +270,7 @@ describe('plantillas-repository', () => {
       const updated = { id: 't1', titulo: 'Updated Task' };
       setupUpdateChain([updated]);
 
-      const result = await updateTareaPlantillaById('t1', payload as any);
+      const result = await updateTareaPlantillaById('t1', payload as Parameters<typeof updateTareaPlantillaById>[1]);
 
       expect(result).toEqual(updated);
       expect(mockUpdate).toHaveBeenCalled();

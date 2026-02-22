@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import type { Context } from 'hono';
 
 // Import directly since rate-limit.ts doesn't import config at module level
 import { createRateLimiter, getRateLimitIp } from '../rate-limit.js';
@@ -29,7 +30,7 @@ const createMockContext = (overrides: Record<string, unknown> = {}) => {
     _headers: headers,
     _resHeaders: resHeaders,
     _variables: variables,
-  } as any;
+  } as unknown as Context;
 };
 
 describe('createRateLimiter', () => {
@@ -101,7 +102,7 @@ describe('createRateLimiter', () => {
     await limiter(c, next);
 
     expect(c._resHeaders.get('Retry-After')).toBeDefined();
-    expect(parseInt(c._resHeaders.get('Retry-After')!, 10)).toBeGreaterThan(0);
+    expect(Number.parseInt(c._resHeaders.get('Retry-After')!, 10)).toBeGreaterThan(0);
   });
 
   it('sets X-RateLimit-* headers on successful response', async () => {
@@ -244,7 +245,7 @@ describe('createRateLimiter', () => {
     const limiter = createRateLimiter({
       windowMs: 60_000,
       max: 100,
-      keyGenerator: (c) => (c.req as any)._ip,
+      keyGenerator: (c) => (c.req as unknown as Record<string, unknown>)._ip as string,
       maxEntries: 2,
     });
 
@@ -252,16 +253,16 @@ describe('createRateLimiter', () => {
 
     // Fill up entries with different keys
     const c1 = createMockContext();
-    (c1.req as any)._ip = 'ip-1';
-    await limiter({ ...c1, req: { ...c1.req } } as any, next);
+    (c1.req as unknown as Record<string, string | undefined>)._ip = 'ip-1';
+    await limiter({ ...c1, req: { ...c1.req } } as unknown as Context, next);
 
     const c2 = createMockContext();
-    (c2.req as any)._ip = 'ip-2';
+    (c2.req as unknown as Record<string, string | undefined>)._ip = 'ip-2';
     await limiter(c2, next);
 
     // Third unique key should get 503
     const c3 = createMockContext();
-    (c3.req as any)._ip = 'ip-3';
+    (c3.req as unknown as Record<string, string | undefined>)._ip = 'ip-3';
     await limiter(c3, next);
 
     expect(c3.json).toHaveBeenCalledWith(

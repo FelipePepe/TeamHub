@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Context } from 'hono';
+import type { StatusCode } from 'hono/utils/http-status';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
 
@@ -38,7 +40,7 @@ const createMockContext = (overrides: Record<string, unknown> = {}) => {
     _headers: headers,
     _resHeaders: resHeaders,
     _variables: variables,
-  } as any;
+  } as unknown as Context;
 };
 
 describe('errorHandler', () => {
@@ -173,7 +175,7 @@ describe('errorHandler', () => {
 
   it('returns ERROR_HTTP for unrecognized HTTPException status', () => {
     const c = createMockContext();
-    const err = new HTTPException(418 as any, { message: 'Teapot' });
+    const err = new HTTPException(418 as unknown as StatusCode, { message: 'Teapot' });
 
     errorHandler(err, c);
 

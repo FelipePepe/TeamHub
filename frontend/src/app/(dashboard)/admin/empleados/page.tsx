@@ -34,9 +34,6 @@ import type { EmpleadoFilters, User } from '@/types';
 const FILTRO_TODOS_VALUE = '__todos__';
 const LOADING_EMPLEADO_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
 
-const FILTRO_TODOS_VALUE = '__todos__';
-const LOADING_EMPLEADO_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
-
 /**
  * Página de listado de empleados para administradores y RRHH
  * Permite ver, filtrar, buscar y gestionar empleados

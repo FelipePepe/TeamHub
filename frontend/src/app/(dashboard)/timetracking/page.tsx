@@ -89,23 +89,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 // Page component
 // ---------------------------------------------------------------------------
 
-const PROYECTO_PLACEHOLDER_VALUE = '__seleccionar__';
-const LOADING_REGISTROS_KEYS = ['loading-1', 'loading-2', 'loading-3', 'loading-4', 'loading-5'] as const;
-
-/**
- * Extrae un mensaje de error de API sin type assertions.
- */
-function getApiErrorMessage(error: unknown, fallback: string): string {
-  if (error && typeof error === 'object' && 'error' in error) {
-    const maybeError = error.error;
-    if (typeof maybeError === 'string' && maybeError.length > 0) {
-      return maybeError;
-    }
-  }
-
-  return fallback;
-}
-
 export default function TimetrackingPage() {
   const router = useRouter();
   const state = useTimetrackingPageState();

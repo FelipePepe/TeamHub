@@ -128,8 +128,8 @@ Ver detalles completos en [docs/features.md](docs/features.md) y [docs/releases.
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/[usuario]/teamhub.git
-cd teamhub
+git clone https://github.com/FelipePepe/TeamHub.git
+cd TeamHub
 
 # Configurar variables de entorno
 cp backend/.env.example backend/.env

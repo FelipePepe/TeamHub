@@ -12,6 +12,11 @@
 
 ---
 
+> 🔑 **Nota:** La clave de acceso a la aplicación se encuentra en el repositorio privado del proyecto:
+> [**FelipePepe/TeamHub-private**](https://github.com/FelipePepe/TeamHub-private)
+
+---
+
 ## Tabla de Contenidos
 
 - [Descripción General](#descripción-general)

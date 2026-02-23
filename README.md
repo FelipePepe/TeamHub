@@ -12,6 +12,11 @@
 
 ---
 
+> 🔑 **Nota:** La clave de acceso a la aplicación se encuentra en el repositorio privado del proyecto:
+> [**FelipePepe/teamhub-setup**](https://github.com/FelipePepe/teamhub-setup)
+
+---
+
 ## Tabla de Contenidos
 
 - [Descripción General](#descripción-general)

@@ -13,13 +13,16 @@ export const COOKIE_CSRF_TOKEN = 'csrf_token';
 /**
  * Opciones de cookies seguras para producción
  */
-const getCookieOptions = (maxAge?: number) => ({
-  httpOnly: true,
-  secure: config.NODE_ENV === 'production',
-  sameSite: 'Strict' as const,
-  path: '/',
-  maxAge,
-});
+const getCookieOptions = (maxAge?: number) => {
+  const isProduction = config.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'None' as const : 'Strict' as const,
+    path: '/',
+    maxAge,
+  };
+};
 
 /**
  * Establece tokens de autenticación como cookies httpOnly seguras.
@@ -65,10 +68,11 @@ export const clearAuthCookies = (c: Context): void => {
 export const setCsrfToken = (c: Context): string => {
   const csrfToken = randomBytes(32).toString('hex');
   
+  const isProduction = config.NODE_ENV === 'production';
   setCookie(c, COOKIE_CSRF_TOKEN, csrfToken, {
     httpOnly: false, // CSRF token debe ser accesible por JS
-    secure: config.NODE_ENV === 'production',
-    sameSite: 'Strict' as const,
+    secure: isProduction,
+    sameSite: isProduction ? 'None' as const : 'Strict' as const,
     path: '/',
     maxAge: 15 * 60, // 15 minutos
   });

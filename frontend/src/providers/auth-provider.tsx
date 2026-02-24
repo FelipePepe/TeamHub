@@ -77,12 +77,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Check for existing session on mount
   useEffect(() => {
     const initAuth = async () => {
-      if (authLib.hasStoredTokens()) {
-        try {
-          await refreshUser();
-        } catch {
-          // Token invalid, already cleared in refreshUser
-        }
+      try {
+        await refreshUser();
+      } catch {
+        // No active session or token invalid
       }
       setIsLoading(false);
     };

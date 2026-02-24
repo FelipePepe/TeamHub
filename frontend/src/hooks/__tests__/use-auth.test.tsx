@@ -49,8 +49,9 @@ describe('useAuth', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Por defecto, no hay tokens almacenados
+    // Por defecto, no hay sesión activa (getMe falla sin cookies)
     authLibMocks.hasStoredTokens.mockReturnValue(false);
+    authLibMocks.getMe.mockRejectedValue(new Error('No autorizado'));
   });
 
   // ============================================================================

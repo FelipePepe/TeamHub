@@ -29,6 +29,14 @@ UserResponse:
       description: Nombre del manager (campo derivado para facilitar UI).
     activo:
       type: boolean
+    createdAt:
+      type: string
+      format: date-time
+      description: Fecha/hora de creación del usuario.
+    updatedAt:
+      type: string
+      format: date-time
+      description: Fecha/hora de última actualización del usuario.
 
 UserListMeta:
   type: object

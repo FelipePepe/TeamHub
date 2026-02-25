@@ -267,6 +267,16 @@ describe('toUserResponse', () => {
     const result2 = toUserResponse({ ...withoutActivo, deletedAt: new Date() });
     expect(result2.activo).toBe(false);
   });
+
+  it('maps createdAt and updatedAt when present', () => {
+    const result = toUserResponse({
+      ...baseUser,
+      createdAt: '2026-02-21T15:23:52.016Z',
+      updatedAt: '2026-02-21T15:23:52.016Z',
+    });
+    expect(result.createdAt).toBe('2026-02-21T15:23:52.016Z');
+    expect(result.updatedAt).toBe('2026-02-21T15:23:52.016Z');
+  });
 });
 
 describe('toDepartamentoResponse', () => {

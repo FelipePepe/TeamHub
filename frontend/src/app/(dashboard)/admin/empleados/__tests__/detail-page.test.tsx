@@ -175,6 +175,20 @@ describe('EmpleadoDetailPage', () => {
       const sinAsignar = screen.getAllByText('Sin asignar');
       expect(sinAsignar.length).toBe(2);
     });
+
+    it('muestra "No disponible" para fechas inválidas o ausentes', () => {
+      empleadosMocks.data = {
+        ...mockEmpleado,
+        fechaNacimiento: 'fecha-invalida',
+        createdAt: undefined,
+        updatedAt: undefined,
+      };
+
+      render(<EmpleadoDetailContent empleadoId="emp-123" />);
+
+      const noDisponible = screen.getAllByText('No disponible');
+      expect(noDisponible.length).toBe(3);
+    });
   });
 
   describe('Acciones', () => {

@@ -1,6 +1,7 @@
 import type { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { and, eq, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import type { HonoEnv } from '../../types/hono.js';
 import { authMiddleware, requireRoles } from '../../middleware/auth.js';
 import { parseJson, parseParams, parseQuery } from '../../validators/parse.js';
@@ -28,6 +29,7 @@ import {
 
 export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
   router.use('*', authMiddleware);
+  const managerUsers = alias(users, 'manager_users');
 
   router.get('/', async (c) => {
     const query = parseQuery(c, listQuerySchema);
@@ -50,18 +52,28 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       .select({
         user: users,
         departamentoNombre: departamentos.nombre,
+        managerNombre: managerUsers.nombre,
+        managerApellidos: managerUsers.apellidos,
       })
       .from(users)
-      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id));
+      .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+      .leftJoin(managerUsers, eq(users.managerId, managerUsers.id));
     const queryWithWhere = whereClause ? baseQuery.where(whereClause) : baseQuery;
     const rows = await queryWithWhere.limit(limit).offset((page - 1) * limit);
 
     return c.json({
       data: rows.map((row) =>
-        toUserResponse({
-          ...row.user,
-          departamentoNombre: row.departamentoNombre,
-        })
+        {
+          const managerNombreCompleto = [row.managerNombre, row.managerApellidos]
+            .filter((part): part is string => Boolean(part))
+            .join(' ')
+            .trim();
+          return toUserResponse({
+            ...row.user,
+            departamentoNombre: row.departamentoNombre,
+            managerNombre: managerNombreCompleto || undefined,
+          });
+        }
       ),
       meta: {
         page,
@@ -109,19 +121,27 @@ export const registerUsuariosRoutes = (router: Hono<HonoEnv>) => {
       .select({
         user: users,
         departamentoNombre: departamentos.nombre,
+        managerNombre: managerUsers.nombre,
+        managerApellidos: managerUsers.apellidos,
       })
       .from(users)
       .leftJoin(departamentos, eq(users.departamentoId, departamentos.id))
+      .leftJoin(managerUsers, eq(users.managerId, managerUsers.id))
       .where(eq(users.id, id))
       .limit(1);
     const row = rows[0];
     if (!row) {
       throw new HTTPException(404, { message: 'No encontrado' });
     }
+    const managerNombreCompleto = [row.managerNombre, row.managerApellidos]
+      .filter((part): part is string => Boolean(part))
+      .join(' ')
+      .trim();
     return c.json(
       toUserResponse({
         ...row.user,
         departamentoNombre: row.departamentoNombre,
+        managerNombre: managerNombreCompleto || undefined,
       })
     );
   });

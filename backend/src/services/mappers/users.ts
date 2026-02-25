@@ -13,6 +13,8 @@ type UserResponseInput = {
   managerNombre?: string | null;
   activo?: boolean;
   deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 type DepartamentoResponseInput = {
@@ -39,6 +41,8 @@ export const toUserResponse = (user: UserResponseInput | User) => ({
   managerId: user.managerId ?? undefined,
   managerNombre: 'managerNombre' in user ? user.managerNombre ?? undefined : undefined,
   activo: resolveActiveState(user),
+  createdAt: 'createdAt' in user ? user.createdAt : undefined,
+  updatedAt: 'updatedAt' in user ? user.updatedAt : undefined,
 });
 
 export const toDepartamentoResponse = (

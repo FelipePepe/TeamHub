@@ -22,6 +22,27 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const EMPTY_DATE_LABEL = 'No disponible';
+
+/**
+ * Formatea una fecha para visualización y devuelve un fallback si es inválida.
+ *
+ * @param dateValue - Fecha en string (ISO u otro formato parseable)
+ * @returns Fecha formateada para UI o "No disponible" cuando no se puede parsear
+ */
+function formatEmpleadoDate(dateValue?: string): string {
+  if (!dateValue) {
+    return EMPTY_DATE_LABEL;
+  }
+
+  const parsedDate = new Date(dateValue);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return EMPTY_DATE_LABEL;
+  }
+
+  return format(parsedDate, 'PPP', { locale: es });
+}
+
 /**
  * Componente interno que muestra el detalle del empleado
  * Separado para facilitar testing
@@ -172,7 +193,7 @@ export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: str
                 <div>
                   <p className="text-sm text-muted-foreground">Fecha de Nacimiento</p>
                   <p className="text-base text-foreground">
-                    {format(new Date(empleado.fechaNacimiento), 'PPP', { locale: es })}
+                    {formatEmpleadoDate(empleado.fechaNacimiento)}
                   </p>
                 </div>
               </div>
@@ -225,7 +246,7 @@ export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: str
             <div>
               <p className="text-sm text-muted-foreground">Fecha de registro</p>
               <p className="text-base text-foreground">
-                {format(new Date(empleado.createdAt!), 'PPP', { locale: es })}
+                {formatEmpleadoDate(empleado.createdAt)}
               </p>
             </div>
 
@@ -233,7 +254,7 @@ export function EmpleadoDetailContent({ empleadoId }: Readonly<{ empleadoId: str
             <div>
               <p className="text-sm text-muted-foreground">Última actualización</p>
               <p className="text-base text-foreground">
-                {format(new Date(empleado.updatedAt!), 'PPP', { locale: es })}
+                {formatEmpleadoDate(empleado.updatedAt)}
               </p>
             </div>
           </CardContent>

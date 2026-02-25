@@ -105,4 +105,51 @@ describe('usuarios routes', () => {
     const duplicateBody = await duplicateResponse.json();
     expect(duplicateBody).toMatchObject({ error: 'El email ya existe' });
   });
+
+  it('returns managerNombre and timestamps in user detail', async () => {
+    const { cookies } = await loginAsAdmin();
+
+    const createManagerResponse = await app.request('/api/usuarios', {
+      method: 'POST',
+      headers: authHeaders(cookies, 'POST', '/api/usuarios'),
+      body: JSON.stringify({
+        email: 'manager@example.com',
+        password: TEST_USER_PASSWORD,
+        nombre: 'Laura',
+        apellidos: 'Gomez',
+        rol: 'MANAGER',
+      }),
+    });
+    expect(createManagerResponse.status).toBe(201);
+    const createdManager = await createManagerResponse.json();
+
+    const createEmpleadoResponse = await app.request('/api/usuarios', {
+      method: 'POST',
+      headers: authHeaders(cookies, 'POST', '/api/usuarios'),
+      body: JSON.stringify({
+        email: 'empleado@example.com',
+        password: TEST_USER_PASSWORD,
+        nombre: 'Mario',
+        apellidos: 'Lopez',
+        rol: 'EMPLEADO',
+        managerId: createdManager.id,
+      }),
+    });
+    expect(createEmpleadoResponse.status).toBe(201);
+    const createdEmpleado = await createEmpleadoResponse.json();
+
+    const detailPath = `/api/usuarios/${createdEmpleado.id}`;
+    const detailResponse = await app.request(detailPath, {
+      headers: authHeaders(cookies, 'GET', detailPath),
+    });
+    expect(detailResponse.status).toBe(200);
+    const detail = await detailResponse.json();
+
+    expect(detail.managerId).toBe(createdManager.id);
+    expect(detail.managerNombre).toBe('LAURA GOMEZ');
+    expect(detail.createdAt).toBeTruthy();
+    expect(detail.updatedAt).toBeTruthy();
+    expect(Number.isNaN(Date.parse(detail.createdAt))).toBe(false);
+    expect(Number.isNaN(Date.parse(detail.updatedAt))).toBe(false);
+  });
 });

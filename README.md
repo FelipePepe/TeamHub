@@ -77,7 +77,7 @@ TeamHub centraliza toda esta información proporcionando **visibilidad en tiempo
 
 ## 📊 Estado del Proyecto
 
-> **Última actualización:** 21 de febrero de 2026 | **Versión:** v1.7.0
+> **Última actualización:** 20 de marzo de 2026 | **Versión:** v1.7.2
 
 ### ✅ Progreso General: 100%
 

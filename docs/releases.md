@@ -6,6 +6,50 @@ Para ver el historial completo de decisiones arquitecturales, consultar [docs/de
 
 ---
 
+## v1.7.2 - Security Fixes + First-Time Experience (2026-03-20)
+
+**10 vulnerabilidades altas resueltas + guía de primera experiencia en README**
+
+### 🔒 Security
+- ✅ **Backend — 5 vulnerabilidades altas resueltas** (`npm audit fix`)
+  - `@hono/node-server`: authorization bypass via encoded slashes (GHSA-wc8c-qw6v-h7f6)
+  - `flatted`: DoS por recursión ilimitada + Prototype Pollution (GHSA-25h7-pfq9-p65f, GHSA-rf6f-7fwh-wjgh)
+  - `hono`: auth bypass IP spoofing, cookie injection, SSE injection, file access, prototype pollution
+  - `minimatch`: ReDoS via combinatorial backtracking (GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74)
+  - `rollup`: Arbitrary File Write via Path Traversal (GHSA-mw96-cpmx-2vgc)
+- ✅ **Frontend — 5 vulnerabilidades altas resueltas** (`npm audit fix`)
+
+### 📖 Docs
+- ✅ **README — sección "🎯 Pruébalo en 2 minutos"** (PR #158)
+  - URL directa a producción visible desde la primera pantalla del repositorio
+  - Tabla de roles con ruta guiada (RRHH, MANAGER, EMPLEADO, ADMIN)
+  - Ruta recomendada para evaluadores: RRHH → EMPLEADO
+
+### 📊 Métricas
+- Tests: **1,047 pasando** (664 backend + 383 frontend)
+- Coverage: Backend ≥81%, Frontend ≥90%
+- SonarQube: 0 bugs, 0 vulnerabilities, 0 hotspots
+- Vulnerabilidades npm: **0** (backend + frontend)
+
+### 🔗 Referencias
+- Branch: `feature/improve-first-time-experience` (PR #158)
+- ADR-121
+
+---
+
+## v1.7.1 - Hotfix Dashboard KPI + Dark Mode (2026-02-22)
+
+**Fixes urgentes de producción**
+
+### 🎯 Fixes
+- ✅ Fix Dashboard KPI tareas vencidas
+- ✅ Dark mode corrections
+
+### 📊 Métricas
+- Tests: 1,046 pasando (663 backend + 383 frontend)
+
+---
+
 ## v1.7.0 - Proyectos Multi-departamento + Bugfixes (2026-02-21)
 
 **N:M Proyectos ↔ Departamentos, filtro de empleados, fixes de calidad**

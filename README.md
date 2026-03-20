@@ -12,13 +12,31 @@
 
 ---
 
-> 🔑 **Nota:** La clave de acceso a la aplicación se encuentra en el repositorio privado del proyecto:
-> [**FelipePepe/teamhub-setup**](https://github.com/FelipePepe/teamhub-setup)
+## 🎯 Pruébalo en 2 minutos
+
+Sin instalar nada. La app está desplegada en producción.
+
+**→ [teamhub-tfm.vercel.app](https://teamhub-tfm.vercel.app)**
+
+Las credenciales de demo están en: [**FelipePepe/teamhub-setup**](https://github.com/FelipePepe/teamhub-setup) *(repo privado del evaluador)*.
+
+**Elige el rol que quieres explorar:**
+
+| Rol | Qué verás en 2 minutos |
+|-----|------------------------|
+| **RRHH** | Dashboard con KPIs → *Onboarding* → iniciar proceso para un empleado y ver su progreso en tiempo real |
+| **MANAGER** | Dashboard con carga del equipo → *Proyectos* → asignar empleado respetando el límite del 100% de dedicación |
+| **EMPLEADO** | Widget *Mi Onboarding* en el dashboard → completar una tarea → registrar horas en *Timetracking* |
+| **ADMIN** | Vista global de usuarios, roles, actividad reciente y métricas del sistema |
+
+> 💡 **Ruta recomendada:** empieza como **RRHH** — crea una plantilla de onboarding, inicia un proceso y observa cómo avanzan las tareas. Luego cambia a **EMPLEADO** para ver el mismo proceso desde el otro lado.
+
 
 ---
 
 ## Tabla de Contenidos
 
+- [Pruébalo en 2 minutos](#-pruébalo-en-2-minutos)
 - [Descripción General](#descripción-general)
 - [Estado del Proyecto](#-estado-del-proyecto)
 - [Quick Start](#-quick-start)
@@ -60,7 +78,7 @@ TeamHub centraliza toda esta información proporcionando **visibilidad en tiempo
 
 ## 📊 Estado del Proyecto
 
-> **Última actualización:** 21 de febrero de 2026 | **Versión:** v1.7.0
+> **Última actualización:** 20 de marzo de 2026 | **Versión:** v1.7.2
 
 ### ✅ Progreso General: 100%
 

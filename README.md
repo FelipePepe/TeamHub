@@ -31,6 +31,7 @@ Las credenciales de demo están en: [**FelipePepe/teamhub-setup**](https://githu
 
 > 💡 **Ruta recomendada:** empieza como **RRHH** — crea una plantilla de onboarding, inicia un proceso y observa cómo avanzan las tareas. Luego cambia a **EMPLEADO** para ver el mismo proceso desde el otro lado.
 
+
 ---
 
 ## Tabla de Contenidos
@@ -77,7 +78,7 @@ TeamHub centraliza toda esta información proporcionando **visibilidad en tiempo
 
 ## 📊 Estado del Proyecto
 
-> **Última actualización:** 21 de febrero de 2026 | **Versión:** v1.7.0
+> **Última actualización:** 20 de marzo de 2026 | **Versión:** v1.7.2
 
 ### ✅ Progreso General: 100%
 
@@ -145,8 +146,8 @@ Ver detalles completos en [docs/features.md](docs/features.md) y [docs/releases.
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/[usuario]/teamhub.git
-cd teamhub
+git clone https://github.com/FelipePepe/TeamHub.git
+cd TeamHub
 
 # Configurar variables de entorno
 cp backend/.env.example backend/.env
@@ -304,7 +305,7 @@ Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## Autor
 
-**Felipe García Martínez**
+**Felipe Jose Perez Gomez**
 
 Trabajo de Fin de Máster - Máster en Desarrollo con IA  
 BIG School  
@@ -319,7 +320,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para
 ```
 MIT License
 
-Copyright (c) 2026 Felipe García Martínez
+Copyright (c) 2026 FelipePepe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

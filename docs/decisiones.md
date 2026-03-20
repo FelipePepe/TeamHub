@@ -21,10 +21,11 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 ---
 
-## 🆕 ADRs Recientes (2026-02)
+## 🆕 ADRs Recientes (2026-03)
 
 | ADR | Fecha | Título | Estado |
 |-----|-------|--------|--------|
+| [ADR-121](decisiones/04-progreso-releases-cobertura.md#adr-121) | 2026-03-20 | Security Fixes + First-Time Experience README (v1.7.2) | ✅ Implementado |
 | [ADR-120](decisiones/04-progreso-releases-cobertura.md#adr-120) | 2026-02-22 | Refactor TimetrackingPage — Extracción de Estado a Custom Hook | ✅ Implementado |
 | [ADR-119](decisiones/04-progreso-releases-cobertura.md#adr-119) | 2026-02-22 | Skill rule-boy-scout — Protocolo de Diagnósticos VS Code | ✅ Implementado |
 | [ADR-118](decisiones/04-progreso-releases-cobertura.md#adr-118) | 2026-02-22 | Fix Completo de Lint Warnings — 0 errores / 0 warnings | ✅ Implementado |
@@ -42,7 +43,7 @@ Este archivo es el **punto de entrada** para navegar las decisiones arquitectura
 
 ## 📊 Estado Actual del Proyecto
 
-> **Versión:** v1.7.0 | **Fecha:** 22 de febrero de 2026
+> **Versión:** v1.7.2 | **Fecha:** 20 de marzo de 2026
 
 | Componente | Tests | Cobertura |
 |------------|-------|-----------|

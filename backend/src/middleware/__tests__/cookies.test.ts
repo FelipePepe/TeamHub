@@ -118,15 +118,15 @@ describe('setAuthCookies', () => {
     );
   });
 
-  it('uses secure cookies in production', () => {
+  it('uses secure cookies with SameSite=None in production', () => {
     mockConfig.NODE_ENV = 'production';
     const c = createMockContext();
 
     setAuthCookies(c, 'access-jwt', 'refresh-jwt');
 
-    // All setCookie calls should have secure: true
+    // All setCookie calls should have secure: true and sameSite: 'None' for cross-origin
     for (const call of mockSetCookie.mock.calls) {
-      expect(call[3]).toMatchObject({ secure: true });
+      expect(call[3]).toMatchObject({ secure: true, sameSite: 'None' });
     }
   });
 
@@ -199,7 +199,7 @@ describe('setCsrfToken', () => {
     expect(result).toBe('a'.repeat(64));
   });
 
-  it('uses secure: true in production', () => {
+  it('uses secure: true and SameSite=None in production', () => {
     mockConfig.NODE_ENV = 'production';
     const c = createMockContext();
 
@@ -209,7 +209,7 @@ describe('setCsrfToken', () => {
       c,
       'csrf_token',
       expect.any(String),
-      expect.objectContaining({ secure: true }),
+      expect.objectContaining({ secure: true, sameSite: 'None' }),
     );
   });
 
